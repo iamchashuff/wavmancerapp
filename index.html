@@ -234,10 +234,10 @@ function openP(pid){
 function loadView(pid){
   VO=true;TAB='overview';OC={};stopL();
   setA(`<div class="loading"><div class="loading-w">W</div><div class="loading-t">Loading...</div></div>`);
+  logView(pid);
   PL=db.collection('projects').doc(pid).onSnapshot(snap=>{
     if(!snap.data()){setA(`<div class="loading"><div class="loading-t">Project not found.</div></div>`);return;}
     CP={id:snap.id,...snap.data()};
-    logView(pid);
     rP();
   },err=>{
     setA(`<div class="loading"><div class="loading-t" style="color:#e07070">Error loading project: ${err.message}</div></div>`);
