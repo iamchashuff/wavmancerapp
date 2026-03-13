@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Wavmancer">
+<meta name="theme-color" content="#0a0a0c">
+<title>Wavmancer</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+<style>
+:root{--acc:#c9383a;--bg:#0a0a0c;--text:#e8e6e0;--surf:#111114;--surf2:#18181d;--bord:#2a2a33;--muted:#6b6970}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;overflow-x:hidden}
+#app{min-height:100vh}
+.field{width:100%;background:var(--surf2);border:1px solid var(--bord);border-radius:6px;padding:11px 12px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);outline:none;margin-bottom:10px;-webkit-appearance:none;transition:border-color 0.2s}
+.field:focus{border-color:var(--acc)}
+.field::placeholder{color:var(--muted)}
+textarea.field{resize:vertical}
+.btn-p{width:100%;padding:12px;background:var(--acc);color:#fff;border:none;border-radius:6px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.btn-p:active{opacity:.8}
+.btn-p:disabled{opacity:.5}
+.btn-o{background:none;border:1px solid var(--acc);color:var(--acc);border-radius:6px;padding:10px 14px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;width:100%;margin-top:8px}
+.btn-g{background:none;border:none;color:var(--muted);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;padding:10px}
+.btn-s{padding:7px 12px;border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;border:none;background:var(--acc);color:#fff}
+.btn-s.o{background:none;border:1px solid var(--bord);color:var(--muted)}
+.btn-s.d{background:#2e0d0d;color:#e07070}
+.btn-google{width:100%;padding:11px;background:var(--surf2);border:1px solid var(--bord);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px}
+.iBtn{background:none;border:none;font-size:20px;cursor:pointer;padding:8px;color:var(--muted);line-height:1}
+.err{font-size:11px;color:#e07070;background:#2e0d0d;border-radius:4px;padding:8px 10px;margin-bottom:10px;display:none}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:12px}
+.loading-w{font-family:'Bebas Neue',sans-serif;font-size:60px;color:var(--acc);animation:pulse 1.4s ease infinite}
+.loading-t{font-size:11px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase}
+.empty{color:var(--muted);font-size:12px;padding:20px 0;text-align:center}
+.card{background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:14px;margin-bottom:10px}
+.slabel{font-size:10px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bord)}
+.flabel{font-size:10px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px}
+.ptab{flex:1;padding:11px 6px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+.ptab.on{color:var(--acc);border-bottom-color:var(--acc)}
+.scard{background:var(--surf);border:1px solid var(--bord);border-radius:8px;margin-bottom:10px;overflow:hidden}
+.sheader{display:flex;align-items:center;padding:13px 13px 11px;gap:10px;cursor:pointer;user-select:none;-webkit-user-select:none}
+.badge{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:2px}
+.trow{display:flex;align-items:flex-start;gap:8px;padding:9px 10px;background:var(--surf2);border-radius:4px;margin-bottom:6px;min-height:42px}
+.tcheck{width:17px;height:17px;border:1px solid var(--bord);border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.tcheck.on{background:#4caf82;border-color:#4caf82}
+#modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+#modal-box{background:var(--surf);border:1px solid var(--bord);border-radius:16px 16px 0 0;padding:24px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;animation:slideUp .2s ease}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.05em;margin-bottom:16px}
+.mactions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading"><div class="loading-w">W</div><div class="loading-t">Wavmancer</div></div></div>
+<div id="modal-ov" onclick="if(event.target===this)CM()"><div id="modal-box"></div></div>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyC6yanZh8cHOBC9NgXsW93ft3x7pqW9pYQ",
+  authDomain:"wavmancer-899fa.firebaseapp.com",
+  projectId:"wavmancer-899fa",
+  storageBucket:"wavmancer-899fa.firebasestorage.app",
+  messagingSenderId:"311113252923",
+  appId:"1:311113252923:web:c8a96080700d3829745c1e"
+});
+const auth=firebase.auth(),db=firebase.firestore(),stor=firebase.storage();
+let CU=null,CP=null,CID=null,PL=null,VO=false,TAB='overview',OC={};
+
+auth.onAuthStateChanged(u=>{CU=u;route();});
+function route(){
+  const h=location.hash;
+  if(h.startsWith('#/view/'))loadView(h.replace('#/view/',''));
+  else if(h.startsWith('#/project/') && CU)openP(h.replace('#/project/',''));
+  else if(CU)dash();
+  else authScreen();
+}
+window.addEventListener('hashchange',route);
+
+/* ── AUTH ── */
+function authScreen(){
+  let mode='login';
+  setA(`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:linear-gradient(160deg,#1a0808,#0a0a0c 50%,#0a0a14)">
+  <div style="text-align:center;margin-bottom:28px">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:64px;color:var(--acc);line-height:1">W</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:.1em">Wavmancer</div>
+    <div style="font-size:10px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-top:4px">Music Production Tracker</div>
+  </div>
+  <div style="background:var(--surf);border:1px solid var(--bord);border-radius:12px;padding:22px;width:100%;max-width:380px">
+    <div style="display:flex;margin-bottom:16px;border-bottom:1px solid var(--bord)">
+      <button id="tl" style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid var(--acc);color:var(--acc);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer" onclick="setMode('login')">Sign In</button>
+      <button id="ts" style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer" onclick="setMode('signup')">Sign Up</button>
+    </div>
+    <div id="nrow" style="display:none"><input class="field" id="aname" placeholder="Your name" autocomplete="name"></div>
+    <input class="field" id="aemail" type="email" placeholder="Email address" autocomplete="email">
+    <input class="field" id="apass" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doA()">
+    <div class="err" id="aerr"></div>
+    <button class="btn-p" id="abtn" onclick="doA()">Sign In</button>
+    <div style="text-align:center;font-size:10px;color:var(--muted);margin:12px 0">or</div>
+    <button class="btn-google" onclick="gAuth()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.8 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.8 6C12.2 13.2 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17z"/><path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.9-4.7l-7.8-6A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.4 0-11.8-3.7-13.6-9.2l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>
+      Continue with Google
+    </button>
+  </div></div>`);
+
+  window.setMode=m=>{
+    mode=m;
+    document.getElementById('tl').style.cssText=`flex:1;padding:10px;background:none;border:none;border-bottom:2px solid ${m==='login'?'var(--acc)':'transparent'};color:${m==='login'?'var(--acc)':'var(--muted)'};font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer`;
+    document.getElementById('ts').style.cssText=`flex:1;padding:10px;background:none;border:none;border-bottom:2px solid ${m==='signup'?'var(--acc)':'transparent'};color:${m==='signup'?'var(--acc)':'var(--muted)'};font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer`;
+    document.getElementById('nrow').style.display=m==='signup'?'block':'none';
+    document.getElementById('abtn').textContent=m==='signup'?'Create Account':'Sign In';
+    document.getElementById('apass').autocomplete=m==='signup'?'new-password':'current-password';
+  };
+  window.doA=async()=>{
+    const email=g('aemail'),pass=g('apass'),btn=document.getElementById('abtn'),err=document.getElementById('aerr');
+    err.style.display='none';
+    if(!email||!pass)return sErr('aerr','Enter email and password.');
+    btn.disabled=true;btn.textContent='...';
+    try{
+      if(mode==='signup'){
+        const name=g('aname');
+        const c=await auth.createUserWithEmailAndPassword(email,pass);
+        if(name)await c.user.updateProfile({displayName:name});
+      }else{await auth.signInWithEmailAndPassword(email,pass);}
+      dash();
+    }catch(e){sErr('aerr',fE(e.code));btn.disabled=false;btn.textContent=mode==='signup'?'Create Account':'Sign In';}
+  };
+  window.gAuth=async()=>{
+    try{await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());dash();}
+    catch(e){sErr('aerr',fE(e.code));}
+  };
+}
+
+/* ── DASH ── */
+async function dash(){
+  VO=false;location.hash='';stopL();CP=null;CID=null;
+  setA(`<div style="display:flex;align-items:center;justify-content:space-between;padding:36px 16px 16px;background:linear-gradient(180deg,#1a0808,var(--bg));border-bottom:1px solid var(--bord)">
+    <div style="min-width:0">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:.06em;line-height:1">Wavmancer</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${CU.displayName||CU.email}</div>
+    </div>
+    <button class="btn-s o" onclick="SO()">Sign Out</button>
+  </div>
+  <div style="padding:14px">
+    <button class="btn-p" onclick="newProjM()" style="margin-bottom:18px">+ New Project</button>
+    <div class="slabel">Your Projects</div>
+    <div id="plist"><div class="empty">Loading...</div></div>
+  </div>`);
+  try{
+    const snap=await db.collection('projects').get();
+    const el=document.getElementById('plist');if(!el)return;
+    const ps=[];snap.forEach(d=>{const data=d.data();if(data.ownerId===CU.uid)ps.push({id:d.id,...data});});
+    if(!ps.length){el.innerHTML='<div class="empty">No projects yet — create your first!</div>';return;}
+    ps.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    el.innerHTML=ps.map(p=>{
+      const acc=p.theme?.accent||'#c9383a';
+      const s=p.songs||[];
+      const dn=s.filter(x=>(x.tasks||[]).every(t=>t.done)).length;
+      const pct=s.length?Math.round(dn/s.length*100):0;
+      return `<div onclick="openP('${p.id}')" style="background:var(--surf);border:1px solid var(--bord);border-left:3px solid ${acc};border-radius:8px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 14px">
+        ${p.coverUrl?`<img src="${p.coverUrl}" style="width:52px;height:52px;border-radius:6px;object-fit:cover;flex-shrink:0">`:`<div style="width:52px;height:52px;border-radius:6px;background:${acc}22;border:1px solid ${acc}44;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">♪</div>`}
+        <div style="flex:1;min-width:0">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;line-height:1;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title||'Untitled'}</div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${[p.artist,p.label].filter(Boolean).join(' · ')}</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="flex:1;height:3px;background:var(--surf2);border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${acc};border-radius:2px"></div></div>
+            <span style="font-size:9px;color:var(--muted)">${dn}/${s.length} · ${pct}%</span>
+          </div>
+        </div>
+        <div style="color:var(--muted);font-size:18px">›</div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    const el=document.getElementById('plist');
+    if(el)el.innerHTML=`<div class="empty" style="color:#e07070">Error loading. Check Firebase rules.<br><small>${e.message}</small></div>`;
+  }
+}
+
+function newProjM(){
+  SM(`<div class="modal-title">New Project</div>
+    <input class="field" id="nt" placeholder="EP / Album title" autofocus>
+    <input class="field" id="na" placeholder="Artist name">
+    <input class="field" id="nl" placeholder="Label (optional)">
+    <input class="field" id="nc" placeholder="Co-producer (optional)">
+    <div class="err" id="ne"></div>
+    <div class="mactions">
+      <button class="btn-g" onclick="CM()">Cancel</button>
+      <button class="btn-p" style="width:auto;padding:10px 20px" onclick="cProj()">Create</button>
+    </div>`);
+}
+async function cProj(){
+  const title=g('nt');if(!title)return sErr('ne','Enter a project title.');
+  try{
+    const id='p'+Date.now();
+    await db.collection('projects').doc(id).set({
+      title,artist:g('na'),label:g('nl'),coproducer:g('nc'),
+      ownerId:CU.uid,songs:[],focusDone:{},notes:'',coverUrl:null,
+      theme:{accent:'#c9383a',bg:'#0a0a0c',dark:true},
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    CM();openP(id);
+  }catch(e){sErr('ne','Error: '+e.message);}
+}
+
+/* ── PROJECT ── */
+function openP(pid){
+  VO=false;TAB='overview';OC={};CID=pid;
+  location.hash='#/project/'+pid;stopL();
+  setA(`<div class="loading"><div class="loading-w">W</div><div class="loading-t">Loading...</div></div>`);
+  PL=db.collection('projects').doc(pid).onSnapshot(snap=>{
+    if(!snap.data()){
+      setA(`<div class="loading"><div class="loading-t" style="color:#e07070">Project not found.<br><br><button class="btn-s o" onclick="dash()" style="margin-top:12px">← Back</button></div></div>`);
+      return;
+    }
+    CP={id:snap.id,...snap.data()};rP();
+  },err=>{
+    setA(`<div class="loading" style="padding:30px;text-align:center">
+      <div style="color:#e07070;font-size:12px;margin-bottom:16px">Error: ${err.message}</div>
+      <div style="color:var(--muted);font-size:11px;margin-bottom:20px">This is usually a Firestore rules issue.<br>Make sure your rules allow read access.</div>
+      <button class="btn-s o" onclick="dash()">← Back to Dashboard</button>
+    </div>`);
+  });
+}
+
+function loadView(pid){
+  VO=true;TAB='overview';OC={};stopL();
+  setA(`<div class="loading"><div class="loading-w">W</div><div class="loading-t">Loading...</div></div>`);
+  PL=db.collection('projects').doc(pid).onSnapshot(snap=>{
+    if(!snap.data()){setA(`<div class="loading"><div class="loading-t">Project not found.</div></div>`);return;}
+    CP={id:snap.id,...snap.data()};rP();
+  },err=>{
+    setA(`<div class="loading"><div class="loading-t" style="color:#e07070">Error loading project: ${err.message}</div></div>`);
+  });
+}
+
+function rP(){
+  const p=CP,th=p.theme||{accent:'#c9383a',bg:'#0a0a0c',dark:true};
+  const dark=th.dark!==false;
+  const text=dark?'#e8e6e0':'#1a1a1a';
+  const surf=dark?'#111114':'#f4f4f4';
+  const surf2=dark?'#18181d':'#e8e8e8';
+  const bord=dark?'#2a2a33':'#d0d0d8';
+  const muted=dark?'#6b6970':'#888';
+  const bg=th.bg||'#0a0a0c';
+  const acc=th.accent||'#c9383a';
+  document.documentElement.style.cssText=`--acc:${acc};--bg:${bg};--text:${text};--surf:${surf};--surf2:${surf2};--bord:${bord};--muted:${muted}`;
+  document.body.style.background=bg;
+  setA(`<div style="background:${bg};min-height:100vh;color:${text}">
+    <div style="position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);background:linear-gradient(180deg,${acc}22,${bg});border-bottom:1px solid ${acc}33">
+      <div style="display:flex;align-items:center;gap:10px;padding:30px 14px 14px">
+        <button class="iBtn" onclick="${VO?"location.hash=''":"dash()"}" style="color:${muted}">←</button>
+        <div style="flex:1;min-width:0">
+          ${VO?`<div style="display:inline-block;background:#1a0d2e;color:#8b68d4;font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:2px 8px;border-radius:10px;margin-bottom:3px">View Only</div><br>`:''}
+          <div style="font-size:10px;color:${acc};letter-spacing:.2em;text-transform:uppercase;margin-bottom:2px">${p.artist||''}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:.05em;line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title||'Untitled'}</div>
+        </div>
+        ${p.coverUrl?`<img src="${p.coverUrl}" style="width:46px;height:46px;border-radius:6px;object-fit:cover;border:1px solid ${acc}44;flex-shrink:0">`:''}
+        ${!VO?`<button class="iBtn" onclick="shareM()" style="color:${acc}">⤴</button><button class="iBtn" onclick="settingsM()" style="color:${muted}">⚙</button>`:''}
+      </div>
+    </div>
+    <div style="display:flex;overflow-x:auto;scrollbar-width:none;background:${surf};border-bottom:1px solid ${bord};position:sticky;top:85px;z-index:99">
+      ${['overview','songs','focus','info'].map(t=>`<button class="ptab${TAB===t?' on':''}" onclick="sT('${t}')" style="${TAB===t?`color:${acc};border-bottom-color:${acc}`:''}">${t}</button>`).join('')}
+    </div>
+    <div style="padding:14px;padding-bottom:80px">${bTab()}</div>
+  </div>`);
+}
+
+function sT(t){TAB=t;rP();}
+
+function bTab(){
+  const p=CP,songs=p.songs||[],acc=p.theme?.accent||'#c9383a',fd=p.focusDone||{};
+  if(TAB==='overview'){
+    const dn=songs.filter(s=>(s.tasks||[]).every(t=>t.done)).length;
+    const ac=songs.filter(s=>!(s.tasks||[]).every(t=>t.done)&&(s.tasks||[]).some(t=>t.done)).length;
+    const qu=songs.filter(s=>(s.tasks||[]).every(t=>!t.done)).length;
+    const pct=songs.length?Math.round(dn/songs.length*100):0;
+    return `<div class="card" style="margin-bottom:14px">
+      <div style="font-size:10px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-bottom:12px">Snapshot</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px">
+        ${[{n:songs.length,l:'Total',c:'var(--text)'},{n:dn,l:'Done',c:'#4caf82'},{n:ac,l:'Active',c:acc},{n:qu,l:'Queued',c:'var(--muted)'}].map(x=>`
+        <div style="text-align:center">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1;color:${x.c};margin-bottom:2px">${x.n}</div>
+          <div style="font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase">${x.l}</div>
+        </div>`).join('')}
+      </div>
+      <div style="background:var(--surf2);border-radius:2px;height:4px;overflow:hidden">
+        <div style="height:100%;background:${acc};border-radius:2px;width:${pct}%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:9px;color:var(--muted)">
+        <span>${dn} of ${songs.length} complete</span><span>${pct}%</span>
+      </div>
+    </div>
+    <div class="slabel">Songs</div>
+    ${songs.length?songs.map((s,i)=>mCard(s,i,acc)).join(''):'<div class="empty">No songs yet.</div>'}`;
+  }
+  if(TAB==='songs')return `
+    ${!VO?`<button class="btn-o" onclick="addSongM()" style="margin-bottom:14px">+ Add Song</button>`:''}
+    ${songs.length?songs.map((s,i)=>sCard(s,i,acc)).join(''):'<div class="empty">No songs yet.</div>'}`;
+  if(TAB==='focus'){
+    const inc=songs.filter(s=>!(s.tasks||[]).every(t=>t.done));
+    return `<div class="slabel">Current Focus Order</div>
+    ${!inc.length?'<div class="empty" style="color:#4caf82">🎉 All songs complete!</div>':''}
+    ${inc.map((song,i)=>{
+      const nx=(song.tasks||[]).filter(t=>!t.done).slice(0,3);
+      return `<div class="card" style="display:flex;gap:12px;margin-bottom:8px">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:${acc};line-height:1;min-width:22px">${i+1}</div>
+        <div style="flex:1">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:19px;margin-bottom:6px">${song.name}</div>
+          ${nx.map(task=>{const fk=song.id+'_'+task.id,d=fd[fk];
+            return `<div ${!VO?`onclick="tF('${fk}')"`:''}
+              style="display:flex;align-items:center;gap:6px;font-size:11px;color:${d?'#444':'var(--muted)'};text-decoration:${d?'line-through':'none'};padding:5px 0;cursor:${VO?'default':'pointer'};min-height:30px">
+              <span style="color:${d?'#4caf82':acc};font-size:10px">${d?'✓':'→'}</span>${task.text}</div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }).join('')}`;
+  }
+  if(TAB==='info')return `
+    <div class="slabel">Project Info</div>
+    <div class="card" style="margin-bottom:14px">
+      ${[['Title',p.title],['Artist',p.artist],['Label',p.label],['Co-Producer',p.coproducer]].filter(r=>r[1]).map(([k,v])=>`
+      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bord)">
+        <span style="font-size:10px;color:var(--muted)">${k}</span><span style="font-size:11px">${v}</span>
+      </div>`).join('')}
+    </div>
+    <div class="slabel">Notes</div>
+    ${!VO
+      ?`<textarea class="field" id="pnotes" placeholder="General notes..." style="min-height:90px" oninput="sN(this.value)">${p.notes||''}</textarea>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">Auto-saved <span id="ndot" style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#4caf82;opacity:0;transition:opacity .3s;vertical-align:middle"></span></div>`
+      :`<div class="card" style="font-size:12px;white-space:pre-wrap">${p.notes||'No notes.'}</div>`}`;
+  return '';
+}
+
+function mCard(s,i,acc){
+  const dn=(s.tasks||[]).every(t=>t.done),dt=(s.tasks||[]).filter(t=>t.done).length,tot=(s.tasks||[]).length;
+  const bc=dn?'#4caf82':s.priority?'#d4a843':acc;
+  return `<div style="background:var(--surf);border:1px solid var(--bord);border-left:3px solid ${bc};border-radius:7px;margin-bottom:8px;padding:11px 13px;display:flex;align-items:center;gap:10px;animation:fadeUp .3s ease ${i*.04}s backwards">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--muted);min-width:22px">${s.order||i+1}</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.name}</div>
+      <div style="display:flex;gap:5px;margin-top:3px;align-items:center">
+        <span class="badge" style="background:${dn?'#0d2e1f':'var(--surf2)'};color:${dn?'#4caf82':'var(--muted)'}">${dn?'Complete':s.statusLabel||'In Progress'}</span>
+        <span style="font-size:9px;color:var(--muted)">${dt}/${tot}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function sCard(s,i,acc){
+  const dn=(s.tasks||[]).every(t=>t.done),dt=(s.tasks||[]).filter(t=>t.done).length,tot=(s.tasks||[]).length;
+  const bc=dn?'#4caf82':s.priority?'#d4a843':acc,op=OC[s.id];
+  return `<div class="scard" style="border-left:3px solid ${bc};animation:fadeUp .3s ease ${i*.04}s backwards">
+    <div class="sheader" onclick="tC('${s.id}')">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--muted);min-width:24px">${s.order||i+1}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.name}</div>
+        <div style="display:flex;gap:5px;margin-top:3px;flex-wrap:wrap;align-items:center">
+          <span class="badge" style="background:${dn?'#0d2e1f':'var(--surf2)'};color:${dn?'#4caf82':'var(--muted)'}">${dn?'Complete':s.statusLabel||'In Progress'}</span>
+          ${s.priority&&!dn?`<span class="badge" style="background:#2e240d;color:#d4a843">Priority</span>`:''}
+          <span style="font-size:9px;color:var(--muted)">${dt}/${tot}</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:2px">
+        ${!VO?`<button onclick="event.stopPropagation();mS('${s.id}',-1)" class="iBtn" style="font-size:15px;padding:4px">↑</button>
+               <button onclick="event.stopPropagation();mS('${s.id}',1)" class="iBtn" style="font-size:15px;padding:4px">↓</button>`:''}
+        <span style="color:var(--muted);font-size:13px;transition:transform .2s;transform:${op?'rotate(180deg)':'none'};padding:4px">▾</span>
+      </div>
+    </div>
+    ${op?`<div style="padding:0 13px 13px;border-top:1px solid var(--bord)">
+      <div style="font-size:9px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;margin:11px 0 8px">Tasks</div>
+      ${(s.tasks||[]).map(task=>`
+      <div class="trow" ${!VO?`onclick="tT('${s.id}','${task.id}')"`:''}  style="cursor:${VO?'default':'pointer'}">
+        <div class="tcheck${task.done?' on':''}">${task.done?`<span style="font-size:10px;color:#0a0a0c;font-weight:bold">✓</span>`:''}</div>
+        <div style="font-size:12px;line-height:1.5;flex:1;color:${task.done?'var(--muted)':'var(--text)'};text-decoration:${task.done?'line-through':'none'}">${task.text}</div>
+        ${!VO?`<button onclick="event.stopPropagation();dT('${s.id}','${task.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.4">✕</button>`:''}
+      </div>`).join('')}
+      ${!VO?`<div style="display:flex;gap:6px;margin-top:6px">
+        <input class="field" id="ni-${s.id}" placeholder="Add task..." style="flex:1;margin:0" onkeydown="if(event.key==='Enter')aT('${s.id}')">
+        <button class="btn-s" onclick="aT('${s.id}')">Add</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:10px">
+        <button class="btn-s o" onclick="eSM('${s.id}')">Edit</button>
+        <button class="btn-s d" onclick="dS('${s.id}')">Delete</button>
+      </div>`:''}
+    </div>`:''}
+  </div>`;
+}
+
+/* ── ACTIONS ── */
+function tC(id){OC[id]=!OC[id];rP();}
+
+async function tT(sid,tid){
+  const songs=[...(CP.songs||[])];
+  const si=songs.findIndex(s=>s.id===sid);if(si<0)return;
+  const ti=songs[si].tasks.findIndex(t=>t.id===tid);if(ti<0)return;
+  songs[si].tasks[ti].done=!songs[si].tasks[ti].done;
+  await db.collection('projects').doc(CID).update({songs});
+}
+async function tF(fk){
+  const fd={...(CP.focusDone||{})};fd[fk]=!fd[fk];
+  await db.collection('projects').doc(CID).update({focusDone:fd});
+}
+async function aT(sid){
+  const inp=document.getElementById('ni-'+sid);
+  const text=inp?.value?.trim();if(!text)return;
+  const songs=[...(CP.songs||[])];
+  const si=songs.findIndex(s=>s.id===sid);if(si<0)return;
+  songs[si].tasks=[...(songs[si].tasks||[]),{id:'t'+Date.now(),text,done:false}];
+  await db.collection('projects').doc(CID).update({songs});
+  if(inp)inp.value='';
+}
+async function dT(sid,tid){
+  const songs=[...(CP.songs||[])];
+  const si=songs.findIndex(s=>s.id===sid);if(si<0)return;
+  songs[si].tasks=songs[si].tasks.filter(t=>t.id!==tid);
+  await db.collection('projects').doc(CID).update({songs});
+}
+async function dS(sid){
+  if(!confirm('Delete this song?'))return;
+  const songs=(CP.songs||[]).filter(s=>s.id!==sid);
+  await db.collection('projects').doc(CID).update({songs});
+}
+async function mS(sid,dir){
+  const songs=[...(CP.songs||[])];
+  const i=songs.findIndex(s=>s.id===sid),ni=i+dir;
+  if(ni<0||ni>=songs.length)return;
+  [songs[i],songs[ni]]=[songs[ni],songs[i]];
+  songs.forEach((s,idx)=>s.order=idx+1);
+  await db.collection('projects').doc(CID).update({songs});
+}
+
+function addSongM(){
+  SM(`<div class="modal-title">Add Song</div>
+    <input class="field" id="sn" placeholder="Song title" autofocus>
+    <input class="field" id="ss" placeholder="Status label (e.g. Ready for Vocals)">
+    <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:12px;cursor:pointer">
+      <input type="checkbox" id="sp"> Mark as Priority
+    </label>
+    <div class="err" id="se"></div>
+    <div class="mactions">
+      <button class="btn-g" onclick="CM()">Cancel</button>
+      <button class="btn-p" style="width:auto;padding:10px 20px" onclick="addSong()">Add</button>
+    </div>`);
+}
+async function addSong(){
+  const name=g('sn');if(!name)return sErr('se','Enter a song title.');
+  const songs=[...(CP.songs||[])];
+  songs.push({id:'s'+Date.now(),name,statusLabel:g('ss')||'In Progress',priority:document.getElementById('sp').checked,tasks:[],order:songs.length+1});
+  await db.collection('projects').doc(CID).update({songs});
+  CM();TAB='songs';
+}
+function eSM(sid){
+  const s=(CP.songs||[]).find(x=>x.id===sid);if(!s)return;
+  SM(`<div class="modal-title">Edit Song</div>
+    <input class="field" id="en" value="${s.name}" placeholder="Song title">
+    <input class="field" id="es" value="${s.statusLabel||''}" placeholder="Status label">
+    <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:12px;cursor:pointer">
+      <input type="checkbox" id="ep" ${s.priority?'checked':''}> Mark as Priority
+    </label>
+    <div class="mactions">
+      <button class="btn-g" onclick="CM()">Cancel</button>
+      <button class="btn-p" style="width:auto;padding:10px 20px" onclick="savES('${sid}')">Save</button>
+    </div>`);
+}
+async function savES(sid){
+  const songs=[...(CP.songs||[])];
+  const i=songs.findIndex(s=>s.id===sid);if(i<0)return;
+  songs[i].name=g('en')||songs[i].name;
+  songs[i].statusLabel=g('es');
+  songs[i].priority=document.getElementById('ep').checked;
+  await db.collection('projects').doc(CID).update({songs});CM();
+}
+
+let nT;
+function sN(val){
+  clearTimeout(nT);
+  nT=setTimeout(async()=>{
+    await db.collection('projects').doc(CID).update({notes:val});
+    const d=document.getElementById('ndot');
+    if(d){d.style.opacity=1;setTimeout(()=>d.style.opacity=0,1200);}
+  },600);
+}
+
+/* ── SHARE ── */
+function shareM(){
+  const link=location.origin+location.pathname+'#/view/'+CID;
+  SM(`<div class="modal-title">Share Project</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Anyone with this link can view (read only).</div>
+    <div style="background:var(--surf2);border:1px solid var(--bord);border-radius:6px;padding:12px;font-size:11px;word-break:break-all;margin-bottom:14px">${link}</div>
+    <button class="btn-p" id="cbtn" onclick="cpL('${link}')">Copy Link</button>
+    <div class="mactions"><button class="btn-g" onclick="CM()">Close</button></div>`);
+}
+function cpL(l){
+  navigator.clipboard.writeText(l).then(()=>{
+    const b=document.getElementById('cbtn');
+    if(b){b.textContent='✓ Copied!';setTimeout(()=>b.textContent='Copy Link',2000);}
+  });
+}
+
+/* ── SETTINGS ── */
+let _th={},_pf=null;
+function settingsM(){
+  const p=CP;_th={...(p.theme||{accent:'#c9383a',bg:'#0a0a0c',dark:true})};_pf=null;
+  const ACCS=['#c9383a','#e07b3a','#d4a843','#4caf82','#4a8fc4','#8b68d4','#e84393','#e8e6e0'];
+  const BGS=['#0a0a0c','#0d0d1a','#0a0d0a','#1a0a0a','#f5f5f5','#ffffff','#fafaf0','#f0f0f5'];
+  SM(`<div class="modal-title">Project Settings</div>
+    <div class="flabel">Cover Photo</div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+      <div id="cprev" style="width:64px;height:64px;border-radius:8px;background:var(--surf2);border:1px solid var(--bord);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">
+        ${p.coverUrl?`<img src="${p.coverUrl}" style="width:100%;height:100%;object-fit:cover">`:'♪'}
+      </div>
+      <div>
+        <input type="file" id="cfile" accept="image/*" style="display:none" onchange="pCov(this)">
+        <button class="btn-s o" onclick="document.getElementById('cfile').click()">Upload Photo</button>
+        <div style="font-size:10px;color:var(--muted);margin-top:5px">Square recommended</div>
+      </div>
+    </div>
+    <div class="flabel">Accent Color</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
+      ${ACCS.map(c=>`<div onclick="sA('${c}')" style="width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;border:${_th.accent===c?'3px solid white':'2px solid #444'};flex-shrink:0"></div>`).join('')}
+      <input type="color" value="${_th.accent}" oninput="sA(this.value)" style="width:28px;height:28px;border-radius:50%;border:2px solid #444;cursor:pointer;padding:2px;background:none">
+    </div>
+    <div class="flabel">Background</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
+      ${BGS.map(c=>`<div onclick="sB('${c}')" style="width:28px;height:28px;border-radius:4px;background:${c};cursor:pointer;border:${_th.bg===c?'3px solid #fff':'2px solid #444'};flex-shrink:0"></div>`).join('')}
+      <input type="color" value="${_th.bg}" oninput="sB(this.value)" style="width:28px;height:28px;border-radius:4px;border:2px solid #444;cursor:pointer;padding:2px;background:none">
+    </div>
+    <div class="flabel">Mode</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="btn-s${_th.dark!==false?'':' o'}" id="mdark" onclick="sMode(true)">Dark</button>
+      <button class="btn-s${_th.dark===false?'':' o'}" id="mlight" onclick="sMode(false)">Light</button>
+    </div>
+    <div class="flabel">Project Info</div>
+    <input class="field" id="stitle" value="${p.title||''}" placeholder="Project title">
+    <input class="field" id="sartist" value="${p.artist||''}" placeholder="Artist name">
+    <input class="field" id="slabel" value="${p.label||''}" placeholder="Label">
+    <input class="field" id="scoprod" value="${p.coproducer||''}" placeholder="Co-producer">
+    <div class="err" id="serr"></div>
+    <div class="mactions">
+      <button class="btn-g" onclick="CM()">Cancel</button>
+      <button class="btn-p" style="width:auto;padding:10px 20px" onclick="savSet()">Save</button>
+    </div>`);
+}
+function pCov(inp){_pf=inp.files[0];if(!_pf)return;const r=new FileReader();r.onload=e=>{const el=document.getElementById('cprev');if(el)el.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;};r.readAsDataURL(_pf);}
+function sA(c){_th.accent=c;}
+function sB(c){_th.bg=c;}
+function sMode(d){_th.dark=d;document.getElementById('mdark').className='btn-s'+(d?'':' o');document.getElementById('mlight').className='btn-s'+(d?' o':'');}
+async function savSet(){
+  try{
+    let cu=CP.coverUrl||null;
+    if(_pf){const ref=stor.ref(`covers/${CID}/${Date.now()}`);await ref.put(_pf);cu=await ref.getDownloadURL();}
+    await db.collection('projects').doc(CID).update({
+      theme:_th,coverUrl:cu,
+      title:g('stitle')||CP.title,
+      artist:g('sartist'),label:g('slabel'),coproducer:g('scoprod')
+    });CM();
+  }catch(e){sErr('serr','Error: '+e.message);}
+}
+
+/* ── UTILS ── */
+function setA(h){document.getElementById('app').innerHTML=h;}
+function SM(h){document.getElementById('modal-box').innerHTML=h;document.getElementById('modal-ov').style.display='flex';}
+function CM(){document.getElementById('modal-ov').style.display='none';}
+function sErr(id,msg){const e=document.getElementById(id);if(e){e.textContent=msg;e.style.display='block';}}
+function g(id){return document.getElementById(id)?.value?.trim()||'';}
+function stopL(){if(PL){PL();PL=null;}}
+function SO(){stopL();auth.signOut().then(()=>{location.hash='';authScreen();});}
+function fE(c){return({'auth/email-already-in-use':'Email already in use.','auth/invalid-email':'Invalid email.','auth/wrong-password':'Wrong password.','auth/user-not-found':'No account found.','auth/weak-password':'Password too weak (6+ chars).','auth/invalid-credential':'Invalid email or password.','auth/popup-closed-by-user':'Sign-in cancelled.'})[c]||'Something went wrong. Try again.';}
+if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+</script>
+</body>
+</html>
