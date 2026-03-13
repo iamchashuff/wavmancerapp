@@ -25,7 +25,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font
 .field:focus{border-color:var(--acc)}
 .field::placeholder{color:var(--muted)}
 textarea.field{resize:vertical}
-.btn-p{width:100%;padding:12px;background:var(--acc);color:#fff;border:none;border-radius:6px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.btn-p{width:100%;padding:12px;background:var(--acc);color:#fff;border:none;border-radius:6px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:opacity .2s}
 .btn-p:active{opacity:.8}
 .btn-p:disabled{opacity:.5}
 .btn-o{background:none;border:1px solid var(--acc);color:var(--acc);border-radius:6px;padding:10px 14px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;width:100%;margin-top:8px}
@@ -43,7 +43,7 @@ textarea.field{resize:vertical}
 .card{background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:14px;margin-bottom:10px}
 .slabel{font-size:10px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bord)}
 .flabel{font-size:10px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px}
-.ptab{flex:1;padding:11px 6px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+.ptab{flex:1;padding:11px 4px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
 .ptab.on{color:var(--acc);border-bottom-color:var(--acc)}
 .scard{background:var(--surf);border:1px solid var(--bord);border-radius:8px;margin-bottom:10px;overflow:hidden}
 .sheader{display:flex;align-items:center;padding:13px 13px 11px;gap:10px;cursor:pointer;user-select:none;-webkit-user-select:none}
@@ -55,6 +55,13 @@ textarea.field{resize:vertical}
 #modal-box{background:var(--surf);border:1px solid var(--bord);border-radius:16px 16px 0 0;padding:24px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;animation:slideUp .2s ease}
 .modal-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.05em;margin-bottom:16px}
 .mactions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.milestone{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bord)}
+.milestone:last-child{border:none}
+.ms-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.drag-handle{cursor:grab;padding:4px 6px;color:var(--muted);font-size:16px;touch-action:none}
+.drag-handle:active{cursor:grabbing}
+.scard.dragging{opacity:.4}
+.scard.drag-over{border-top:2px solid var(--acc)}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
@@ -75,12 +82,13 @@ firebase.initializeApp({
 const auth=firebase.auth(),db=firebase.firestore(),stor=firebase.storage();
 const IPINFO_TOKEN='9445a4621618c3';
 let CU=null,CP=null,CID=null,PL=null,VO=false,TAB='overview',OC={};
+let dragSrc=null;
 
 auth.onAuthStateChanged(u=>{CU=u;route();});
 function route(){
   const h=location.hash;
   if(h.startsWith('#/view/'))loadView(h.replace('#/view/',''));
-  else if(h.startsWith('#/project/') && CU)openP(h.replace('#/project/',''));
+  else if(h.startsWith('#/project/')&&CU)openP(h.replace('#/project/',''));
   else if(CU)dash();
   else authScreen();
 }
@@ -111,7 +119,6 @@ function authScreen(){
       Continue with Google
     </button>
   </div></div>`);
-
   window.setMode=m=>{
     mode=m;
     document.getElementById('tl').style.cssText=`flex:1;padding:10px;background:none;border:none;border-bottom:2px solid ${m==='login'?'var(--acc)':'transparent'};color:${m==='login'?'var(--acc)':'var(--muted)'};font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer`;
@@ -121,16 +128,13 @@ function authScreen(){
     document.getElementById('apass').autocomplete=m==='signup'?'new-password':'current-password';
   };
   window.doA=async()=>{
-    const email=g('aemail'),pass=g('apass'),btn=document.getElementById('abtn'),err=document.getElementById('aerr');
-    err.style.display='none';
+    const email=g('aemail'),pass=g('apass'),btn=document.getElementById('abtn');
+    document.getElementById('aerr').style.display='none';
     if(!email||!pass)return sErr('aerr','Enter email and password.');
     btn.disabled=true;btn.textContent='...';
     try{
-      if(mode==='signup'){
-        const name=g('aname');
-        const c=await auth.createUserWithEmailAndPassword(email,pass);
-        if(name)await c.user.updateProfile({displayName:name});
-      }else{await auth.signInWithEmailAndPassword(email,pass);}
+      if(mode==='signup'){const name=g('aname');const c=await auth.createUserWithEmailAndPassword(email,pass);if(name)await c.user.updateProfile({displayName:name});}
+      else{await auth.signInWithEmailAndPassword(email,pass);}
       dash();
     }catch(e){sErr('aerr',fE(e.code));btn.disabled=false;btn.textContent=mode==='signup'?'Create Account':'Sign In';}
   };
@@ -166,22 +170,24 @@ async function dash(){
       const s=p.songs||[];
       const dn=s.filter(x=>(x.tasks||[]).every(t=>t.done)).length;
       const pct=s.length?Math.round(dn/s.length*100):0;
+      const dl=p.deadline?daysLeft(p.deadline):null;
       return `<div onclick="openP('${p.id}')" style="background:var(--surf);border:1px solid var(--bord);border-left:3px solid ${acc};border-radius:8px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 14px">
         ${p.coverUrl?`<img src="${p.coverUrl}" style="width:52px;height:52px;border-radius:6px;object-fit:cover;flex-shrink:0">`:`<div style="width:52px;height:52px;border-radius:6px;background:${acc}22;border:1px solid ${acc}44;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">♪</div>`}
         <div style="flex:1;min-width:0">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;line-height:1;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title||'Untitled'}</div>
-          <div style="font-size:10px;color:var(--muted);margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${[p.artist,p.label].filter(Boolean).join(' · ')}</div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${[p.artist,p.label].filter(Boolean).join(' · ')}</div>
           <div style="display:flex;align-items:center;gap:8px">
             <div style="flex:1;height:3px;background:var(--surf2);border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${acc};border-radius:2px"></div></div>
-            <span style="font-size:9px;color:var(--muted)">${dn}/${s.length} · ${pct}%</span>
+            <span style="font-size:9px;color:var(--muted)">${dn}/${s.length}</span>
           </div>
+          ${dl!==null?`<div style="font-size:9px;color:${dl<7?'#e07070':dl<14?'#d4a843':'var(--muted)'};margin-top:4px">${dl===0?'🔴 Due today':dl<0?`🔴 ${Math.abs(dl)}d overdue`:dl===1?'🟡 Due tomorrow':`📅 ${dl} days left`}</div>`:''}
         </div>
         <div style="color:var(--muted);font-size:18px">›</div>
       </div>`;
     }).join('');
   }catch(e){
     const el=document.getElementById('plist');
-    if(el)el.innerHTML=`<div class="empty" style="color:#e07070">Error loading. Check Firebase rules.<br><small>${e.message}</small></div>`;
+    if(el)el.innerHTML=`<div class="empty" style="color:#e07070">Error loading.<br><small>${e.message}</small></div>`;
   }
 }
 
@@ -191,6 +197,8 @@ function newProjM(){
     <input class="field" id="na" placeholder="Artist name">
     <input class="field" id="nl" placeholder="Label (optional)">
     <input class="field" id="nc" placeholder="Co-producer (optional)">
+    <div class="flabel" style="margin-top:4px">Target Release Date</div>
+    <input class="field" id="nd" type="date">
     <div class="err" id="ne"></div>
     <div class="mactions">
       <button class="btn-g" onclick="CM()">Cancel</button>
@@ -203,7 +211,9 @@ async function cProj(){
     const id='p'+Date.now();
     await db.collection('projects').doc(id).set({
       title,artist:g('na'),label:g('nl'),coproducer:g('nc'),
+      deadline:document.getElementById('nd').value||null,
       ownerId:CU.uid,songs:[],focusDone:{},notes:'',coverUrl:null,
+      milestones:[],expenses:[],views:[],
       theme:{accent:'#c9383a',bg:'#0a0a0c',dark:true},
       createdAt:firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -225,8 +235,7 @@ function openP(pid){
   },err=>{
     setA(`<div class="loading" style="padding:30px;text-align:center">
       <div style="color:#e07070;font-size:12px;margin-bottom:16px">Error: ${err.message}</div>
-      <div style="color:var(--muted);font-size:11px;margin-bottom:20px">This is usually a Firestore rules issue.<br>Make sure your rules allow read access.</div>
-      <button class="btn-s o" onclick="dash()">← Back to Dashboard</button>
+      <button class="btn-s o" onclick="dash()">← Back</button>
     </div>`);
   });
 }
@@ -237,10 +246,9 @@ function loadView(pid){
   logView(pid);
   PL=db.collection('projects').doc(pid).onSnapshot(snap=>{
     if(!snap.data()){setA(`<div class="loading"><div class="loading-t">Project not found.</div></div>`);return;}
-    CP={id:snap.id,...snap.data()};
-    rP();
+    CP={id:snap.id,...snap.data()};rP();
   },err=>{
-    setA(`<div class="loading"><div class="loading-t" style="color:#e07070">Error loading project: ${err.message}</div></div>`);
+    setA(`<div class="loading"><div class="loading-t" style="color:#e07070">Error: ${err.message}</div></div>`);
   });
 }
 
@@ -256,6 +264,8 @@ function rP(){
   const acc=th.accent||'#c9383a';
   document.documentElement.style.cssText=`--acc:${acc};--bg:${bg};--text:${text};--surf:${surf};--surf2:${surf2};--bord:${bord};--muted:${muted}`;
   document.body.style.background=bg;
+  const dl=p.deadline?daysLeft(p.deadline):null;
+  const tabs=['overview','songs','focus','budget',...(VO?[]:['insights']),'info'];
   setA(`<div style="background:${bg};min-height:100vh;color:${text}">
     <div style="position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);background:linear-gradient(180deg,${acc}22,${bg});border-bottom:1px solid ${acc}33">
       <div style="display:flex;align-items:center;gap:10px;padding:30px 14px 14px">
@@ -264,49 +274,91 @@ function rP(){
           ${VO?`<div style="display:inline-block;background:#1a0d2e;color:#8b68d4;font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:2px 8px;border-radius:10px;margin-bottom:3px">View Only</div><br>`:''}
           <div style="font-size:10px;color:${acc};letter-spacing:.2em;text-transform:uppercase;margin-bottom:2px">${p.artist||''}</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:.05em;line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title||'Untitled'}</div>
+          ${dl!==null?`<div style="font-size:10px;color:${dl<0?'#e07070':dl<7?'#d4a843':muted};margin-top:3px">${dl<0?`${Math.abs(dl)}d overdue`:dl===0?'Due today':dl===1?'Due tomorrow':`${dl} days to release`}</div>`:''}
         </div>
         ${p.coverUrl?`<img src="${p.coverUrl}" style="width:46px;height:46px;border-radius:6px;object-fit:cover;border:1px solid ${acc}44;flex-shrink:0">`:''}
-        ${!VO?`<button class="iBtn" onclick="shareM()" style="color:${acc}">⤴</button><button class="iBtn" onclick="settingsM()" style="color:${muted}">⚙</button>`:''}
+        ${!VO?`
+        <button class="iBtn" onclick="toggleDark()" style="color:${muted};font-size:16px">${dark?'☀':'🌙'}</button>
+        <button class="iBtn" onclick="shareM()" style="color:${acc}">⤴</button>
+        <button class="iBtn" onclick="settingsM()" style="color:${muted}">⚙</button>`:''}
       </div>
     </div>
     <div style="display:flex;overflow-x:auto;scrollbar-width:none;background:${surf};border-bottom:1px solid ${bord};position:sticky;top:85px;z-index:99">
-      ${['overview','songs','focus','budget','insights','info'].map(t=>`<button class="ptab${TAB===t?' on':''}" onclick="sT('${t}')" style="${TAB===t?`color:${acc};border-bottom-color:${acc}`:''}">${t}</button>`).join('')}
+      ${tabs.map(t=>`<button class="ptab${TAB===t?' on':''}" onclick="sT('${t}')" style="${TAB===t?`color:${acc};border-bottom-color:${acc}`:''}'">${t}</button>`).join('')}
     </div>
-    <div style="padding:14px;padding-bottom:80px">${bTab()}</div>
+    <div style="padding:14px;padding-bottom:80px" id="tab-body">${bTab()}</div>
   </div>`);
+  if(TAB==='songs')initDrag();
 }
 
 function sT(t){TAB=t;rP();}
 
+function toggleDark(){
+  const th={...(CP.theme||{accent:'#c9383a',bg:'#0a0a0c',dark:true})};
+  th.dark=!th.dark;
+  db.collection('projects').doc(CID).update({theme:th});
+}
+
+/* ── TABS ── */
 function bTab(){
   const p=CP,songs=p.songs||[],acc=p.theme?.accent||'#c9383a',fd=p.focusDone||{};
+
+  /* OVERVIEW */
   if(TAB==='overview'){
     const dn=songs.filter(s=>(s.tasks||[]).every(t=>t.done)).length;
     const ac=songs.filter(s=>!(s.tasks||[]).every(t=>t.done)&&(s.tasks||[]).some(t=>t.done)).length;
-    const qu=songs.filter(s=>(s.tasks||[]).every(t=>!t.done)).length;
+    const qu=songs.filter(s=>(s.tasks||[]).length===0||(s.tasks||[]).every(t=>!t.done)).length;
     const pct=songs.length?Math.round(dn/songs.length*100):0;
-    return `<div class="card" style="margin-bottom:14px">
-      <div style="font-size:10px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-bottom:12px">Snapshot</div>
+    const dl=p.deadline?daysLeft(p.deadline):null;
+    const ms=(p.milestones||[]).filter(m=>m.done).length;
+    const mst=(p.milestones||[]).length;
+    return `
+    ${dl!==null?`<div class="card" style="margin-bottom:10px;border-left:3px solid ${dl<0?'#e07070':dl<7?'#d4a843':acc}">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:10px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px">Release Deadline</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:${dl<0?'#e07070':dl<7?'#d4a843':acc}">${dl<0?`${Math.abs(dl)} DAYS OVERDUE`:dl===0?'DUE TODAY':dl===1?'DUE TOMORROW':`${dl} DAYS LEFT`}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">${fmtDate(p.deadline)}</div>
+        </div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:48px;color:${dl<0?'#e07070':dl<7?'#d4a843':acc}22">${dl<0?'⚠':'📅'}</div>
+      </div>
+    </div>`:''}
+    <div class="card" style="margin-bottom:10px">
+      <div style="font-size:10px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-bottom:12px">Progress</div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px">
-        ${[{n:songs.length,l:'Total',c:'var(--text)'},{n:dn,l:'Done',c:'#4caf82'},{n:ac,l:'Active',c:acc},{n:qu,l:'Queued',c:'var(--muted)'}].map(x=>`
+        ${[{n:songs.length,l:'Songs',c:'var(--text)'},{n:dn,l:'Done',c:'#4caf82'},{n:ac,l:'Active',c:acc},{n:qu,l:'Queued',c:'var(--muted)'}].map(x=>`
         <div style="text-align:center">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1;color:${x.c};margin-bottom:2px">${x.n}</div>
           <div style="font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase">${x.l}</div>
         </div>`).join('')}
       </div>
-      <div style="background:var(--surf2);border-radius:2px;height:4px;overflow:hidden">
-        <div style="height:100%;background:${acc};border-radius:2px;width:${pct}%"></div>
+      <div style="background:var(--surf2);border-radius:2px;height:6px;overflow:hidden;margin-bottom:5px">
+        <div style="height:100%;background:${acc};border-radius:2px;width:${pct}%;transition:width .3s"></div>
       </div>
-      <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:9px;color:var(--muted)">
-        <span>${dn} of ${songs.length} complete</span><span>${pct}%</span>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted)">
+        <span>${dn} of ${songs.length} songs complete</span><span>${pct}%</span>
       </div>
     </div>
+    ${mst>0?`<div class="card" style="margin-bottom:10px">
+      <div style="font-size:10px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px">Milestones — ${ms}/${mst}</div>
+      <div style="background:var(--surf2);border-radius:2px;height:4px;overflow:hidden;margin-bottom:10px">
+        <div style="height:100%;background:#8b68d4;border-radius:2px;width:${mst?Math.round(ms/mst*100):0}%"></div>
+      </div>
+      ${(p.milestones||[]).slice(0,3).map(m=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:11px;color:${m.done?'var(--muted)':'var(--text)'};text-decoration:${m.done?'line-through':'none'}">
+        <span style="color:${m.done?'#4caf82':'#8b68d4'};font-size:12px">${m.done?'✓':'◆'}</span>${m.label}
+      </div>`).join('')}
+      ${(p.milestones||[]).length>3?`<div style="font-size:10px;color:var(--muted);margin-top:6px">+${(p.milestones||[]).length-3} more — see Info tab</div>`:''}
+    </div>`:''}
     <div class="slabel">Songs</div>
     ${songs.length?songs.map((s,i)=>mCard(s,i,acc)).join(''):'<div class="empty">No songs yet.</div>'}`;
   }
+
+  /* SONGS */
   if(TAB==='songs')return `
     ${!VO?`<button class="btn-o" onclick="addSongM()" style="margin-bottom:14px">+ Add Song</button>`:''}
-    ${songs.length?songs.map((s,i)=>sCard(s,i,acc)).join(''):'<div class="empty">No songs yet.</div>'}`;
+    <div id="song-list">${songs.length?songs.map((s,i)=>sCard(s,i,acc)).join(''):'<div class="empty">No songs yet.</div>'}</div>`;
+
+  /* FOCUS */
   if(TAB==='focus'){
     const inc=songs.filter(s=>!(s.tasks||[]).every(t=>t.done));
     return `<div class="slabel">Current Focus Order</div>
@@ -319,111 +371,159 @@ function bTab(){
           <div style="font-family:'Bebas Neue',sans-serif;font-size:19px;margin-bottom:6px">${song.name}</div>
           ${nx.map(task=>{const fk=song.id+'_'+task.id,d=fd[fk];
             return `<div ${!VO?`onclick="tF('${fk}')"`:''}
-              style="display:flex;align-items:center;gap:6px;font-size:11px;color:${d?'#444':'var(--muted)'};text-decoration:${d?'line-through':'none'};padding:5px 0;cursor:${VO?'default':'pointer'};min-height:30px">
+              style="display:flex;align-items:center;gap:6px;font-size:11px;color:${d?'#555':'var(--muted)'};text-decoration:${d?'line-through':'none'};padding:5px 0;cursor:${VO?'default':'pointer'};min-height:30px">
               <span style="color:${d?'#4caf82':acc};font-size:10px">${d?'✓':'→'}</span>${task.text}</div>`;
           }).join('')}
+          ${(song.tasks||[]).filter(t=>!t.done).length===0?`<div style="font-size:10px;color:#4caf82">All tasks done ✓</div>`:''}
         </div>
       </div>`;
     }).join('')}`;
   }
-  if(TAB==='info')return `
-    <div class="slabel">Project Info</div>
-    <div class="card" style="margin-bottom:14px">
-      ${[['Title',p.title],['Artist',p.artist],['Label',p.label],['Co-Producer',p.coproducer]].filter(r=>r[1]).map(([k,v])=>`
-      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bord)">
-        <span style="font-size:10px;color:var(--muted)">${k}</span><span style="font-size:11px">${v}</span>
-      </div>`).join('')}
-    </div>
-    <div class="slabel">Notes</div>
-    ${!VO
-      ?`<textarea class="field" id="pnotes" placeholder="General notes..." style="min-height:90px" oninput="sN(this.value)">${p.notes||''}</textarea>
-        <div style="font-size:10px;color:var(--muted);margin-top:4px">Auto-saved <span id="ndot" style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#4caf82;opacity:0;transition:opacity .3s;vertical-align:middle"></span></div>`
-      :`<div class="card" style="font-size:12px;white-space:pre-wrap">${p.notes||'No notes.'}</div>`}`;
+
+  /* BUDGET */
   if(TAB==='budget'){
     const expenses=p.expenses||[];
     const total=expenses.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+    const byCategory={};
+    expenses.forEach(e=>{const c=e.category||'Other';byCategory[c]=(byCategory[c]||0)+(parseFloat(e.amount)||0);});
     return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <div class="slabel" style="margin:0;border:none;padding:0">Expenses</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${acc}">$${total.toFixed(2)}</div>
+      <div class="slabel" style="margin:0;border:none;padding:0">Budget</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${acc}">$${total.toFixed(2)}</div>
     </div>
+    ${Object.keys(byCategory).length>1?`<div class="card" style="margin-bottom:14px">
+      <div class="flabel">By Category</div>
+      ${Object.entries(byCategory).map(([cat,amt])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bord)">
+        <span style="font-size:11px">${cat}</span>
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:${acc}">$${amt.toFixed(2)}</span>
+      </div>`).join('')}
+    </div>`:''}
     ${!VO?`<div class="card" style="margin-bottom:14px">
       <div class="flabel">Add Expense</div>
       <div style="display:flex;gap:6px;margin-bottom:8px">
-        <input class="field" id="exp-amt" type="number" placeholder="Amount" style="width:100px;margin:0" onkeydown="if(event.key==='Enter')addExp()">
-        <input class="field" id="exp-desc" placeholder="What for?" style="flex:1;margin:0" onkeydown="if(event.key==='Enter')addExp()">
+        <input class="field" id="exp-amt" type="number" placeholder="$0.00" style="width:90px;margin:0" onkeydown="if(event.key==='Enter')addExp()">
+        <input class="field" id="exp-desc" placeholder="Description" style="flex:1;margin:0">
       </div>
+      <input class="field" id="exp-cat" placeholder="Category (e.g. Studio, Features, Mixing)" style="margin-bottom:8px" onkeydown="if(event.key==='Enter')addExp()">
       <button class="btn-s" onclick="addExp()" style="width:100%">Add Expense</button>
     </div>`:''}
     ${expenses.length?`<div class="card" style="padding:0;overflow:hidden">
-      ${expenses.map((e,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--bord);${i===expenses.length-1?'border:none':''}">
+      ${[...expenses].reverse().map((e,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--bord);${i===expenses.length-1?'border:none':''}">
         <div style="flex:1;min-width:0">
           <div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.desc||'Untitled'}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px">${e.date||''}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">${e.category?`${e.category} · `:''}${e.date||''}</div>
         </div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:${acc};flex-shrink:0">$${(parseFloat(e.amount)||0).toFixed(2)}</div>
         ${!VO?`<button onclick="delExp('${e.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.4">✕</button>`:''}
       </div>`).join('')}
     </div>`:'<div class="empty">No expenses yet.</div>'}`;
   }
+
+  /* INSIGHTS */
   if(TAB==='insights'){
     const views=p.views||[];
     const sorted=[...views].sort((a,b)=>(b.ts||0)-(a.ts||0));
-    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <div class="slabel" style="margin:0;border:none;padding:0">Share Link Views</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${acc}">${views.length} total</div>
+    const unique=new Set(views.map(v=>v.name||v.location)).size;
+    return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div class="card" style="text-align:center;margin:0">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;color:${acc};line-height:1">${views.length}</div>
+        <div style="font-size:9px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-top:4px">Total Views</div>
+      </div>
+      <div class="card" style="text-align:center;margin:0">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;color:#8b68d4;line-height:1">${unique}</div>
+        <div style="font-size:9px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-top:4px">Unique Viewers</div>
+      </div>
     </div>
-    ${!sorted.length?'<div class="empty">No views yet. Share your project link to start tracking.</div>':''}
+    <div class="slabel">View History</div>
+    ${!sorted.length?'<div class="empty">No views yet. Share your link to start tracking.</div>':''}
     ${sorted.length?`<div class="card" style="padding:0;overflow:hidden">
       ${sorted.map((v,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--bord);${i===sorted.length-1?'border:none':''}">
         <div style="width:32px;height:32px;border-radius:50%;background:${acc}22;border:1px solid ${acc}44;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${v.name?v.name[0].toUpperCase():'👁'}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.name||'Anonymous Viewer'}</div>
+          <div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.name||'Anonymous Viewer'}</div>
           <div style="font-size:10px;color:var(--muted);margin-top:2px">${v.location||'Unknown location'}</div>
         </div>
-        <div style="font-size:10px;color:var(--muted);text-align:right;flex-shrink:0">${v.timeStr||''}</div>
+        <div style="font-size:10px;color:var(--muted);text-align:right;flex-shrink:0;min-width:80px">${v.timeStr||''}</div>
       </div>`).join('')}
-    </div>`:''}`;
+    </div>`:''}`; 
+  }
+
+  /* INFO */
+  if(TAB==='info'){
+    const ms=p.milestones||[];
+    return `
+    <div class="slabel">Project Info</div>
+    <div class="card" style="margin-bottom:14px">
+      ${[['Title',p.title],['Artist',p.artist],['Label',p.label],['Co-Producer',p.coproducer],['Deadline',p.deadline?fmtDate(p.deadline):null]].filter(r=>r[1]).map(([k,v])=>`
+      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bord)">
+        <span style="font-size:10px;color:var(--muted)">${k}</span><span style="font-size:11px">${v}</span>
+      </div>`).join('')}
+    </div>
+    <div class="slabel">Milestones</div>
+    ${!VO?`<button class="btn-o" onclick="addMilestoneM()" style="margin-bottom:12px">+ Add Milestone</button>`:''}
+    ${ms.length?`<div class="card" style="margin-bottom:14px;padding:0;overflow:hidden">
+      ${ms.map((m,i)=>`<div class="milestone" style="padding:11px 14px;${i===ms.length-1?'border:none':''}">
+        <div class="ms-dot" style="background:${m.done?'#4caf82':'#8b68d4'}"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;color:${m.done?'var(--muted)':'var(--text)'};text-decoration:${m.done?'line-through':'none'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.label}</div>
+          ${m.date?`<div style="font-size:10px;color:var(--muted);margin-top:2px">${fmtDate(m.date)}</div>`:''}
+        </div>
+        ${!VO?`<div style="display:flex;gap:4px">
+          <button onclick="toggleMilestone('${m.id}')" class="btn-s o" style="font-size:10px;padding:4px 8px">${m.done?'Undo':'Done'}</button>
+          <button onclick="delMilestone('${m.id}')" class="iBtn" style="font-size:12px;opacity:.4">✕</button>
+        </div>`:''}
+      </div>`).join('')}
+    </div>`:'<div class="empty" style="margin-bottom:14px">No milestones yet.</div>'}
+    <div class="slabel">Project Notes</div>
+    ${!VO
+      ?`<textarea class="field" id="pnotes" placeholder="General notes..." style="min-height:90px" oninput="sN(this.value)">${p.notes||''}</textarea>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">Auto-saved <span id="ndot" style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#4caf82;opacity:0;transition:opacity .3s;vertical-align:middle"></span></div>`
+      :`<div class="card" style="font-size:12px;white-space:pre-wrap">${p.notes||'No notes.'}</div>`}`;
   }
   return '';
 }
 
+/* ── SONG CARDS ── */
 function mCard(s,i,acc){
-  const dn=(s.tasks||[]).every(t=>t.done),dt=(s.tasks||[]).filter(t=>t.done).length,tot=(s.tasks||[]).length;
+  const dn=(s.tasks||[]).every(t=>t.done)&&(s.tasks||[]).length>0;
+  const dt=(s.tasks||[]).filter(t=>t.done).length,tot=(s.tasks||[]).length;
   const bc=dn?'#4caf82':s.priority?'#d4a843':acc;
   return `<div style="background:var(--surf);border:1px solid var(--bord);border-left:3px solid ${bc};border-radius:7px;margin-bottom:8px;padding:11px 13px;display:flex;align-items:center;gap:10px;animation:fadeUp .3s ease ${i*.04}s backwards">
     <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--muted);min-width:22px">${s.order||i+1}</div>
     <div style="flex:1;min-width:0">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.name}</div>
-      <div style="display:flex;gap:5px;margin-top:3px;align-items:center">
+      <div style="display:flex;gap:5px;margin-top:3px;align-items:center;flex-wrap:wrap">
         <span class="badge" style="background:${dn?'#0d2e1f':'var(--surf2)'};color:${dn?'#4caf82':'var(--muted)'}">${dn?'Complete':s.statusLabel||'In Progress'}</span>
-        <span style="font-size:9px;color:var(--muted)">${dt}/${tot}</span>
+        <span style="font-size:9px;color:var(--muted)">${dt}/${tot} tasks</span>
       </div>
     </div>
   </div>`;
 }
 
 function sCard(s,i,acc){
-  const dn=(s.tasks||[]).every(t=>t.done),dt=(s.tasks||[]).filter(t=>t.done).length,tot=(s.tasks||[]).length;
+  const dn=(s.tasks||[]).every(t=>t.done)&&(s.tasks||[]).length>0;
+  const dt=(s.tasks||[]).filter(t=>t.done).length,tot=(s.tasks||[]).length;
   const bc=dn?'#4caf82':s.priority?'#d4a843':acc,op=OC[s.id];
-  return `<div class="scard" style="border-left:3px solid ${bc};animation:fadeUp .3s ease ${i*.04}s backwards">
+  const pct=tot?Math.round(dt/tot*100):0;
+  return `<div class="scard" id="sc-${s.id}" draggable="true" style="border-left:3px solid ${bc};animation:fadeUp .3s ease ${i*.04}s backwards"
+    ondragstart="dStart(event,'${s.id}')" ondragover="dOver(event,'${s.id}')" ondrop="dDrop(event,'${s.id}')" ondragend="dEnd()">
     <div class="sheader" onclick="tC('${s.id}')">
+      <div class="drag-handle" onclick="event.stopPropagation()" title="Drag to reorder">⠿</div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--muted);min-width:24px">${s.order||i+1}</div>
       <div style="flex:1;min-width:0">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.name}</div>
         <div style="display:flex;gap:5px;margin-top:3px;flex-wrap:wrap;align-items:center">
           <span class="badge" style="background:${dn?'#0d2e1f':'var(--surf2)'};color:${dn?'#4caf82':'var(--muted)'}">${dn?'Complete':s.statusLabel||'In Progress'}</span>
           ${s.priority&&!dn?`<span class="badge" style="background:#2e240d;color:#d4a843">Priority</span>`:''}
-          <span style="font-size:9px;color:var(--muted)">${dt}/${tot}</span>
+          <span style="font-size:9px;color:var(--muted)">${dt}/${tot} · ${pct}%</span>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:2px">
-        ${!VO?`<button onclick="event.stopPropagation();mS('${s.id}',-1)" class="iBtn" style="font-size:15px;padding:4px">↑</button>
-               <button onclick="event.stopPropagation();mS('${s.id}',1)" class="iBtn" style="font-size:15px;padding:4px">↓</button>`:''}
-        <span style="color:var(--muted);font-size:13px;transition:transform .2s;transform:${op?'rotate(180deg)':'none'};padding:4px">▾</span>
-      </div>
+      <span style="color:var(--muted);font-size:13px;transition:transform .2s;transform:${op?'rotate(180deg)':'none'};padding:4px">▾</span>
     </div>
     ${op?`<div style="padding:0 13px 13px;border-top:1px solid var(--bord)">
-      <div style="font-size:9px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;margin:11px 0 8px">Tasks</div>
+      ${tot>0?`<div style="background:var(--surf2);border-radius:2px;height:3px;overflow:hidden;margin:10px 0 12px">
+        <div style="height:100%;background:${bc};border-radius:2px;width:${pct}%"></div>
+      </div>`:''}
+      <div style="font-size:9px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px">Tasks</div>
       ${(s.tasks||[]).map(task=>`
       <div class="trow" ${!VO?`onclick="tT('${s.id}','${task.id}')"`:''}  style="cursor:${VO?'default':'pointer'}">
         <div class="tcheck${task.done?' on':''}">${task.done?`<span style="font-size:10px;color:#0a0a0c;font-weight:bold">✓</span>`:''}</div>
@@ -434,12 +534,49 @@ function sCard(s,i,acc){
         <input class="field" id="ni-${s.id}" placeholder="Add task..." style="flex:1;margin:0" onkeydown="if(event.key==='Enter')aT('${s.id}')">
         <button class="btn-s" onclick="aT('${s.id}')">Add</button>
       </div>
+      ${s.fileLink?`<a href="${s.fileLink}" target="_blank" style="display:block;margin-top:10px;font-size:11px;color:var(--acc);text-decoration:none">📂 Open Session File</a>`:''}
       <div style="display:flex;gap:6px;margin-top:10px">
         <button class="btn-s o" onclick="eSM('${s.id}')">Edit</button>
+        <button class="btn-s o" onclick="addSongNote('${s.id}')">+ Note</button>
         <button class="btn-s d" onclick="dS('${s.id}')">Delete</button>
-      </div>`:''}
+      </div>
+      ${(s.sessionNotes||[]).length?`<div style="margin-top:10px">
+        <div style="font-size:9px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px">Session Log</div>
+        ${[...(s.sessionNotes||[])].reverse().map(n=>`<div style="background:var(--surf2);border-radius:4px;padding:8px 10px;margin-bottom:5px;font-size:11px;line-height:1.5">
+          <div style="color:var(--muted);font-size:9px;margin-bottom:3px">${n.date}</div>
+          ${n.text}
+        </div>`).join('')}
+      </div>`:''}`:''}
     </div>`:''}
   </div>`;
+}
+
+/* ── DRAG TO REORDER ── */
+function initDrag(){
+  document.querySelectorAll('.scard').forEach(el=>{
+    el.addEventListener('touchstart',e=>{
+      if(!e.target.classList.contains('drag-handle'))return;
+      e.preventDefault();
+      const id=el.id.replace('sc-','');
+      dragSrc=id;el.classList.add('dragging');
+    },{passive:false});
+  });
+}
+function dStart(e,id){dragSrc=id;e.dataTransfer.effectAllowed='move';}
+function dOver(e,id){e.preventDefault();if(dragSrc&&dragSrc!==id){document.querySelectorAll('.scard').forEach(c=>c.classList.remove('drag-over'));const t=document.getElementById('sc-'+id);if(t)t.classList.add('drag-over');}}
+function dEnd(){dragSrc=null;document.querySelectorAll('.scard,.drag-over').forEach(c=>{c.classList.remove('dragging');c.classList.remove('drag-over');});}
+async function dDrop(e,targetId){
+  e.preventDefault();
+  if(!dragSrc||dragSrc===targetId)return;
+  const songs=[...(CP.songs||[])];
+  const fi=songs.findIndex(s=>s.id===dragSrc);
+  const ti=songs.findIndex(s=>s.id===targetId);
+  if(fi<0||ti<0)return;
+  const [moved]=songs.splice(fi,1);
+  songs.splice(ti,0,moved);
+  songs.forEach((s,idx)=>s.order=idx+1);
+  await db.collection('projects').doc(CID).update({songs});
+  dEnd();
 }
 
 /* ── ACTIONS ── */
@@ -449,7 +586,12 @@ async function tT(sid,tid){
   const songs=[...(CP.songs||[])];
   const si=songs.findIndex(s=>s.id===sid);if(si<0)return;
   const ti=songs[si].tasks.findIndex(t=>t.id===tid);if(ti<0)return;
-  songs[si].tasks[ti].done=!songs[si].tasks[ti].done;
+  const wasDone=songs[si].tasks[ti].done;
+  songs[si].tasks[ti].done=!wasDone;
+  if(!wasDone){
+    const now=new Date();
+    songs[si].statusHistory=[...(songs[si].statusHistory||[]),{event:`Task completed: ${songs[si].tasks[ti].text}`,date:now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),ts:now.getTime()}];
+  }
   await db.collection('projects').doc(CID).update({songs});
 }
 async function tF(fk){
@@ -489,6 +631,7 @@ function addSongM(){
   SM(`<div class="modal-title">Add Song</div>
     <input class="field" id="sn" placeholder="Song title" autofocus>
     <input class="field" id="ss" placeholder="Status label (e.g. Ready for Vocals)">
+    <input class="field" id="sf" placeholder="Session file link (Google Drive, Dropbox...)">
     <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:12px;cursor:pointer">
       <input type="checkbox" id="sp"> Mark as Priority
     </label>
@@ -501,15 +644,25 @@ function addSongM(){
 async function addSong(){
   const name=g('sn');if(!name)return sErr('se','Enter a song title.');
   const songs=[...(CP.songs||[])];
-  songs.push({id:'s'+Date.now(),name,statusLabel:g('ss')||'In Progress',priority:document.getElementById('sp').checked,tasks:[],order:songs.length+1});
+  const now=new Date();
+  songs.push({
+    id:'s'+Date.now(),name,
+    statusLabel:g('ss')||'In Progress',
+    priority:document.getElementById('sp').checked,
+    fileLink:g('sf'),
+    tasks:[],order:songs.length+1,
+    sessionNotes:[],statusHistory:[{event:'Song added',date:now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),ts:now.getTime()}]
+  });
   await db.collection('projects').doc(CID).update({songs});
   CM();TAB='songs';
 }
+
 function eSM(sid){
   const s=(CP.songs||[]).find(x=>x.id===sid);if(!s)return;
   SM(`<div class="modal-title">Edit Song</div>
     <input class="field" id="en" value="${s.name}" placeholder="Song title">
     <input class="field" id="es" value="${s.statusLabel||''}" placeholder="Status label">
+    <input class="field" id="ef" value="${s.fileLink||''}" placeholder="Session file link">
     <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:12px;cursor:pointer">
       <input type="checkbox" id="ep" ${s.priority?'checked':''}> Mark as Priority
     </label>
@@ -521,10 +674,36 @@ function eSM(sid){
 async function savES(sid){
   const songs=[...(CP.songs||[])];
   const i=songs.findIndex(s=>s.id===sid);if(i<0)return;
+  const oldStatus=songs[i].statusLabel;
+  const newStatus=g('es')||songs[i].statusLabel;
   songs[i].name=g('en')||songs[i].name;
-  songs[i].statusLabel=g('es');
+  songs[i].fileLink=g('ef');
   songs[i].priority=document.getElementById('ep').checked;
+  if(newStatus!==oldStatus){
+    const now=new Date();
+    songs[i].statusHistory=[...(songs[i].statusHistory||[]),{event:`Status → ${newStatus}`,date:now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),ts:now.getTime()}];
+  }
+  songs[i].statusLabel=newStatus;
   await db.collection('projects').doc(CID).update({songs});CM();
+}
+
+function addSongNote(sid){
+  SM(`<div class="modal-title">Session Note</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Log what happened in this session for ${(CP.songs||[]).find(s=>s.id===sid)?.name||'this song'}.</div>
+    <textarea class="field" id="snote" placeholder="e.g. Recorded vocals, fixed bridge melody..." style="min-height:80px" autofocus></textarea>
+    <div class="mactions">
+      <button class="btn-g" onclick="CM()">Cancel</button>
+      <button class="btn-p" style="width:auto;padding:10px 20px" onclick="savSongNote('${sid}')">Save Note</button>
+    </div>`);
+}
+async function savSongNote(sid){
+  const text=g('snote');if(!text)return;
+  const songs=[...(CP.songs||[])];
+  const i=songs.findIndex(s=>s.id===sid);if(i<0)return;
+  const now=new Date();
+  songs[i].sessionNotes=[...(songs[i].sessionNotes||[]),{id:'n'+Date.now(),text,date:now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}];
+  await db.collection('projects').doc(CID).update({songs});
+  CM();OC[sid]=true;
 }
 
 let nT;
@@ -537,11 +716,71 @@ function sN(val){
   },600);
 }
 
+/* ── MILESTONES ── */
+function addMilestoneM(){
+  SM(`<div class="modal-title">Add Milestone</div>
+    <input class="field" id="ml" placeholder="e.g. Sent to mastering, Label approved..." autofocus>
+    <div class="flabel">Target Date (optional)</div>
+    <input class="field" id="md" type="date">
+    <div class="mactions">
+      <button class="btn-g" onclick="CM()">Cancel</button>
+      <button class="btn-p" style="width:auto;padding:10px 20px" onclick="addMilestone()">Add</button>
+    </div>`);
+}
+async function addMilestone(){
+  const label=g('ml');if(!label)return;
+  const milestones=[...(CP.milestones||[])];
+  milestones.push({id:'m'+Date.now(),label,date:document.getElementById('md').value||null,done:false});
+  await db.collection('projects').doc(CID).update({milestones});CM();
+}
+async function toggleMilestone(mid){
+  const milestones=[...(CP.milestones||[])];
+  const i=milestones.findIndex(m=>m.id===mid);if(i<0)return;
+  milestones[i].done=!milestones[i].done;
+  if(milestones[i].done){
+    const now=new Date();
+    milestones[i].completedDate=now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  }
+  await db.collection('projects').doc(CID).update({milestones});
+}
+async function delMilestone(mid){
+  const milestones=(CP.milestones||[]).filter(m=>m.id!==mid);
+  await db.collection('projects').doc(CID).update({milestones});
+}
+
+/* ── BUDGET ── */
+async function addExp(){
+  const amt=document.getElementById('exp-amt')?.value?.trim();
+  const desc=document.getElementById('exp-desc')?.value?.trim();
+  const cat=document.getElementById('exp-cat')?.value?.trim();
+  if(!amt||!desc)return;
+  const expenses=[...(CP.expenses||[])];
+  const date=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  expenses.push({id:'e'+Date.now(),amount:parseFloat(amt),desc,category:cat||'Other',date});
+  await db.collection('projects').doc(CID).update({expenses});
+  document.getElementById('exp-amt').value='';
+  document.getElementById('exp-desc').value='';
+  if(document.getElementById('exp-cat'))document.getElementById('exp-cat').value='';
+}
+async function delExp(eid){
+  const expenses=(CP.expenses||[]).filter(e=>e.id!==eid);
+  await db.collection('projects').doc(CID).update({expenses});
+}
+
+/* ── DELETE PROJECT ── */
+async function deleteProject(){
+  if(!confirm('Delete this entire project? This cannot be undone.'))return;
+  if(!confirm('Are you sure? All songs and data will be lost forever.'))return;
+  stopL();
+  await db.collection('projects').doc(CID).delete();
+  dash();
+}
+
 /* ── SHARE ── */
 function shareM(){
   const link=location.origin+location.pathname+'#/view/'+CID;
   SM(`<div class="modal-title">Share Project</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Anyone with this link can view (read only).</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Anyone with this link can view (read only). Views are tracked in Insights.</div>
     <div style="background:var(--surf2);border:1px solid var(--bord);border-radius:6px;padding:12px;font-size:11px;word-break:break-all;margin-bottom:14px">${link}</div>
     <button class="btn-p" id="cbtn" onclick="cpL('${link}')">Copy Link</button>
     <div class="mactions"><button class="btn-g" onclick="CM()">Close</button></div>`);
@@ -581,16 +820,13 @@ function settingsM(){
       ${BGS.map(c=>`<div onclick="sB('${c}')" style="width:28px;height:28px;border-radius:4px;background:${c};cursor:pointer;border:${_th.bg===c?'3px solid #fff':'2px solid #444'};flex-shrink:0"></div>`).join('')}
       <input type="color" value="${_th.bg}" oninput="sB(this.value)" style="width:28px;height:28px;border-radius:4px;border:2px solid #444;cursor:pointer;padding:2px;background:none">
     </div>
-    <div class="flabel">Mode</div>
-    <div style="display:flex;gap:8px;margin-bottom:16px">
-      <button class="btn-s${_th.dark!==false?'':' o'}" id="mdark" onclick="sMode(true)">Dark</button>
-      <button class="btn-s${_th.dark===false?'':' o'}" id="mlight" onclick="sMode(false)">Light</button>
-    </div>
     <div class="flabel">Project Info</div>
     <input class="field" id="stitle" value="${p.title||''}" placeholder="Project title">
     <input class="field" id="sartist" value="${p.artist||''}" placeholder="Artist name">
     <input class="field" id="slabel" value="${p.label||''}" placeholder="Label">
     <input class="field" id="scoprod" value="${p.coproducer||''}" placeholder="Co-producer">
+    <div class="flabel" style="margin-top:4px">Release Deadline</div>
+    <input class="field" id="sdl" type="date" value="${p.deadline||''}">
     <div class="err" id="serr"></div>
     <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--bord)">
       <div class="flabel" style="color:#e07070">Danger Zone</div>
@@ -604,7 +840,6 @@ function settingsM(){
 function pCov(inp){_pf=inp.files[0];if(!_pf)return;const r=new FileReader();r.onload=e=>{const el=document.getElementById('cprev');if(el)el.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;};r.readAsDataURL(_pf);}
 function sA(c){_th.accent=c;}
 function sB(c){_th.bg=c;}
-function sMode(d){_th.dark=d;document.getElementById('mdark').className='btn-s'+(d?'':' o');document.getElementById('mlight').className='btn-s'+(d?' o':'');}
 async function savSet(){
   try{
     let cu=CP.coverUrl||null;
@@ -612,43 +847,20 @@ async function savSet(){
     await db.collection('projects').doc(CID).update({
       theme:_th,coverUrl:cu,
       title:g('stitle')||CP.title,
-      artist:g('sartist'),label:g('slabel'),coproducer:g('scoprod')
+      artist:g('sartist'),label:g('slabel'),coproducer:g('scoprod'),
+      deadline:document.getElementById('sdl').value||null
     });CM();
   }catch(e){sErr('serr','Error: '+e.message);}
 }
 
-async function addExp(){
-  const amt=document.getElementById('exp-amt')?.value?.trim();
-  const desc=document.getElementById('exp-desc')?.value?.trim();
-  if(!amt||!desc)return;
-  const expenses=[...(CP.expenses||[])];
-  const date=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  expenses.push({id:'e'+Date.now(),amount:parseFloat(amt),desc,date});
-  await db.collection('projects').doc(CID).update({expenses});
-  document.getElementById('exp-amt').value='';
-  document.getElementById('exp-desc').value='';
-}
-async function delExp(eid){
-  const expenses=(CP.expenses||[]).filter(e=>e.id!==eid);
-  await db.collection('projects').doc(CID).update({expenses});
-}
-async function deleteProject(){
-  if(!confirm('Delete this entire project? This cannot be undone.'))return;
-  if(!confirm('Are you sure? All songs and data will be lost forever.'))return;
-  stopL();
-  await db.collection('projects').doc(CID).delete();
-  dash();
-}
-
+/* ── INSIGHTS ── */
 async function logView(pid){
   try{
     const now=new Date();
     const timeStr=now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' '+now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
     const ts=now.getTime();
     let name=null,location='Unknown location';
-    if(auth.currentUser){
-      name=auth.currentUser.displayName||auth.currentUser.email;
-    }
+    if(auth.currentUser){name=auth.currentUser.displayName||auth.currentUser.email;}
     try{
       const r=await fetch(`https://ipinfo.io/json?token=${IPINFO_TOKEN}`);
       const d=await r.json();
@@ -672,6 +884,8 @@ function g(id){return document.getElementById(id)?.value?.trim()||'';}
 function stopL(){if(PL){PL();PL=null;}}
 function SO(){stopL();auth.signOut().then(()=>{location.hash='';authScreen();});}
 function fE(c){return({'auth/email-already-in-use':'Email already in use.','auth/invalid-email':'Invalid email.','auth/wrong-password':'Wrong password.','auth/user-not-found':'No account found.','auth/weak-password':'Password too weak (6+ chars).','auth/invalid-credential':'Invalid email or password.','auth/popup-closed-by-user':'Sign-in cancelled.'})[c]||'Something went wrong. Try again.';}
+function daysLeft(dateStr){if(!dateStr)return null;const d=new Date(dateStr+'T00:00:00');const t=new Date();t.setHours(0,0,0,0);return Math.round((d-t)/(1000*60*60*24));}
+function fmtDate(dateStr){if(!dateStr)return '';try{return new Date(dateStr+'T00:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});}catch(e){return dateStr;}}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 </script>
 </body>
