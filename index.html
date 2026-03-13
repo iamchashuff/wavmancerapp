@@ -73,6 +73,7 @@ firebase.initializeApp({
   appId:"1:311113252923:web:c8a96080700d3829745c1e"
 });
 const auth=firebase.auth(),db=firebase.firestore(),stor=firebase.storage();
+const IPINFO_TOKEN='9445a4621618c3';
 let CU=null,CP=null,CID=null,PL=null,VO=false,TAB='overview',OC={};
 
 auth.onAuthStateChanged(u=>{CU=u;route();});
@@ -235,7 +236,9 @@ function loadView(pid){
   setA(`<div class="loading"><div class="loading-w">W</div><div class="loading-t">Loading...</div></div>`);
   PL=db.collection('projects').doc(pid).onSnapshot(snap=>{
     if(!snap.data()){setA(`<div class="loading"><div class="loading-t">Project not found.</div></div>`);return;}
-    CP={id:snap.id,...snap.data()};rP();
+    CP={id:snap.id,...snap.data()};
+    logView(pid);
+    rP();
   },err=>{
     setA(`<div class="loading"><div class="loading-t" style="color:#e07070">Error loading project: ${err.message}</div></div>`);
   });
@@ -267,7 +270,7 @@ function rP(){
       </div>
     </div>
     <div style="display:flex;overflow-x:auto;scrollbar-width:none;background:${surf};border-bottom:1px solid ${bord};position:sticky;top:85px;z-index:99">
-      ${['overview','songs','focus','info'].map(t=>`<button class="ptab${TAB===t?' on':''}" onclick="sT('${t}')" style="${TAB===t?`color:${acc};border-bottom-color:${acc}`:''}">${t}</button>`).join('')}
+      ${['overview','songs','focus','budget','insights','info'].map(t=>`<button class="ptab${TAB===t?' on':''}" onclick="sT('${t}')" style="${TAB===t?`color:${acc};border-bottom-color:${acc}`:''}">${t}</button>`).join('')}
     </div>
     <div style="padding:14px;padding-bottom:80px">${bTab()}</div>
   </div>`);
@@ -336,6 +339,51 @@ function bTab(){
       ?`<textarea class="field" id="pnotes" placeholder="General notes..." style="min-height:90px" oninput="sN(this.value)">${p.notes||''}</textarea>
         <div style="font-size:10px;color:var(--muted);margin-top:4px">Auto-saved <span id="ndot" style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#4caf82;opacity:0;transition:opacity .3s;vertical-align:middle"></span></div>`
       :`<div class="card" style="font-size:12px;white-space:pre-wrap">${p.notes||'No notes.'}</div>`}`;
+  if(TAB==='budget'){
+    const expenses=p.expenses||[];
+    const total=expenses.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div class="slabel" style="margin:0;border:none;padding:0">Expenses</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${acc}">$${total.toFixed(2)}</div>
+    </div>
+    ${!VO?`<div class="card" style="margin-bottom:14px">
+      <div class="flabel">Add Expense</div>
+      <div style="display:flex;gap:6px;margin-bottom:8px">
+        <input class="field" id="exp-amt" type="number" placeholder="Amount" style="width:100px;margin:0" onkeydown="if(event.key==='Enter')addExp()">
+        <input class="field" id="exp-desc" placeholder="What for?" style="flex:1;margin:0" onkeydown="if(event.key==='Enter')addExp()">
+      </div>
+      <button class="btn-s" onclick="addExp()" style="width:100%">Add Expense</button>
+    </div>`:''}
+    ${expenses.length?`<div class="card" style="padding:0;overflow:hidden">
+      ${expenses.map((e,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--bord);${i===expenses.length-1?'border:none':''}">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.desc||'Untitled'}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">${e.date||''}</div>
+        </div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:${acc};flex-shrink:0">$${(parseFloat(e.amount)||0).toFixed(2)}</div>
+        ${!VO?`<button onclick="delExp('${e.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.4">✕</button>`:''}
+      </div>`).join('')}
+    </div>`:'<div class="empty">No expenses yet.</div>'}`;
+  }
+  if(TAB==='insights'){
+    const views=p.views||[];
+    const sorted=[...views].sort((a,b)=>(b.ts||0)-(a.ts||0));
+    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div class="slabel" style="margin:0;border:none;padding:0">Share Link Views</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${acc}">${views.length} total</div>
+    </div>
+    ${!sorted.length?'<div class="empty">No views yet. Share your project link to start tracking.</div>':''}
+    ${sorted.length?`<div class="card" style="padding:0;overflow:hidden">
+      ${sorted.map((v,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--bord);${i===sorted.length-1?'border:none':''}">
+        <div style="width:32px;height:32px;border-radius:50%;background:${acc}22;border:1px solid ${acc}44;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${v.name?v.name[0].toUpperCase():'👁'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.name||'Anonymous Viewer'}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">${v.location||'Unknown location'}</div>
+        </div>
+        <div style="font-size:10px;color:var(--muted);text-align:right;flex-shrink:0">${v.timeStr||''}</div>
+      </div>`).join('')}
+    </div>`:''}`;
+  }
   return '';
 }
 
@@ -544,6 +592,10 @@ function settingsM(){
     <input class="field" id="slabel" value="${p.label||''}" placeholder="Label">
     <input class="field" id="scoprod" value="${p.coproducer||''}" placeholder="Co-producer">
     <div class="err" id="serr"></div>
+    <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--bord)">
+      <div class="flabel" style="color:#e07070">Danger Zone</div>
+      <button class="btn-s d" onclick="CM();deleteProject()" style="width:100%;padding:11px">Delete This Project</button>
+    </div>
     <div class="mactions">
       <button class="btn-g" onclick="CM()">Cancel</button>
       <button class="btn-p" style="width:auto;padding:10px 20px" onclick="savSet()">Save</button>
@@ -563,6 +615,52 @@ async function savSet(){
       artist:g('sartist'),label:g('slabel'),coproducer:g('scoprod')
     });CM();
   }catch(e){sErr('serr','Error: '+e.message);}
+}
+
+async function addExp(){
+  const amt=document.getElementById('exp-amt')?.value?.trim();
+  const desc=document.getElementById('exp-desc')?.value?.trim();
+  if(!amt||!desc)return;
+  const expenses=[...(CP.expenses||[])];
+  const date=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  expenses.push({id:'e'+Date.now(),amount:parseFloat(amt),desc,date});
+  await db.collection('projects').doc(CID).update({expenses});
+  document.getElementById('exp-amt').value='';
+  document.getElementById('exp-desc').value='';
+}
+async function delExp(eid){
+  const expenses=(CP.expenses||[]).filter(e=>e.id!==eid);
+  await db.collection('projects').doc(CID).update({expenses});
+}
+async function deleteProject(){
+  if(!confirm('Delete this entire project? This cannot be undone.'))return;
+  if(!confirm('Are you sure? All songs and data will be lost forever.'))return;
+  stopL();
+  await db.collection('projects').doc(CID).delete();
+  dash();
+}
+
+async function logView(pid){
+  try{
+    const now=new Date();
+    const timeStr=now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' '+now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    const ts=now.getTime();
+    let name=null,location='Unknown location';
+    if(auth.currentUser){
+      name=auth.currentUser.displayName||auth.currentUser.email;
+    }
+    try{
+      const r=await fetch(`https://ipinfo.io/json?token=${IPINFO_TOKEN}`);
+      const d=await r.json();
+      if(d.city&&d.region)location=d.city+', '+d.region;
+      else if(d.country)location=d.country;
+    }catch(e){}
+    const view={id:'v'+ts,ts,timeStr,name,location};
+    const snap=await db.collection('projects').doc(pid).get();
+    const views=snap.data()?.views||[];
+    views.push(view);
+    await db.collection('projects').doc(pid).update({views});
+  }catch(e){}
 }
 
 /* ── UTILS ── */
