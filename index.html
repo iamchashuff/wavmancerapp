@@ -213,7 +213,7 @@ async function cProj(){
       title,artist:g('na'),label:g('nl'),coproducer:g('nc'),
       deadline:document.getElementById('nd').value||null,
       ownerId:CU.uid,songs:[],focusDone:{},notes:'',coverUrl:null,
-      milestones:[],expenses:[],views:[],
+      milestones:[],expenses:[],views:[],promoTasks:[],contentTasks:[],todoTasks:[],
       theme:{accent:'#c9383a',bg:'#0a0a0c',dark:true},
       createdAt:firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -265,7 +265,7 @@ function rP(){
   document.documentElement.style.cssText=`--acc:${acc};--bg:${bg};--text:${text};--surf:${surf};--surf2:${surf2};--bord:${bord};--muted:${muted}`;
   document.body.style.background=bg;
   const dl=p.deadline?daysLeft(p.deadline):null;
-  const tabs=['overview','songs','focus','budget',...(VO?[]:['insights']),'info'];
+  const tabs=['overview','songs','focus','promo','content','todo','budget',...(VO?[]:['insights']),'info'];
   setA(`<div style="background:${bg};min-height:100vh;color:${text}">
     <div style="position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);background:linear-gradient(180deg,${acc}22,${bg});border-bottom:1px solid ${acc}33">
       <div style="display:flex;align-items:center;gap:10px;padding:30px 14px 14px">
@@ -479,6 +479,79 @@ function bTab(){
         <div style="font-size:10px;color:var(--muted);margin-top:4px">Auto-saved <span id="ndot" style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#4caf82;opacity:0;transition:opacity .3s;vertical-align:middle"></span></div>`
       :`<div class="card" style="font-size:12px;white-space:pre-wrap">${p.notes||'No notes.'}</div>`}`;
   }
+
+  /* PROMO */
+  if(TAB==='promo'){
+    const tasks=p.promoTasks||[];
+    const dn=tasks.filter(t=>t.done).length;
+    const pct=tasks.length?Math.round(dn/tasks.length*100):0;
+    return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <div class="slabel" style="margin:0;border:none;padding:0">Promo & Photos</div>
+      <span style="font-size:10px;color:var(--muted)">${dn}/${tasks.length} done</span>
+    </div>
+    <div style="background:var(--surf2);border-radius:2px;height:3px;overflow:hidden;margin-bottom:14px">
+      <div style="height:100%;background:${acc};border-radius:2px;width:${pct}%"></div>
+    </div>
+    ${!VO?`<div class="card" style="margin-bottom:14px">
+      <input class="field" id="pt-inp" placeholder="Add promo task..." style="margin-bottom:8px" onkeydown="if(event.key==='Enter')addSimpleTask('promoTasks','pt-inp')">
+      <button class="btn-s" onclick="addSimpleTask('promoTasks','pt-inp')" style="width:100%">Add Task</button>
+    </div>`:''}
+    ${tasks.length?tasks.map((t,i)=>`<div class="trow" ${!VO?`onclick="toggleSimpleTask('promoTasks','${t.id}')"`:''}  style="cursor:${VO?'default':'pointer'}">
+      <div class="tcheck${t.done?' on':''}">${t.done?`<span style="font-size:10px;color:#0a0a0c;font-weight:bold">✓</span>`:''}</div>
+      <div style="font-size:12px;line-height:1.5;flex:1;color:${t.done?'var(--muted)':'var(--text)'};text-decoration:${t.done?'line-through':'none'}">${t.text}</div>
+      ${!VO?`<button onclick="event.stopPropagation();delSimpleTask('promoTasks','${t.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.4">✕</button>`:''}
+    </div>`).join(''):'<div class="empty">No promo tasks yet.</div>'}`;
+  }
+
+  /* CONTENT */
+  if(TAB==='content'){
+    const tasks=p.contentTasks||[];
+    const dn=tasks.filter(t=>t.done).length;
+    const pct=tasks.length?Math.round(dn/tasks.length*100):0;
+    return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <div class="slabel" style="margin:0;border:none;padding:0">Content Plan</div>
+      <span style="font-size:10px;color:var(--muted)">${dn}/${tasks.length} done</span>
+    </div>
+    <div style="background:var(--surf2);border-radius:2px;height:3px;overflow:hidden;margin-bottom:14px">
+      <div style="height:100%;background:#8b68d4;border-radius:2px;width:${pct}%"></div>
+    </div>
+    ${!VO?`<div class="card" style="margin-bottom:14px">
+      <input class="field" id="ct-inp" placeholder="Add content task..." style="margin-bottom:8px" onkeydown="if(event.key==='Enter')addSimpleTask('contentTasks','ct-inp')">
+      <button class="btn-s" onclick="addSimpleTask('contentTasks','ct-inp')" style="width:100%;background:#8b68d4">Add Task</button>
+    </div>`:''}
+    ${tasks.length?tasks.map((t,i)=>`<div class="trow" ${!VO?`onclick="toggleSimpleTask('contentTasks','${t.id}')"`:''}  style="cursor:${VO?'default':'pointer'}">
+      <div class="tcheck${t.done?' on':''}" style="${t.done?'':'border-color:#8b68d4'}">${t.done?`<span style="font-size:10px;color:#0a0a0c;font-weight:bold">✓</span>`:''}</div>
+      <div style="font-size:12px;line-height:1.5;flex:1;color:${t.done?'var(--muted)':'var(--text)'};text-decoration:${t.done?'line-through':'none'}">${t.text}</div>
+      ${!VO?`<button onclick="event.stopPropagation();delSimpleTask('contentTasks','${t.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.4">✕</button>`:''}
+    </div>`).join(''):'<div class="empty">No content tasks yet.</div>'}`;
+  }
+
+  /* TODO */
+  if(TAB==='todo'){
+    const tasks=p.todoTasks||[];
+    const dn=tasks.filter(t=>t.done).length;
+    const pct=tasks.length?Math.round(dn/tasks.length*100):0;
+    return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <div class="slabel" style="margin:0;border:none;padding:0">General To-Do</div>
+      <span style="font-size:10px;color:var(--muted)">${dn}/${tasks.length} done</span>
+    </div>
+    <div style="background:var(--surf2);border-radius:2px;height:3px;overflow:hidden;margin-bottom:14px">
+      <div style="height:100%;background:#4a8fc4;border-radius:2px;width:${pct}%"></div>
+    </div>
+    ${!VO?`<div class="card" style="margin-bottom:14px">
+      <input class="field" id="td-inp" placeholder="Add to-do..." style="margin-bottom:8px" onkeydown="if(event.key==='Enter')addSimpleTask('todoTasks','td-inp')">
+      <button class="btn-s" onclick="addSimpleTask('todoTasks','td-inp')" style="width:100%;background:#4a8fc4">Add Task</button>
+    </div>`:''}
+    ${tasks.length?tasks.map((t,i)=>`<div class="trow" ${!VO?`onclick="toggleSimpleTask('todoTasks','${t.id}')"`:''}  style="cursor:${VO?'default':'pointer'}">
+      <div class="tcheck${t.done?' on':''}" style="${t.done?'':'border-color:#4a8fc4'}">${t.done?`<span style="font-size:10px;color:#0a0a0c;font-weight:bold">✓</span>`:''}</div>
+      <div style="font-size:12px;line-height:1.5;flex:1;color:${t.done?'var(--muted)':'var(--text)'};text-decoration:${t.done?'line-through':'none'}">${t.text}</div>
+      ${!VO?`<button onclick="event.stopPropagation();delSimpleTask('todoTasks','${t.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.4">✕</button>`:''}
+    </div>`).join(''):'<div class="empty">No to-dos yet.</div>'}`;
+  }
+
   return '';
 }
 
@@ -514,6 +587,7 @@ function sCard(s,i,acc){
         <div style="display:flex;gap:5px;margin-top:3px;flex-wrap:wrap;align-items:center">
           <span class="badge" style="background:${dn?'#0d2e1f':'var(--surf2)'};color:${dn?'#4caf82':'var(--muted)'}">${dn?'Complete':s.statusLabel||'In Progress'}</span>
           ${s.priority&&!dn?`<span class="badge" style="background:#2e240d;color:#d4a843">Priority</span>`:''}
+          ${s.lyrics?`<span class="badge" style="background:#0d1a2e;color:#4a8fc4">Lyrics</span>`:''}
           <span style="font-size:9px;color:var(--muted)">${dt}/${tot} · ${pct}%</span>
         </div>
       </div>
@@ -534,12 +608,20 @@ function sCard(s,i,acc){
         <input class="field" id="ni-${s.id}" placeholder="Add task..." style="flex:1;margin:0" onkeydown="if(event.key==='Enter')aT('${s.id}')">
         <button class="btn-s" onclick="aT('${s.id}')">Add</button>
       </div>
-      ${s.fileLink?`<a href="${s.fileLink}" target="_blank" style="display:block;margin-top:10px;font-size:11px;color:var(--acc);text-decoration:none">📂 Open Session File</a>`:''}
-      <div style="display:flex;gap:6px;margin-top:10px">
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+        ${s.listenLink?`<a href="${s.listenLink}" target="_blank" style="flex:1;text-align:center;padding:7px 10px;background:var(--surf2);border:1px solid var(--bord);border-radius:4px;font-size:11px;color:var(--acc);text-decoration:none;font-family:'DM Mono',monospace">▶ Listen</a>`:''}
+        ${s.fileLink?`<a href="${s.fileLink}" target="_blank" style="flex:1;text-align:center;padding:7px 10px;background:var(--surf2);border:1px solid var(--bord);border-radius:4px;font-size:11px;color:var(--muted);text-decoration:none;font-family:'DM Mono',monospace">📂 Session</a>`:''}
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
         <button class="btn-s o" onclick="eSM('${s.id}')">Edit</button>
+        <button class="btn-s o" onclick="lyricsM('${s.id}')">Lyrics</button>
         <button class="btn-s o" onclick="addSongNote('${s.id}')">+ Note</button>
         <button class="btn-s d" onclick="dS('${s.id}')">Delete</button>
       </div>
+      ${s.lyrics&&VO?`<div style="margin-top:12px">
+        <div style="font-size:9px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px">Lyrics</div>
+        <div style="background:var(--surf2);border-radius:4px;padding:10px;font-size:12px;line-height:1.8;white-space:pre-wrap">${s.lyrics}</div>
+      </div>`:''}
       ${(s.sessionNotes||[]).length?`<div style="margin-top:10px">
         <div style="font-size:9px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px">Session Log</div>
         ${[...(s.sessionNotes||[])].reverse().map(n=>`<div style="background:var(--surf2);border-radius:4px;padding:8px 10px;margin-bottom:5px;font-size:11px;line-height:1.5">
@@ -632,6 +714,7 @@ function addSongM(){
     <input class="field" id="sn" placeholder="Song title" autofocus>
     <input class="field" id="ss" placeholder="Status label (e.g. Ready for Vocals)">
     <input class="field" id="sf" placeholder="Session file link (Google Drive, Dropbox...)">
+    <input class="field" id="sl" placeholder="Listen link (SoundCloud, Drive, etc.)">
     <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:12px;cursor:pointer">
       <input type="checkbox" id="sp"> Mark as Priority
     </label>
@@ -650,6 +733,7 @@ async function addSong(){
     statusLabel:g('ss')||'In Progress',
     priority:document.getElementById('sp').checked,
     fileLink:g('sf'),
+    listenLink:g('sl'),
     tasks:[],order:songs.length+1,
     sessionNotes:[],statusHistory:[{event:'Song added',date:now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),ts:now.getTime()}]
   });
@@ -663,6 +747,7 @@ function eSM(sid){
     <input class="field" id="en" value="${s.name}" placeholder="Song title">
     <input class="field" id="es" value="${s.statusLabel||''}" placeholder="Status label">
     <input class="field" id="ef" value="${s.fileLink||''}" placeholder="Session file link">
+    <input class="field" id="el" value="${s.listenLink||''}" placeholder="Listen link (SoundCloud, Drive, etc.)">
     <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:12px;cursor:pointer">
       <input type="checkbox" id="ep" ${s.priority?'checked':''}> Mark as Priority
     </label>
@@ -678,6 +763,7 @@ async function savES(sid){
   const newStatus=g('es')||songs[i].statusLabel;
   songs[i].name=g('en')||songs[i].name;
   songs[i].fileLink=g('ef');
+  songs[i].listenLink=g('el');
   songs[i].priority=document.getElementById('ep').checked;
   if(newStatus!==oldStatus){
     const now=new Date();
@@ -873,6 +959,44 @@ async function logView(pid){
     views.push(view);
     await db.collection('projects').doc(pid).update({views});
   }catch(e){}
+}
+
+
+/* ── LYRICS ── */
+function lyricsM(sid){
+  const s=(CP.songs||[]).find(x=>x.id===sid);if(!s)return;
+  SM(`<div class="modal-title">${s.name} — Lyrics</div>
+    <textarea class="field" id="lyric-txt" placeholder="Paste lyrics here..." style="min-height:220px;font-size:12px;line-height:1.7">${s.lyrics||''}</textarea>
+    <div class="mactions">
+      <button class="btn-g" onclick="CM()">Cancel</button>
+      <button class="btn-p" style="width:auto;padding:10px 20px" onclick="saveLyrics('${sid}')">Save</button>
+    </div>`);
+}
+async function saveLyrics(sid){
+  const songs=[...(CP.songs||[])];
+  const i=songs.findIndex(s=>s.id===sid);if(i<0)return;
+  songs[i].lyrics=document.getElementById('lyric-txt')?.value||'';
+  await db.collection('projects').doc(CID).update({songs});CM();
+}
+
+/* ── SIMPLE TASKS (promo / content / todo) ── */
+async function addSimpleTask(field,inputId){
+  const inp=document.getElementById(inputId);
+  const text=inp?.value?.trim();if(!text)return;
+  const tasks=[...(CP[field]||[])];
+  tasks.push({id:'t'+Date.now(),text,done:false});
+  await db.collection('projects').doc(CID).update({[field]:tasks});
+  if(inp)inp.value='';
+}
+async function toggleSimpleTask(field,tid){
+  const tasks=[...(CP[field]||[])];
+  const i=tasks.findIndex(t=>t.id===tid);if(i<0)return;
+  tasks[i].done=!tasks[i].done;
+  await db.collection('projects').doc(CID).update({[field]:tasks});
+}
+async function delSimpleTask(field,tid){
+  const tasks=(CP[field]||[]).filter(t=>t.id!==tid);
+  await db.collection('projects').doc(CID).update({[field]:tasks});
 }
 
 /* ── UTILS ── */
