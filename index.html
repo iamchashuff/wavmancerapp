@@ -26,8 +26,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font
 .field::placeholder{color:var(--muted)}
 textarea.field{resize:vertical}
 .btn-p{width:100%;padding:12px;background:var(--acc);color:#fff;border:none;border-radius:6px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:opacity .2s}
-.btn-p:active{opacity:.8}
-.btn-p:disabled{opacity:.5}
+.btn-p:active{opacity:.8}.btn-p:disabled{opacity:.5}
 .btn-o{background:none;border:1px solid var(--acc);color:var(--acc);border-radius:6px;padding:10px 14px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;width:100%;margin-top:8px}
 .btn-g{background:none;border:none;color:var(--muted);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;padding:10px}
 .btn-s{padding:7px 12px;border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;border:none;background:var(--acc);color:#fff}
@@ -43,25 +42,41 @@ textarea.field{resize:vertical}
 .card{background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:14px;margin-bottom:10px}
 .slabel{font-size:10px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bord)}
 .flabel{font-size:10px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px}
-.ptab{flex:1;padding:11px 4px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
-.ptab.on{color:var(--acc);border-bottom-color:var(--acc)}
-.scard{background:var(--surf);border:1px solid var(--bord);border-radius:8px;margin-bottom:10px;overflow:hidden}
-.sheader{display:flex;align-items:center;padding:13px 13px 11px;gap:10px;cursor:pointer;user-select:none;-webkit-user-select:none}
 .badge{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:2px}
 .trow{display:flex;align-items:flex-start;gap:8px;padding:9px 10px;background:var(--surf2);border-radius:4px;margin-bottom:6px;min-height:42px}
 .tcheck{width:17px;height:17px;border:1px solid var(--bord);border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .tcheck.on{background:#4caf82;border-color:#4caf82}
+.scard{background:var(--surf);border:1px solid var(--bord);border-radius:8px;margin-bottom:10px;overflow:hidden}
+.sheader{display:flex;align-items:center;padding:13px 13px 11px;gap:10px;cursor:pointer;user-select:none;-webkit-user-select:none}
+.drag-handle{cursor:grab;padding:4px 6px;color:var(--muted);font-size:16px;touch-action:none}
+.scard.dragging{opacity:.4}
+.scard.drag-over{border-top:2px solid var(--acc)}
+
+/* NAV DRAWER */
+#nav-drawer{position:fixed;top:0;left:0;width:220px;height:100%;background:var(--surf);border-right:1px solid var(--bord);z-index:200;transform:translateX(-100%);transition:transform .25s ease;overflow-y:auto;padding-bottom:40px}
+#nav-drawer.open{transform:translateX(0)}
+#nav-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199}
+#nav-overlay.open{display:block}
+.nav-item{display:flex;align-items:center;gap:10px;padding:13px 18px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:color .15s,background .15s}
+.nav-item:active,.nav-item.on{color:var(--text);background:var(--surf2)}
+.nav-item.on{border-left:3px solid var(--acc);padding-left:15px}
+.nav-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.nav-section{font-size:9px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;padding:14px 18px 6px;opacity:.6}
+
+/* MODAL */
 #modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 #modal-box{background:var(--surf);border:1px solid var(--bord);border-radius:16px 16px 0 0;padding:24px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;animation:slideUp .2s ease}
 .modal-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.05em;margin-bottom:16px}
 .mactions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
-.milestone{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bord)}
-.milestone:last-child{border:none}
-.ms-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.drag-handle{cursor:grab;padding:4px 6px;color:var(--muted);font-size:16px;touch-action:none}
-.drag-handle:active{cursor:grabbing}
-.scard.dragging{opacity:.4}
-.scard.drag-over{border-top:2px solid var(--acc)}
+
+/* RELEASE TABLE */
+.rel-table{width:100%;border-collapse:collapse;font-size:11px}
+.rel-table th{background:var(--surf2);color:var(--muted);font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:8px 10px;text-align:left;border-bottom:1px solid var(--bord)}
+.rel-table td{padding:10px;border-bottom:1px solid var(--bord);vertical-align:middle}
+.rel-table tr:last-child td{border-bottom:none}
+.rel-table tr:hover td{background:var(--surf2)}
+.rel-chip{font-size:9px;padding:2px 7px;border-radius:2px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
@@ -69,6 +84,8 @@ textarea.field{resize:vertical}
 </head>
 <body>
 <div id="app"><div class="loading"><div class="loading-w">W</div><div class="loading-t">Wavmancer</div></div></div>
+<div id="nav-overlay" onclick="closeNav()"></div>
+<div id="nav-drawer"></div>
 <div id="modal-ov" onclick="if(event.target===this)CM()"><div id="modal-box"></div></div>
 <script>
 firebase.initializeApp({
@@ -81,8 +98,7 @@ firebase.initializeApp({
 });
 const auth=firebase.auth(),db=firebase.firestore(),stor=firebase.storage();
 const IPINFO_TOKEN='9445a4621618c3';
-let CU=null,CP=null,CID=null,PL=null,VO=false,TAB='overview',OC={};
-let dragSrc=null;
+let CU=null,CP=null,CID=null,PL=null,VO=false,TAB='overview',OC={},dragSrc=null;
 
 auth.onAuthStateChanged(u=>{CU=u;route();});
 function route(){
@@ -93,6 +109,46 @@ function route(){
   else authScreen();
 }
 window.addEventListener('hashchange',route);
+
+/* ── NAV DRAWER ── */
+const TABS_DEF=[
+  {id:'overview',label:'Overview',dot:'#4caf82',section:null},
+  {id:'music',label:'Music',dot:'#c9383a',section:'Production'},
+  {id:'focus',label:'Focus',dot:'#d4a843',section:null},
+  {id:'release',label:'Release Schedule',dot:'#4a8fc4',section:'Release'},
+  {id:'promo',label:'Promo & Photos',dot:'#e07b3a',section:null},
+  {id:'content',label:'Content',dot:'#8b68d4',section:null},
+  {id:'todo',label:'To-Do',dot:'#4a8fc4',section:'General'},
+  {id:'budget',label:'Budget',dot:'#4caf82',section:null},
+  {id:'info',label:'Info & Notes',dot:'var(--muted)',section:null},
+];
+
+function openNav(){
+  const acc=CP?.theme?.accent||'#c9383a';
+  const tabs=VO?TABS_DEF.filter(t=>t.id!=='insights'):TABS_DEF.concat([{id:'insights',label:'Insights',dot:'#8b68d4',section:'Analytics'}]);
+  let lastSection=null;
+  const items=tabs.map(t=>{
+    let html='';
+    if(t.section&&t.section!==lastSection){lastSection=t.section;html+=`<div class="nav-section">${t.section}</div>`;}
+    html+=`<button class="nav-item${TAB===t.id?' on':''}" onclick="sT('${t.id}');closeNav()">
+      <div class="nav-dot" style="background:${TAB===t.id?acc:t.dot}"></div>
+      ${t.label}
+    </button>`;
+    return html;
+  }).join('');
+  document.getElementById('nav-drawer').innerHTML=`
+    <div style="padding:40px 18px 16px;border-bottom:1px solid var(--bord);margin-bottom:8px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.06em;color:${acc}">Wavmancer</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${CP?.title||''}</div>
+    </div>
+    ${items}`;
+  document.getElementById('nav-drawer').classList.add('open');
+  document.getElementById('nav-overlay').classList.add('open');
+}
+function closeNav(){
+  document.getElementById('nav-drawer').classList.remove('open');
+  document.getElementById('nav-overlay').classList.remove('open');
+}
 
 /* ── AUTH ── */
 function authScreen(){
@@ -138,10 +194,7 @@ function authScreen(){
       dash();
     }catch(e){sErr('aerr',fE(e.code));btn.disabled=false;btn.textContent=mode==='signup'?'Create Account':'Sign In';}
   };
-  window.gAuth=async()=>{
-    try{await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());dash();}
-    catch(e){sErr('aerr',fE(e.code));}
-  };
+  window.gAuth=async()=>{try{await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());dash();}catch(e){sErr('aerr',fE(e.code));}};
 }
 
 /* ── DASH ── */
@@ -180,7 +233,7 @@ async function dash(){
             <div style="flex:1;height:3px;background:var(--surf2);border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${acc};border-radius:2px"></div></div>
             <span style="font-size:9px;color:var(--muted)">${dn}/${s.length}</span>
           </div>
-          ${dl!==null?`<div style="font-size:9px;color:${dl<7?'#e07070':dl<14?'#d4a843':'var(--muted)'};margin-top:4px">${dl===0?'🔴 Due today':dl<0?`🔴 ${Math.abs(dl)}d overdue`:dl===1?'🟡 Due tomorrow':`📅 ${dl} days left`}</div>`:''}
+          ${dl!==null?`<div style="font-size:9px;color:${dl<7?'#e07070':dl<14?'#d4a843':'var(--muted)'};margin-top:4px">${dl<0?`🔴 ${Math.abs(dl)}d overdue`:dl===0?'🔴 Due today':dl===1?'🟡 Due tomorrow':`📅 ${dl} days left`}</div>`:''}
         </div>
         <div style="color:var(--muted);font-size:18px">›</div>
       </div>`;
@@ -213,7 +266,7 @@ async function cProj(){
       title,artist:g('na'),label:g('nl'),coproducer:g('nc'),
       deadline:document.getElementById('nd').value||null,
       ownerId:CU.uid,songs:[],focusDone:{},notes:'',coverUrl:null,
-      milestones:[],expenses:[],views:[],promoTasks:[],contentTasks:[],todoTasks:[],
+      milestones:[],expenses:[],views:[],promoTasks:[],contentTasks:[],todoTasks:[],releaseSchedule:[],
       theme:{accent:'#c9383a',bg:'#0a0a0c',dark:true},
       createdAt:firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -227,19 +280,10 @@ function openP(pid){
   location.hash='#/project/'+pid;stopL();
   setA(`<div class="loading"><div class="loading-w">W</div><div class="loading-t">Loading...</div></div>`);
   PL=db.collection('projects').doc(pid).onSnapshot(snap=>{
-    if(!snap.data()){
-      setA(`<div class="loading"><div class="loading-t" style="color:#e07070">Project not found.<br><br><button class="btn-s o" onclick="dash()" style="margin-top:12px">← Back</button></div></div>`);
-      return;
-    }
+    if(!snap.data()){setA(`<div class="loading"><div class="loading-t" style="color:#e07070">Not found.<br><button class="btn-s o" onclick="dash()" style="margin-top:12px">← Back</button></div></div>`);return;}
     CP={id:snap.id,...snap.data()};rP();
-  },err=>{
-    setA(`<div class="loading" style="padding:30px;text-align:center">
-      <div style="color:#e07070;font-size:12px;margin-bottom:16px">Error: ${err.message}</div>
-      <button class="btn-s o" onclick="dash()">← Back</button>
-    </div>`);
-  });
+  },err=>setA(`<div class="loading" style="padding:30px;text-align:center"><div style="color:#e07070;font-size:12px">${err.message}</div><button class="btn-s o" onclick="dash()" style="margin-top:12px">← Back</button></div>`));
 }
-
 function loadView(pid){
   VO=true;TAB='overview';OC={};stopL();
   setA(`<div class="loading"><div class="loading-w">W</div><div class="loading-t">Loading...</div></div>`);
@@ -247,9 +291,7 @@ function loadView(pid){
   PL=db.collection('projects').doc(pid).onSnapshot(snap=>{
     if(!snap.data()){setA(`<div class="loading"><div class="loading-t">Project not found.</div></div>`);return;}
     CP={id:snap.id,...snap.data()};rP();
-  },err=>{
-    setA(`<div class="loading"><div class="loading-t" style="color:#e07070">Error: ${err.message}</div></div>`);
-  });
+  },err=>setA(`<div class="loading"><div class="loading-t" style="color:#e07070">${err.message}</div></div>`));
 }
 
 function rP(){
@@ -265,39 +307,34 @@ function rP(){
   document.documentElement.style.cssText=`--acc:${acc};--bg:${bg};--text:${text};--surf:${surf};--surf2:${surf2};--bord:${bord};--muted:${muted}`;
   document.body.style.background=bg;
   const dl=p.deadline?daysLeft(p.deadline):null;
-  const tabs=['overview','songs','focus','promo','content','todo','budget',...(VO?[]:['insights']),'info'];
+  const tabLabel=TABS_DEF.find(t=>t.id===TAB)?.label||TAB;
   setA(`<div style="background:${bg};min-height:100vh;color:${text}">
     <div style="position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);background:linear-gradient(180deg,${acc}22,${bg});border-bottom:1px solid ${acc}33">
-      <div style="display:flex;align-items:center;gap:10px;padding:30px 14px 14px">
-        <button class="iBtn" onclick="${VO?"location.hash=''":"dash()"}" style="color:${muted}">←</button>
+      <div style="display:flex;align-items:center;gap:8px;padding:30px 14px 14px">
+        <button class="iBtn" onclick="${VO?"location.hash=''":"dash()"}" style="color:${muted};font-size:22px">←</button>
+        <button class="iBtn" onclick="openNav()" style="color:${muted};font-size:22px;padding:8px 10px" title="Menu">☰</button>
         <div style="flex:1;min-width:0">
           ${VO?`<div style="display:inline-block;background:#1a0d2e;color:#8b68d4;font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:2px 8px;border-radius:10px;margin-bottom:3px">View Only</div><br>`:''}
-          <div style="font-size:10px;color:${acc};letter-spacing:.2em;text-transform:uppercase;margin-bottom:2px">${p.artist||''}</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:.05em;line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title||'Untitled'}</div>
-          ${dl!==null?`<div style="font-size:10px;color:${dl<0?'#e07070':dl<7?'#d4a843':muted};margin-top:3px">${dl<0?`${Math.abs(dl)}d overdue`:dl===0?'Due today':dl===1?'Due tomorrow':`${dl} days to release`}</div>`:''}
+          <div style="font-size:10px;color:${acc};letter-spacing:.2em;text-transform:uppercase;margin-bottom:1px">${p.artist||''}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.05em;line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title||'Untitled'}</div>
         </div>
-        ${p.coverUrl?`<img src="${p.coverUrl}" style="width:46px;height:46px;border-radius:6px;object-fit:cover;border:1px solid ${acc}44;flex-shrink:0">`:''}
-        ${!VO?`
-        <button class="iBtn" onclick="toggleDark()" style="color:${muted};font-size:16px">${dark?'☀':'🌙'}</button>
-        <button class="iBtn" onclick="shareM()" style="color:${acc}">⤴</button>
-        <button class="iBtn" onclick="settingsM()" style="color:${muted}">⚙</button>`:''}
+        ${p.coverUrl?`<img src="${p.coverUrl}" style="width:42px;height:42px;border-radius:6px;object-fit:cover;border:1px solid ${acc}44;flex-shrink:0">`:''}
+        ${!VO?`<button class="iBtn" onclick="toggleDark()" style="color:${muted};font-size:15px">${dark?'☀':'🌙'}</button>
+        <button class="iBtn" onclick="shareM()" style="color:${acc};font-size:18px">⤴</button>
+        <button class="iBtn" onclick="settingsM()" style="color:${muted};font-size:18px">⚙</button>`:''}
+      </div>
+      <div style="display:flex;align-items:center;padding:0 14px 10px;gap:6px">
+        <div style="font-size:10px;color:${acc};letter-spacing:.15em;text-transform:uppercase">${tabLabel}</div>
+        ${dl!==null?`<div style="margin-left:auto;font-size:10px;color:${dl<0?'#e07070':dl<7?'#d4a843':muted}">${dl<0?`⚠ ${Math.abs(dl)}d overdue`:dl===0?'⚠ Due today':`📅 ${dl}d left`}</div>`:''}
       </div>
     </div>
-    <div style="display:flex;overflow-x:auto;scrollbar-width:none;background:${surf};border-bottom:1px solid ${bord};position:sticky;top:85px;z-index:99">
-      ${tabs.map(t=>`<button class="ptab${TAB===t?' on':''}" onclick="sT('${t}')" style="${TAB===t?`color:${acc};border-bottom-color:${acc}`:''}'">${t}</button>`).join('')}
-    </div>
-    <div style="padding:14px;padding-bottom:80px" id="tab-body">${bTab()}</div>
+    <div style="padding:14px;padding-bottom:80px">${bTab()}</div>
   </div>`);
-  if(TAB==='songs')initDrag();
+  if(TAB==='music')initDrag();
 }
 
 function sT(t){TAB=t;rP();}
-
-function toggleDark(){
-  const th={...(CP.theme||{accent:'#c9383a',bg:'#0a0a0c',dark:true})};
-  th.dark=!th.dark;
-  db.collection('projects').doc(CID).update({theme:th});
-}
+function toggleDark(){const th={...(CP.theme||{})};th.dark=!th.dark;db.collection('projects').doc(CID).update({theme:th});}
 
 /* ── TABS ── */
 function bTab(){
@@ -305,26 +342,28 @@ function bTab(){
 
   /* OVERVIEW */
   if(TAB==='overview'){
-    const dn=songs.filter(s=>(s.tasks||[]).every(t=>t.done)).length;
+    const dn=songs.filter(s=>(s.tasks||[]).every(t=>t.done)&&(s.tasks||[]).length>0).length;
     const ac=songs.filter(s=>!(s.tasks||[]).every(t=>t.done)&&(s.tasks||[]).some(t=>t.done)).length;
     const qu=songs.filter(s=>(s.tasks||[]).length===0||(s.tasks||[]).every(t=>!t.done)).length;
     const pct=songs.length?Math.round(dn/songs.length*100):0;
     const dl=p.deadline?daysLeft(p.deadline):null;
-    const ms=(p.milestones||[]).filter(m=>m.done).length;
-    const mst=(p.milestones||[]).length;
+    const ms=(p.milestones||[]).filter(m=>m.done).length,mst=(p.milestones||[]).length;
+    const pt=(p.promoTasks||[]).filter(t=>t.done).length,ptt=(p.promoTasks||[]).length;
+    const ct=(p.contentTasks||[]).filter(t=>t.done).length,ctt=(p.contentTasks||[]).length;
+    const td=(p.todoTasks||[]).filter(t=>t.done).length,tdt=(p.todoTasks||[]).length;
     return `
     ${dl!==null?`<div class="card" style="margin-bottom:10px;border-left:3px solid ${dl<0?'#e07070':dl<7?'#d4a843':acc}">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div>
           <div style="font-size:10px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px">Release Deadline</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:${dl<0?'#e07070':dl<7?'#d4a843':acc}">${dl<0?`${Math.abs(dl)} DAYS OVERDUE`:dl===0?'DUE TODAY':dl===1?'DUE TOMORROW':`${dl} DAYS LEFT`}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:${dl<0?'#e07070':dl<7?'#d4a843':acc}">${dl<0?`${Math.abs(dl)} DAYS OVERDUE`:dl===0?'DUE TODAY':dl===1?'DUE TOMORROW':`${dl} DAYS LEFT`}</div>
           <div style="font-size:10px;color:var(--muted);margin-top:2px">${fmtDate(p.deadline)}</div>
         </div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:48px;color:${dl<0?'#e07070':dl<7?'#d4a843':acc}22">${dl<0?'⚠':'📅'}</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:44px;color:${dl<0?'#e07070':dl<7?'#d4a843':acc}22">${dl<0?'⚠':'📅'}</div>
       </div>
     </div>`:''}
     <div class="card" style="margin-bottom:10px">
-      <div style="font-size:10px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-bottom:12px">Progress</div>
+      <div style="font-size:10px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-bottom:12px">Music Progress</div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px">
         ${[{n:songs.length,l:'Songs',c:'var(--text)'},{n:dn,l:'Done',c:'#4caf82'},{n:ac,l:'Active',c:acc},{n:qu,l:'Queued',c:'var(--muted)'}].map(x=>`
         <div style="text-align:center">
@@ -335,49 +374,151 @@ function bTab(){
       <div style="background:var(--surf2);border-radius:2px;height:6px;overflow:hidden;margin-bottom:5px">
         <div style="height:100%;background:${acc};border-radius:2px;width:${pct}%;transition:width .3s"></div>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted)">
-        <span>${dn} of ${songs.length} songs complete</span><span>${pct}%</span>
-      </div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted)"><span>${dn} of ${songs.length} complete</span><span>${pct}%</span></div>
     </div>
-    ${mst>0?`<div class="card" style="margin-bottom:10px">
-      <div style="font-size:10px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px">Milestones — ${ms}/${mst}</div>
-      <div style="background:var(--surf2);border-radius:2px;height:4px;overflow:hidden;margin-bottom:10px">
-        <div style="height:100%;background:#8b68d4;border-radius:2px;width:${mst?Math.round(ms/mst*100):0}%"></div>
-      </div>
-      ${(p.milestones||[]).slice(0,3).map(m=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:11px;color:${m.done?'var(--muted)':'var(--text)'};text-decoration:${m.done?'line-through':'none'}">
-        <span style="color:${m.done?'#4caf82':'#8b68d4'};font-size:12px">${m.done?'✓':'◆'}</span>${m.label}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      ${[[`Promo`,pt,ptt,'#e07b3a','promo'],[`Content`,ct,ctt,'#8b68d4','content'],[`To-Do`,td,tdt,'#4a8fc4','todo'],[`Milestones`,ms,mst,'#8b68d4','info']].map(([l,d,t,c,tab])=>`
+      <div class="card" style="margin:0;cursor:pointer" onclick="sT('${tab}')">
+        <div style="font-size:9px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px">${l}</div>
+        <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:6px">
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:${c};line-height:1">${d}</span>
+          <span style="font-size:10px;color:var(--muted)">/ ${t}</span>
+        </div>
+        <div style="background:var(--surf2);border-radius:2px;height:3px;overflow:hidden">
+          <div style="height:100%;background:${c};border-radius:2px;width:${t?Math.round(d/t*100):0}%"></div>
+        </div>
       </div>`).join('')}
-      ${(p.milestones||[]).length>3?`<div style="font-size:10px;color:var(--muted);margin-top:6px">+${(p.milestones||[]).length-3} more — see Info tab</div>`:''}
-    </div>`:''}
+    </div>
     <div class="slabel">Songs</div>
-    ${songs.length?songs.map((s,i)=>mCard(s,i,acc)).join(''):'<div class="empty">No songs yet.</div>'}`;
+    ${songs.length?songs.map((s,i)=>mCard(s,i,acc)).join(''):'<div class="empty">No songs yet — go to Music tab.</div>'}`;
   }
 
-  /* SONGS */
-  if(TAB==='songs')return `
-    ${!VO?`<button class="btn-o" onclick="addSongM()" style="margin-bottom:14px">+ Add Song</button>`:''}
-    <div id="song-list">${songs.length?songs.map((s,i)=>sCard(s,i,acc)).join(''):'<div class="empty">No songs yet.</div>'}</div>`;
+  /* MUSIC */
+  if(TAB==='music'){
+    const subTab=window._musicSub||'songs';
+    return `<div style="display:flex;gap:8px;margin-bottom:14px">
+      <button onclick="window._musicSub='songs';rP()" style="flex:1;padding:9px;background:${subTab==='songs'?acc:'var(--surf2)'};color:${subTab==='songs'?'#fff':'var(--muted)'};border:1px solid ${subTab==='songs'?acc:'var(--bord)'};border-radius:6px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">Songs</button>
+      <button onclick="window._musicSub='focus';rP()" style="flex:1;padding:9px;background:${subTab==='focus'?'#d4a843':'var(--surf2)'};color:${subTab==='focus'?'#0a0a0c':'var(--muted)'};border:1px solid ${subTab==='focus'?'#d4a843':'var(--bord)'};border-radius:6px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">Focus</button>
+    </div>
+    ${subTab==='songs'?`
+      ${!VO?`<button class="btn-o" onclick="addSongM()" style="margin-bottom:14px">+ Add Song</button>`:''}
+      <div id="song-list">${songs.length?songs.map((s,i)=>sCard(s,i,acc)).join(''):'<div class="empty">No songs yet.</div>'}</div>`
+    :`<div class="slabel">Current Focus Order</div>
+      ${songs.filter(s=>!(s.tasks||[]).every(t=>t.done)).length===0?'<div class="empty" style="color:#4caf82">🎉 All songs complete!</div>':''}
+      ${songs.filter(s=>!(s.tasks||[]).every(t=>t.done)).map((song,i)=>{
+        const nx=(song.tasks||[]).filter(t=>!t.done).slice(0,3);
+        return `<div class="card" style="display:flex;gap:12px;margin-bottom:8px">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:${acc};line-height:1;min-width:22px">${i+1}</div>
+          <div style="flex:1">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:19px;margin-bottom:6px">${song.name}</div>
+            ${nx.map(task=>{const fk=song.id+'_'+task.id,d=fd[fk];
+              return `<div ${!VO?`onclick="tF('${fk}')"`:''}
+                style="display:flex;align-items:center;gap:6px;font-size:11px;color:${d?'#555':'var(--muted)'};text-decoration:${d?'line-through':'none'};padding:5px 0;cursor:${VO?'default':'pointer'};min-height:30px">
+                <span style="color:${d?'#4caf82':acc};font-size:10px">${d?'✓':'→'}</span>${task.text}</div>`;
+            }).join('')}
+            ${nx.length===0?`<div style="font-size:10px;color:#4caf82">All tasks done ✓</div>`:''}
+          </div>
+        </div>`;
+      }).join('')}`}`;
+  }
 
-  /* FOCUS */
-  if(TAB==='focus'){
-    const inc=songs.filter(s=>!(s.tasks||[]).every(t=>t.done));
-    return `<div class="slabel">Current Focus Order</div>
-    ${!inc.length?'<div class="empty" style="color:#4caf82">🎉 All songs complete!</div>':''}
-    ${inc.map((song,i)=>{
-      const nx=(song.tasks||[]).filter(t=>!t.done).slice(0,3);
-      return `<div class="card" style="display:flex;gap:12px;margin-bottom:8px">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:${acc};line-height:1;min-width:22px">${i+1}</div>
-        <div style="flex:1">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:19px;margin-bottom:6px">${song.name}</div>
-          ${nx.map(task=>{const fk=song.id+'_'+task.id,d=fd[fk];
-            return `<div ${!VO?`onclick="tF('${fk}')"`:''}
-              style="display:flex;align-items:center;gap:6px;font-size:11px;color:${d?'#555':'var(--muted)'};text-decoration:${d?'line-through':'none'};padding:5px 0;cursor:${VO?'default':'pointer'};min-height:30px">
-              <span style="color:${d?'#4caf82':acc};font-size:10px">${d?'✓':'→'}</span>${task.text}</div>`;
-          }).join('')}
-          ${(song.tasks||[]).filter(t=>!t.done).length===0?`<div style="font-size:10px;color:#4caf82">All tasks done ✓</div>`:''}
-        </div>
-      </div>`;
-    }).join('')}`;
+  /* RELEASE SCHEDULE */
+  if(TAB==='release'){
+    const rs=p.releaseSchedule||[];
+    const cols=['Release','Release Date','Due Date','Audio File','Artwork','Metadata','Status'];
+    const statusColors={'Not Started':'var(--muted)','In Progress':'#d4a843','Complete':'#4caf82','Overdue':'#e07070'};
+    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div class="slabel" style="margin:0;border:none;padding:0">Release Schedule</div>
+      ${!VO?`<button class="btn-s" onclick="addReleaseRowM()">+ Add Row</button>`:''}
+    </div>
+    ${rs.length?`<div style="overflow-x:auto;border-radius:8px;border:1px solid var(--bord)">
+      <table class="rel-table">
+        <thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}${!VO?'<th></th>':''}</tr></thead>
+        <tbody>${rs.map(row=>{
+          const sc=statusColors[row.status]||'var(--muted)';
+          const dl=row.releaseDate?daysLeft(row.releaseDate):null;
+          return `<tr>
+            <td style="font-family:'Bebas Neue',sans-serif;font-size:15px;white-space:nowrap">${row.release||'—'}</td>
+            <td style="white-space:nowrap;color:${dl!==null&&dl<7?'#e07070':'var(--text)'}">${row.releaseDate?fmtDateShort(row.releaseDate):'—'}</td>
+            <td style="white-space:nowrap;color:var(--muted)">${row.dueDate?fmtDateShort(row.dueDate):'—'}</td>
+            <td><span class="rel-chip" style="background:${row.audioFile==='Done'?'#0d2e1f':'var(--surf2)'};color:${row.audioFile==='Done'?'#4caf82':'var(--muted)'}">${row.audioFile||'—'}</span></td>
+            <td><span class="rel-chip" style="background:${row.artwork==='Done'?'#0d2e1f':'var(--surf2)'};color:${row.artwork==='Done'?'#4caf82':'var(--muted)'}">${row.artwork||'—'}</span></td>
+            <td><span class="rel-chip" style="background:${row.metadata==='Done'?'#0d2e1f':'var(--surf2)'};color:${row.metadata==='Done'?'#4caf82':'var(--muted)'}">${row.metadata||'—'}</span></td>
+            <td><span class="rel-chip" style="background:${sc}22;color:${sc}">${row.status||'Not Started'}</span></td>
+            ${!VO?`<td><button onclick="editReleaseRowM('${row.id}')" class="iBtn" style="font-size:14px;padding:4px">✎</button><button onclick="delReleaseRow('${row.id}')" class="iBtn" style="font-size:12px;padding:4px;opacity:.4">✕</button></td>`:''}
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>`:`<div class="empty">No releases scheduled yet.${!VO?' Tap + Add Row to build your schedule.':''}</div>`}`;
+  }
+
+  /* PROMO */
+  if(TAB==='promo'){
+    const tasks=p.promoTasks||[];
+    const dn=tasks.filter(t=>t.done).length;
+    const pct=tasks.length?Math.round(dn/tasks.length*100):0;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <div class="slabel" style="margin:0;border:none;padding:0">Promo & Photos</div>
+      <span style="font-size:10px;color:var(--muted)">${dn}/${tasks.length}</span>
+    </div>
+    <div style="background:var(--surf2);border-radius:2px;height:3px;overflow:hidden;margin-bottom:14px">
+      <div style="height:100%;background:${acc};border-radius:2px;width:${pct}%"></div>
+    </div>
+    ${!VO?`<div class="card" style="margin-bottom:14px">
+      <input class="field" id="pt-inp" placeholder="Add promo task..." style="margin-bottom:8px" onkeydown="if(event.key==='Enter')addSimpleTask('promoTasks','pt-inp')">
+      <button class="btn-s" onclick="addSimpleTask('promoTasks','pt-inp')" style="width:100%">Add Task</button>
+    </div>`:''}
+    ${tasks.length?tasks.map(t=>`<div class="trow" ${!VO?`onclick="toggleSimpleTask('promoTasks','${t.id}')"`:''}  style="cursor:${VO?'default':'pointer'}">
+      <div class="tcheck${t.done?' on':''}">${t.done?`<span style="font-size:10px;color:#0a0a0c;font-weight:bold">✓</span>`:''}</div>
+      <div style="font-size:12px;line-height:1.5;flex:1;color:${t.done?'var(--muted)':'var(--text)'};text-decoration:${t.done?'line-through':'none'}">${t.text}</div>
+      ${!VO?`<button onclick="event.stopPropagation();delSimpleTask('promoTasks','${t.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.4">✕</button>`:''}
+    </div>`).join(''):'<div class="empty">No promo tasks yet.</div>'}`;
+  }
+
+  /* CONTENT */
+  if(TAB==='content'){
+    const tasks=p.contentTasks||[];
+    const dn=tasks.filter(t=>t.done).length;
+    const pct=tasks.length?Math.round(dn/tasks.length*100):0;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <div class="slabel" style="margin:0;border:none;padding:0">Content Plan</div>
+      <span style="font-size:10px;color:var(--muted)">${dn}/${tasks.length}</span>
+    </div>
+    <div style="background:var(--surf2);border-radius:2px;height:3px;overflow:hidden;margin-bottom:14px">
+      <div style="height:100%;background:#8b68d4;border-radius:2px;width:${pct}%"></div>
+    </div>
+    ${!VO?`<div class="card" style="margin-bottom:14px">
+      <input class="field" id="ct-inp" placeholder="Add content task..." style="margin-bottom:8px" onkeydown="if(event.key==='Enter')addSimpleTask('contentTasks','ct-inp')">
+      <button class="btn-s" onclick="addSimpleTask('contentTasks','ct-inp')" style="width:100%;background:#8b68d4">Add Task</button>
+    </div>`:''}
+    ${tasks.length?tasks.map(t=>`<div class="trow" ${!VO?`onclick="toggleSimpleTask('contentTasks','${t.id}')"`:''}  style="cursor:${VO?'default':'pointer'}">
+      <div class="tcheck${t.done?' on':''}" style="${t.done?'':'border-color:#8b68d4'}">${t.done?`<span style="font-size:10px;color:#0a0a0c;font-weight:bold">✓</span>`:''}</div>
+      <div style="font-size:12px;line-height:1.5;flex:1;color:${t.done?'var(--muted)':'var(--text)'};text-decoration:${t.done?'line-through':'none'}">${t.text}</div>
+      ${!VO?`<button onclick="event.stopPropagation();delSimpleTask('contentTasks','${t.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.4">✕</button>`:''}
+    </div>`).join(''):'<div class="empty">No content tasks yet.</div>'}`;
+  }
+
+  /* TODO */
+  if(TAB==='todo'){
+    const tasks=p.todoTasks||[];
+    const dn=tasks.filter(t=>t.done).length;
+    const pct=tasks.length?Math.round(dn/tasks.length*100):0;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <div class="slabel" style="margin:0;border:none;padding:0">General To-Do</div>
+      <span style="font-size:10px;color:var(--muted)">${dn}/${tasks.length}</span>
+    </div>
+    <div style="background:var(--surf2);border-radius:2px;height:3px;overflow:hidden;margin-bottom:14px">
+      <div style="height:100%;background:#4a8fc4;border-radius:2px;width:${pct}%"></div>
+    </div>
+    ${!VO?`<div class="card" style="margin-bottom:14px">
+      <input class="field" id="td-inp" placeholder="Add to-do..." style="margin-bottom:8px" onkeydown="if(event.key==='Enter')addSimpleTask('todoTasks','td-inp')">
+      <button class="btn-s" onclick="addSimpleTask('todoTasks','td-inp')" style="width:100%;background:#4a8fc4">Add Task</button>
+    </div>`:''}
+    ${tasks.length?tasks.map(t=>`<div class="trow" ${!VO?`onclick="toggleSimpleTask('todoTasks','${t.id}')"`:''}  style="cursor:${VO?'default':'pointer'}">
+      <div class="tcheck${t.done?' on':''}" style="${t.done?'':'border-color:#4a8fc4'}">${t.done?`<span style="font-size:10px;color:#0a0a0c;font-weight:bold">✓</span>`:''}</div>
+      <div style="font-size:12px;line-height:1.5;flex:1;color:${t.done?'var(--muted)':'var(--text)'};text-decoration:${t.done?'line-through':'none'}">${t.text}</div>
+      ${!VO?`<button onclick="event.stopPropagation();delSimpleTask('todoTasks','${t.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.4">✕</button>`:''}
+    </div>`).join(''):'<div class="empty">No to-dos yet.</div>'}`;
   }
 
   /* BUDGET */
@@ -400,10 +541,10 @@ function bTab(){
     ${!VO?`<div class="card" style="margin-bottom:14px">
       <div class="flabel">Add Expense</div>
       <div style="display:flex;gap:6px;margin-bottom:8px">
-        <input class="field" id="exp-amt" type="number" placeholder="$0.00" style="width:90px;margin:0" onkeydown="if(event.key==='Enter')addExp()">
+        <input class="field" id="exp-amt" type="number" placeholder="$0.00" style="width:90px;margin:0">
         <input class="field" id="exp-desc" placeholder="Description" style="flex:1;margin:0">
       </div>
-      <input class="field" id="exp-cat" placeholder="Category (e.g. Studio, Features, Mixing)" style="margin-bottom:8px" onkeydown="if(event.key==='Enter')addExp()">
+      <input class="field" id="exp-cat" placeholder="Category (e.g. Studio, Features, Mixing)" style="margin-bottom:8px">
       <button class="btn-s" onclick="addExp()" style="width:100%">Add Expense</button>
     </div>`:''}
     ${expenses.length?`<div class="card" style="padding:0;overflow:hidden">
@@ -434,7 +575,7 @@ function bTab(){
       </div>
     </div>
     <div class="slabel">View History</div>
-    ${!sorted.length?'<div class="empty">No views yet. Share your link to start tracking.</div>':''}
+    ${!sorted.length?'<div class="empty">No views yet.</div>':''}
     ${sorted.length?`<div class="card" style="padding:0;overflow:hidden">
       ${sorted.map((v,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--bord);${i===sorted.length-1?'border:none':''}">
         <div style="width:32px;height:32px;border-radius:50%;background:${acc}22;border:1px solid ${acc}44;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${v.name?v.name[0].toUpperCase():'👁'}</div>
@@ -450,8 +591,7 @@ function bTab(){
   /* INFO */
   if(TAB==='info'){
     const ms=p.milestones||[];
-    return `
-    <div class="slabel">Project Info</div>
+    return `<div class="slabel">Project Info</div>
     <div class="card" style="margin-bottom:14px">
       ${[['Title',p.title],['Artist',p.artist],['Label',p.label],['Co-Producer',p.coproducer],['Deadline',p.deadline?fmtDate(p.deadline):null]].filter(r=>r[1]).map(([k,v])=>`
       <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bord)">
@@ -461,8 +601,8 @@ function bTab(){
     <div class="slabel">Milestones</div>
     ${!VO?`<button class="btn-o" onclick="addMilestoneM()" style="margin-bottom:12px">+ Add Milestone</button>`:''}
     ${ms.length?`<div class="card" style="margin-bottom:14px;padding:0;overflow:hidden">
-      ${ms.map((m,i)=>`<div class="milestone" style="padding:11px 14px;${i===ms.length-1?'border:none':''}">
-        <div class="ms-dot" style="background:${m.done?'#4caf82':'#8b68d4'}"></div>
+      ${ms.map((m,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--bord);${i===ms.length-1?'border:none':''}">
+        <div style="width:10px;height:10px;border-radius:50%;background:${m.done?'#4caf82':'#8b68d4'};flex-shrink:0"></div>
         <div style="flex:1;min-width:0">
           <div style="font-size:12px;color:${m.done?'var(--muted)':'var(--text)'};text-decoration:${m.done?'line-through':'none'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.label}</div>
           ${m.date?`<div style="font-size:10px;color:var(--muted);margin-top:2px">${fmtDate(m.date)}</div>`:''}
@@ -479,79 +619,6 @@ function bTab(){
         <div style="font-size:10px;color:var(--muted);margin-top:4px">Auto-saved <span id="ndot" style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#4caf82;opacity:0;transition:opacity .3s;vertical-align:middle"></span></div>`
       :`<div class="card" style="font-size:12px;white-space:pre-wrap">${p.notes||'No notes.'}</div>`}`;
   }
-
-  /* PROMO */
-  if(TAB==='promo'){
-    const tasks=p.promoTasks||[];
-    const dn=tasks.filter(t=>t.done).length;
-    const pct=tasks.length?Math.round(dn/tasks.length*100):0;
-    return `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <div class="slabel" style="margin:0;border:none;padding:0">Promo & Photos</div>
-      <span style="font-size:10px;color:var(--muted)">${dn}/${tasks.length} done</span>
-    </div>
-    <div style="background:var(--surf2);border-radius:2px;height:3px;overflow:hidden;margin-bottom:14px">
-      <div style="height:100%;background:${acc};border-radius:2px;width:${pct}%"></div>
-    </div>
-    ${!VO?`<div class="card" style="margin-bottom:14px">
-      <input class="field" id="pt-inp" placeholder="Add promo task..." style="margin-bottom:8px" onkeydown="if(event.key==='Enter')addSimpleTask('promoTasks','pt-inp')">
-      <button class="btn-s" onclick="addSimpleTask('promoTasks','pt-inp')" style="width:100%">Add Task</button>
-    </div>`:''}
-    ${tasks.length?tasks.map((t,i)=>`<div class="trow" ${!VO?`onclick="toggleSimpleTask('promoTasks','${t.id}')"`:''}  style="cursor:${VO?'default':'pointer'}">
-      <div class="tcheck${t.done?' on':''}">${t.done?`<span style="font-size:10px;color:#0a0a0c;font-weight:bold">✓</span>`:''}</div>
-      <div style="font-size:12px;line-height:1.5;flex:1;color:${t.done?'var(--muted)':'var(--text)'};text-decoration:${t.done?'line-through':'none'}">${t.text}</div>
-      ${!VO?`<button onclick="event.stopPropagation();delSimpleTask('promoTasks','${t.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.4">✕</button>`:''}
-    </div>`).join(''):'<div class="empty">No promo tasks yet.</div>'}`;
-  }
-
-  /* CONTENT */
-  if(TAB==='content'){
-    const tasks=p.contentTasks||[];
-    const dn=tasks.filter(t=>t.done).length;
-    const pct=tasks.length?Math.round(dn/tasks.length*100):0;
-    return `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <div class="slabel" style="margin:0;border:none;padding:0">Content Plan</div>
-      <span style="font-size:10px;color:var(--muted)">${dn}/${tasks.length} done</span>
-    </div>
-    <div style="background:var(--surf2);border-radius:2px;height:3px;overflow:hidden;margin-bottom:14px">
-      <div style="height:100%;background:#8b68d4;border-radius:2px;width:${pct}%"></div>
-    </div>
-    ${!VO?`<div class="card" style="margin-bottom:14px">
-      <input class="field" id="ct-inp" placeholder="Add content task..." style="margin-bottom:8px" onkeydown="if(event.key==='Enter')addSimpleTask('contentTasks','ct-inp')">
-      <button class="btn-s" onclick="addSimpleTask('contentTasks','ct-inp')" style="width:100%;background:#8b68d4">Add Task</button>
-    </div>`:''}
-    ${tasks.length?tasks.map((t,i)=>`<div class="trow" ${!VO?`onclick="toggleSimpleTask('contentTasks','${t.id}')"`:''}  style="cursor:${VO?'default':'pointer'}">
-      <div class="tcheck${t.done?' on':''}" style="${t.done?'':'border-color:#8b68d4'}">${t.done?`<span style="font-size:10px;color:#0a0a0c;font-weight:bold">✓</span>`:''}</div>
-      <div style="font-size:12px;line-height:1.5;flex:1;color:${t.done?'var(--muted)':'var(--text)'};text-decoration:${t.done?'line-through':'none'}">${t.text}</div>
-      ${!VO?`<button onclick="event.stopPropagation();delSimpleTask('contentTasks','${t.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.4">✕</button>`:''}
-    </div>`).join(''):'<div class="empty">No content tasks yet.</div>'}`;
-  }
-
-  /* TODO */
-  if(TAB==='todo'){
-    const tasks=p.todoTasks||[];
-    const dn=tasks.filter(t=>t.done).length;
-    const pct=tasks.length?Math.round(dn/tasks.length*100):0;
-    return `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <div class="slabel" style="margin:0;border:none;padding:0">General To-Do</div>
-      <span style="font-size:10px;color:var(--muted)">${dn}/${tasks.length} done</span>
-    </div>
-    <div style="background:var(--surf2);border-radius:2px;height:3px;overflow:hidden;margin-bottom:14px">
-      <div style="height:100%;background:#4a8fc4;border-radius:2px;width:${pct}%"></div>
-    </div>
-    ${!VO?`<div class="card" style="margin-bottom:14px">
-      <input class="field" id="td-inp" placeholder="Add to-do..." style="margin-bottom:8px" onkeydown="if(event.key==='Enter')addSimpleTask('todoTasks','td-inp')">
-      <button class="btn-s" onclick="addSimpleTask('todoTasks','td-inp')" style="width:100%;background:#4a8fc4">Add Task</button>
-    </div>`:''}
-    ${tasks.length?tasks.map((t,i)=>`<div class="trow" ${!VO?`onclick="toggleSimpleTask('todoTasks','${t.id}')"`:''}  style="cursor:${VO?'default':'pointer'}">
-      <div class="tcheck${t.done?' on':''}" style="${t.done?'':'border-color:#4a8fc4'}">${t.done?`<span style="font-size:10px;color:#0a0a0c;font-weight:bold">✓</span>`:''}</div>
-      <div style="font-size:12px;line-height:1.5;flex:1;color:${t.done?'var(--muted)':'var(--text)'};text-decoration:${t.done?'line-through':'none'}">${t.text}</div>
-      ${!VO?`<button onclick="event.stopPropagation();delSimpleTask('todoTasks','${t.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.4">✕</button>`:''}
-    </div>`).join(''):'<div class="empty">No to-dos yet.</div>'}`;
-  }
-
   return '';
 }
 
@@ -560,15 +627,16 @@ function mCard(s,i,acc){
   const dn=(s.tasks||[]).every(t=>t.done)&&(s.tasks||[]).length>0;
   const dt=(s.tasks||[]).filter(t=>t.done).length,tot=(s.tasks||[]).length;
   const bc=dn?'#4caf82':s.priority?'#d4a843':acc;
-  return `<div style="background:var(--surf);border:1px solid var(--bord);border-left:3px solid ${bc};border-radius:7px;margin-bottom:8px;padding:11px 13px;display:flex;align-items:center;gap:10px;animation:fadeUp .3s ease ${i*.04}s backwards">
+  return `<div style="background:var(--surf);border:1px solid var(--bord);border-left:3px solid ${bc};border-radius:7px;margin-bottom:8px;padding:11px 13px;display:flex;align-items:center;gap:10px;animation:fadeUp .3s ease ${i*.04}s backwards" onclick="sT('music')">
     <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--muted);min-width:22px">${s.order||i+1}</div>
     <div style="flex:1;min-width:0">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.name}</div>
       <div style="display:flex;gap:5px;margin-top:3px;align-items:center;flex-wrap:wrap">
         <span class="badge" style="background:${dn?'#0d2e1f':'var(--surf2)'};color:${dn?'#4caf82':'var(--muted)'}">${dn?'Complete':s.statusLabel||'In Progress'}</span>
-        <span style="font-size:9px;color:var(--muted)">${dt}/${tot} tasks</span>
+        <span style="font-size:9px;color:var(--muted)">${dt}/${tot}</span>
       </div>
     </div>
+    <div style="color:var(--muted);font-size:14px">›</div>
   </div>`;
 }
 
@@ -580,7 +648,7 @@ function sCard(s,i,acc){
   return `<div class="scard" id="sc-${s.id}" draggable="true" style="border-left:3px solid ${bc};animation:fadeUp .3s ease ${i*.04}s backwards"
     ondragstart="dStart(event,'${s.id}')" ondragover="dOver(event,'${s.id}')" ondrop="dDrop(event,'${s.id}')" ondragend="dEnd()">
     <div class="sheader" onclick="tC('${s.id}')">
-      <div class="drag-handle" onclick="event.stopPropagation()" title="Drag to reorder">⠿</div>
+      <div class="drag-handle" onclick="event.stopPropagation()">⠿</div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--muted);min-width:24px">${s.order||i+1}</div>
       <div style="flex:1;min-width:0">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.name}</div>
@@ -617,7 +685,7 @@ function sCard(s,i,acc){
         <button class="btn-s o" onclick="lyricsM('${s.id}')">Lyrics</button>
         <button class="btn-s o" onclick="addSongNote('${s.id}')">+ Note</button>
         <button class="btn-s d" onclick="dS('${s.id}')">Delete</button>
-      </div>
+      </div>`:''}
       ${s.lyrics&&VO?`<div style="margin-top:12px">
         <div style="font-size:9px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px">Lyrics</div>
         <div style="background:var(--surf2);border-radius:4px;padding:10px;font-size:12px;line-height:1.8;white-space:pre-wrap">${s.lyrics}</div>
@@ -625,61 +693,44 @@ function sCard(s,i,acc){
       ${(s.sessionNotes||[]).length?`<div style="margin-top:10px">
         <div style="font-size:9px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px">Session Log</div>
         ${[...(s.sessionNotes||[])].reverse().map(n=>`<div style="background:var(--surf2);border-radius:4px;padding:8px 10px;margin-bottom:5px;font-size:11px;line-height:1.5">
-          <div style="color:var(--muted);font-size:9px;margin-bottom:3px">${n.date}</div>
-          ${n.text}
+          <div style="color:var(--muted);font-size:9px;margin-bottom:3px">${n.date}</div>${n.text}
         </div>`).join('')}
-      </div>`:''}`:''}
+      </div>`:''}
     </div>`:''}
   </div>`;
 }
 
-/* ── DRAG TO REORDER ── */
+/* ── DRAG ── */
 function initDrag(){
   document.querySelectorAll('.scard').forEach(el=>{
-    el.addEventListener('touchstart',e=>{
-      if(!e.target.classList.contains('drag-handle'))return;
-      e.preventDefault();
-      const id=el.id.replace('sc-','');
-      dragSrc=id;el.classList.add('dragging');
-    },{passive:false});
+    el.addEventListener('touchstart',e=>{if(!e.target.classList.contains('drag-handle'))return;e.preventDefault();dragSrc=el.id.replace('sc-','');el.classList.add('dragging');},{passive:false});
   });
 }
 function dStart(e,id){dragSrc=id;e.dataTransfer.effectAllowed='move';}
 function dOver(e,id){e.preventDefault();if(dragSrc&&dragSrc!==id){document.querySelectorAll('.scard').forEach(c=>c.classList.remove('drag-over'));const t=document.getElementById('sc-'+id);if(t)t.classList.add('drag-over');}}
-function dEnd(){dragSrc=null;document.querySelectorAll('.scard,.drag-over').forEach(c=>{c.classList.remove('dragging');c.classList.remove('drag-over');});}
-async function dDrop(e,targetId){
-  e.preventDefault();
-  if(!dragSrc||dragSrc===targetId)return;
+function dEnd(){dragSrc=null;document.querySelectorAll('.scard').forEach(c=>{c.classList.remove('dragging');c.classList.remove('drag-over');});}
+async function dDrop(e,tid){
+  e.preventDefault();if(!dragSrc||dragSrc===tid)return;
   const songs=[...(CP.songs||[])];
-  const fi=songs.findIndex(s=>s.id===dragSrc);
-  const ti=songs.findIndex(s=>s.id===targetId);
+  const fi=songs.findIndex(s=>s.id===dragSrc),ti=songs.findIndex(s=>s.id===tid);
   if(fi<0||ti<0)return;
-  const [moved]=songs.splice(fi,1);
-  songs.splice(ti,0,moved);
+  const [m]=songs.splice(fi,1);songs.splice(ti,0,m);
   songs.forEach((s,idx)=>s.order=idx+1);
-  await db.collection('projects').doc(CID).update({songs});
-  dEnd();
+  await db.collection('projects').doc(CID).update({songs});dEnd();
 }
 
 /* ── ACTIONS ── */
 function tC(id){OC[id]=!OC[id];rP();}
-
 async function tT(sid,tid){
   const songs=[...(CP.songs||[])];
   const si=songs.findIndex(s=>s.id===sid);if(si<0)return;
   const ti=songs[si].tasks.findIndex(t=>t.id===tid);if(ti<0)return;
-  const wasDone=songs[si].tasks[ti].done;
-  songs[si].tasks[ti].done=!wasDone;
-  if(!wasDone){
-    const now=new Date();
-    songs[si].statusHistory=[...(songs[si].statusHistory||[]),{event:`Task completed: ${songs[si].tasks[ti].text}`,date:now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),ts:now.getTime()}];
-  }
+  const was=songs[si].tasks[ti].done;
+  songs[si].tasks[ti].done=!was;
+  if(!was){const now=new Date();songs[si].statusHistory=[...(songs[si].statusHistory||[]),{event:`Task: ${songs[si].tasks[ti].text}`,date:now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),ts:now.getTime()}];}
   await db.collection('projects').doc(CID).update({songs});
 }
-async function tF(fk){
-  const fd={...(CP.focusDone||{})};fd[fk]=!fd[fk];
-  await db.collection('projects').doc(CID).update({focusDone:fd});
-}
+async function tF(fk){const fd={...(CP.focusDone||{})};fd[fk]=!fd[fk];await db.collection('projects').doc(CID).update({focusDone:fd});}
 async function aT(sid){
   const inp=document.getElementById('ni-'+sid);
   const text=inp?.value?.trim();if(!text)return;
@@ -689,25 +740,8 @@ async function aT(sid){
   await db.collection('projects').doc(CID).update({songs});
   if(inp)inp.value='';
 }
-async function dT(sid,tid){
-  const songs=[...(CP.songs||[])];
-  const si=songs.findIndex(s=>s.id===sid);if(si<0)return;
-  songs[si].tasks=songs[si].tasks.filter(t=>t.id!==tid);
-  await db.collection('projects').doc(CID).update({songs});
-}
-async function dS(sid){
-  if(!confirm('Delete this song?'))return;
-  const songs=(CP.songs||[]).filter(s=>s.id!==sid);
-  await db.collection('projects').doc(CID).update({songs});
-}
-async function mS(sid,dir){
-  const songs=[...(CP.songs||[])];
-  const i=songs.findIndex(s=>s.id===sid),ni=i+dir;
-  if(ni<0||ni>=songs.length)return;
-  [songs[i],songs[ni]]=[songs[ni],songs[i]];
-  songs.forEach((s,idx)=>s.order=idx+1);
-  await db.collection('projects').doc(CID).update({songs});
-}
+async function dT(sid,tid){const songs=[...(CP.songs||[])];const si=songs.findIndex(s=>s.id===sid);if(si<0)return;songs[si].tasks=songs[si].tasks.filter(t=>t.id!==tid);await db.collection('projects').doc(CID).update({songs});}
+async function dS(sid){if(!confirm('Delete this song?'))return;await db.collection('projects').doc(CID).update({songs:(CP.songs||[]).filter(s=>s.id!==sid)});}
 
 function addSongM(){
   SM(`<div class="modal-title">Add Song</div>
@@ -728,26 +762,16 @@ async function addSong(){
   const name=g('sn');if(!name)return sErr('se','Enter a song title.');
   const songs=[...(CP.songs||[])];
   const now=new Date();
-  songs.push({
-    id:'s'+Date.now(),name,
-    statusLabel:g('ss')||'In Progress',
-    priority:document.getElementById('sp').checked,
-    fileLink:g('sf'),
-    listenLink:g('sl'),
-    tasks:[],order:songs.length+1,
-    sessionNotes:[],statusHistory:[{event:'Song added',date:now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),ts:now.getTime()}]
-  });
-  await db.collection('projects').doc(CID).update({songs});
-  CM();TAB='songs';
+  songs.push({id:'s'+Date.now(),name,statusLabel:g('ss')||'In Progress',priority:document.getElementById('sp').checked,fileLink:g('sf'),listenLink:g('sl'),tasks:[],order:songs.length+1,sessionNotes:[],statusHistory:[{event:'Song added',date:now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),ts:now.getTime()}]});
+  await db.collection('projects').doc(CID).update({songs});CM();window._musicSub='songs';
 }
-
 function eSM(sid){
   const s=(CP.songs||[]).find(x=>x.id===sid);if(!s)return;
   SM(`<div class="modal-title">Edit Song</div>
     <input class="field" id="en" value="${s.name}" placeholder="Song title">
     <input class="field" id="es" value="${s.statusLabel||''}" placeholder="Status label">
     <input class="field" id="ef" value="${s.fileLink||''}" placeholder="Session file link">
-    <input class="field" id="el" value="${s.listenLink||''}" placeholder="Listen link (SoundCloud, Drive, etc.)">
+    <input class="field" id="el" value="${s.listenLink||''}" placeholder="Listen link">
     <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:12px;cursor:pointer">
       <input type="checkbox" id="ep" ${s.priority?'checked':''}> Mark as Priority
     </label>
@@ -757,49 +781,97 @@ function eSM(sid){
     </div>`);
 }
 async function savES(sid){
-  const songs=[...(CP.songs||[])];
-  const i=songs.findIndex(s=>s.id===sid);if(i<0)return;
-  const oldStatus=songs[i].statusLabel;
-  const newStatus=g('es')||songs[i].statusLabel;
-  songs[i].name=g('en')||songs[i].name;
-  songs[i].fileLink=g('ef');
-  songs[i].listenLink=g('el');
-  songs[i].priority=document.getElementById('ep').checked;
-  if(newStatus!==oldStatus){
-    const now=new Date();
-    songs[i].statusHistory=[...(songs[i].statusHistory||[]),{event:`Status → ${newStatus}`,date:now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),ts:now.getTime()}];
-  }
-  songs[i].statusLabel=newStatus;
+  const songs=[...(CP.songs||[])];const i=songs.findIndex(s=>s.id===sid);if(i<0)return;
+  const old=songs[i].statusLabel,ns=g('es')||songs[i].statusLabel;
+  songs[i].name=g('en')||songs[i].name;songs[i].fileLink=g('ef');songs[i].listenLink=g('el');songs[i].priority=document.getElementById('ep').checked;
+  if(ns!==old){const now=new Date();songs[i].statusHistory=[...(songs[i].statusHistory||[]),{event:`Status → ${ns}`,date:now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),ts:now.getTime()}];}
+  songs[i].statusLabel=ns;
   await db.collection('projects').doc(CID).update({songs});CM();
 }
-
 function addSongNote(sid){
+  const s=(CP.songs||[]).find(x=>x.id===sid);
   SM(`<div class="modal-title">Session Note</div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Log what happened in this session for ${(CP.songs||[]).find(s=>s.id===sid)?.name||'this song'}.</div>
-    <textarea class="field" id="snote" placeholder="e.g. Recorded vocals, fixed bridge melody..." style="min-height:80px" autofocus></textarea>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">${s?.name||'Song'}</div>
+    <textarea class="field" id="snote" placeholder="e.g. Recorded vocals, fixed bridge..." style="min-height:80px" autofocus></textarea>
     <div class="mactions">
       <button class="btn-g" onclick="CM()">Cancel</button>
-      <button class="btn-p" style="width:auto;padding:10px 20px" onclick="savSongNote('${sid}')">Save Note</button>
+      <button class="btn-p" style="width:auto;padding:10px 20px" onclick="savSongNote('${sid}')">Save</button>
     </div>`);
 }
 async function savSongNote(sid){
   const text=g('snote');if(!text)return;
-  const songs=[...(CP.songs||[])];
-  const i=songs.findIndex(s=>s.id===sid);if(i<0)return;
+  const songs=[...(CP.songs||[])];const i=songs.findIndex(s=>s.id===sid);if(i<0)return;
   const now=new Date();
   songs[i].sessionNotes=[...(songs[i].sessionNotes||[]),{id:'n'+Date.now(),text,date:now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}];
-  await db.collection('projects').doc(CID).update({songs});
-  CM();OC[sid]=true;
+  await db.collection('projects').doc(CID).update({songs});CM();OC[sid]=true;
 }
-
+function lyricsM(sid){
+  const s=(CP.songs||[]).find(x=>x.id===sid);if(!s)return;
+  SM(`<div class="modal-title">${s.name} — Lyrics</div>
+    <textarea class="field" id="lyric-txt" placeholder="Paste lyrics here..." style="min-height:220px;font-size:12px;line-height:1.7">${s.lyrics||''}</textarea>
+    <div class="mactions">
+      <button class="btn-g" onclick="CM()">Cancel</button>
+      <button class="btn-p" style="width:auto;padding:10px 20px" onclick="saveLyrics('${sid}')">Save</button>
+    </div>`);
+}
+async function saveLyrics(sid){
+  const songs=[...(CP.songs||[])];const i=songs.findIndex(s=>s.id===sid);if(i<0)return;
+  songs[i].lyrics=document.getElementById('lyric-txt')?.value||'';
+  await db.collection('projects').doc(CID).update({songs});CM();
+}
 let nT;
-function sN(val){
-  clearTimeout(nT);
-  nT=setTimeout(async()=>{
-    await db.collection('projects').doc(CID).update({notes:val});
-    const d=document.getElementById('ndot');
-    if(d){d.style.opacity=1;setTimeout(()=>d.style.opacity=0,1200);}
-  },600);
+function sN(val){clearTimeout(nT);nT=setTimeout(async()=>{await db.collection('projects').doc(CID).update({notes:val});const d=document.getElementById('ndot');if(d){d.style.opacity=1;setTimeout(()=>d.style.opacity=0,1200);}},600);}
+
+/* ── RELEASE SCHEDULE ── */
+function addReleaseRowM(existingId){
+  const row=existingId?(CP.releaseSchedule||[]).find(r=>r.id===existingId):null;
+  SM(`<div class="modal-title">${row?'Edit Release':'Add Release'}</div>
+    <input class="field" id="rr-rel" value="${row?.release||''}" placeholder="Release name (e.g. Single #1, Full EP)" autofocus>
+    <div class="flabel">Release Date</div>
+    <input class="field" id="rr-rd" type="date" value="${row?.releaseDate||''}">
+    <div class="flabel">Due Date (4 weeks prior)</div>
+    <input class="field" id="rr-dd" type="date" value="${row?.dueDate||''}">
+    <div class="flabel">Audio File Status</div>
+    <select class="field" id="rr-af" style="cursor:pointer">
+      ${['—','Pending','In Progress','Done'].map(o=>`<option value="${o}" ${(row?.audioFile||'—')===o?'selected':''}>${o}</option>`).join('')}
+    </select>
+    <div class="flabel">Artwork Status</div>
+    <select class="field" id="rr-aw" style="cursor:pointer">
+      ${['—','Pending','In Progress','Done'].map(o=>`<option value="${o}" ${(row?.artwork||'—')===o?'selected':''}>${o}</option>`).join('')}
+    </select>
+    <div class="flabel">Metadata Status</div>
+    <select class="field" id="rr-md" style="cursor:pointer">
+      ${['—','Pending','In Progress','Done'].map(o=>`<option value="${o}" ${(row?.metadata||'—')===o?'selected':''}>${o}</option>`).join('')}
+    </select>
+    <div class="flabel">Overall Status</div>
+    <select class="field" id="rr-st" style="cursor:pointer">
+      ${['Not Started','In Progress','Complete','Overdue'].map(o=>`<option value="${o}" ${(row?.status||'Not Started')===o?'selected':''}>${o}</option>`).join('')}
+    </select>
+    <div class="mactions">
+      <button class="btn-g" onclick="CM()">Cancel</button>
+      <button class="btn-p" style="width:auto;padding:10px 20px" onclick="saveReleaseRow('${existingId||''}')">Save</button>
+    </div>`);
+}
+function editReleaseRowM(id){addReleaseRowM(id);}
+async function saveReleaseRow(existingId){
+  const rs=[...(CP.releaseSchedule||[])];
+  const row={
+    id:existingId||'r'+Date.now(),
+    release:g('rr-rel'),
+    releaseDate:document.getElementById('rr-rd').value||null,
+    dueDate:document.getElementById('rr-dd').value||null,
+    audioFile:document.getElementById('rr-af').value,
+    artwork:document.getElementById('rr-aw').value,
+    metadata:document.getElementById('rr-md').value,
+    status:document.getElementById('rr-st').value
+  };
+  if(existingId){const i=rs.findIndex(r=>r.id===existingId);if(i>=0)rs[i]=row;else rs.push(row);}
+  else rs.push(row);
+  await db.collection('projects').doc(CID).update({releaseSchedule:rs});CM();
+}
+async function delReleaseRow(id){
+  const rs=(CP.releaseSchedule||[]).filter(r=>r.id!==id);
+  await db.collection('projects').doc(CID).update({releaseSchedule:rs});
 }
 
 /* ── MILESTONES ── */
@@ -813,26 +885,9 @@ function addMilestoneM(){
       <button class="btn-p" style="width:auto;padding:10px 20px" onclick="addMilestone()">Add</button>
     </div>`);
 }
-async function addMilestone(){
-  const label=g('ml');if(!label)return;
-  const milestones=[...(CP.milestones||[])];
-  milestones.push({id:'m'+Date.now(),label,date:document.getElementById('md').value||null,done:false});
-  await db.collection('projects').doc(CID).update({milestones});CM();
-}
-async function toggleMilestone(mid){
-  const milestones=[...(CP.milestones||[])];
-  const i=milestones.findIndex(m=>m.id===mid);if(i<0)return;
-  milestones[i].done=!milestones[i].done;
-  if(milestones[i].done){
-    const now=new Date();
-    milestones[i].completedDate=now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  }
-  await db.collection('projects').doc(CID).update({milestones});
-}
-async function delMilestone(mid){
-  const milestones=(CP.milestones||[]).filter(m=>m.id!==mid);
-  await db.collection('projects').doc(CID).update({milestones});
-}
+async function addMilestone(){const label=g('ml');if(!label)return;const milestones=[...(CP.milestones||[])];milestones.push({id:'m'+Date.now(),label,date:document.getElementById('md').value||null,done:false});await db.collection('projects').doc(CID).update({milestones});CM();}
+async function toggleMilestone(mid){const milestones=[...(CP.milestones||[])];const i=milestones.findIndex(m=>m.id===mid);if(i<0)return;milestones[i].done=!milestones[i].done;if(milestones[i].done){const now=new Date();milestones[i].completedDate=now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}await db.collection('projects').doc(CID).update({milestones});}
+async function delMilestone(mid){await db.collection('projects').doc(CID).update({milestones:(CP.milestones||[]).filter(m=>m.id!==mid)});}
 
 /* ── BUDGET ── */
 async function addExp(){
@@ -841,42 +896,41 @@ async function addExp(){
   const cat=document.getElementById('exp-cat')?.value?.trim();
   if(!amt||!desc)return;
   const expenses=[...(CP.expenses||[])];
-  const date=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  expenses.push({id:'e'+Date.now(),amount:parseFloat(amt),desc,category:cat||'Other',date});
+  expenses.push({id:'e'+Date.now(),amount:parseFloat(amt),desc,category:cat||'Other',date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});
   await db.collection('projects').doc(CID).update({expenses});
-  document.getElementById('exp-amt').value='';
-  document.getElementById('exp-desc').value='';
-  if(document.getElementById('exp-cat'))document.getElementById('exp-cat').value='';
+  ['exp-amt','exp-desc','exp-cat'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
 }
-async function delExp(eid){
-  const expenses=(CP.expenses||[]).filter(e=>e.id!==eid);
-  await db.collection('projects').doc(CID).update({expenses});
-}
+async function delExp(eid){await db.collection('projects').doc(CID).update({expenses:(CP.expenses||[]).filter(e=>e.id!==eid)});}
 
-/* ── DELETE PROJECT ── */
+/* ── SIMPLE TASKS ── */
+async function addSimpleTask(field,inputId){
+  const inp=document.getElementById(inputId);const text=inp?.value?.trim();if(!text)return;
+  const tasks=[...(CP[field]||[])];tasks.push({id:'t'+Date.now(),text,done:false});
+  await db.collection('projects').doc(CID).update({[field]:tasks});if(inp)inp.value='';
+}
+async function toggleSimpleTask(field,tid){
+  const tasks=[...(CP[field]||[])];const i=tasks.findIndex(t=>t.id===tid);if(i<0)return;
+  tasks[i].done=!tasks[i].done;await db.collection('projects').doc(CID).update({[field]:tasks});
+}
+async function delSimpleTask(field,tid){await db.collection('projects').doc(CID).update({[field]:(CP[field]||[]).filter(t=>t.id!==tid)});}
+
+/* ── DELETE ── */
 async function deleteProject(){
-  if(!confirm('Delete this entire project? This cannot be undone.'))return;
-  if(!confirm('Are you sure? All songs and data will be lost forever.'))return;
-  stopL();
-  await db.collection('projects').doc(CID).delete();
-  dash();
+  if(!confirm('Delete this project? Cannot be undone.'))return;
+  if(!confirm('Are you absolutely sure?'))return;
+  stopL();await db.collection('projects').doc(CID).delete();dash();
 }
 
 /* ── SHARE ── */
 function shareM(){
   const link=location.origin+location.pathname+'#/view/'+CID;
   SM(`<div class="modal-title">Share Project</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Anyone with this link can view (read only). Views are tracked in Insights.</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Anyone with this link can view (read only). Views tracked in Insights.</div>
     <div style="background:var(--surf2);border:1px solid var(--bord);border-radius:6px;padding:12px;font-size:11px;word-break:break-all;margin-bottom:14px">${link}</div>
     <button class="btn-p" id="cbtn" onclick="cpL('${link}')">Copy Link</button>
     <div class="mactions"><button class="btn-g" onclick="CM()">Close</button></div>`);
 }
-function cpL(l){
-  navigator.clipboard.writeText(l).then(()=>{
-    const b=document.getElementById('cbtn');
-    if(b){b.textContent='✓ Copied!';setTimeout(()=>b.textContent='Copy Link',2000);}
-  });
-}
+function cpL(l){navigator.clipboard.writeText(l).then(()=>{const b=document.getElementById('cbtn');if(b){b.textContent='✓ Copied!';setTimeout(()=>b.textContent='Copy Link',2000);}});}
 
 /* ── SETTINGS ── */
 let _th={},_pf=null;
@@ -930,12 +984,7 @@ async function savSet(){
   try{
     let cu=CP.coverUrl||null;
     if(_pf){const ref=stor.ref(`covers/${CID}/${Date.now()}`);await ref.put(_pf);cu=await ref.getDownloadURL();}
-    await db.collection('projects').doc(CID).update({
-      theme:_th,coverUrl:cu,
-      title:g('stitle')||CP.title,
-      artist:g('sartist'),label:g('slabel'),coproducer:g('scoprod'),
-      deadline:document.getElementById('sdl').value||null
-    });CM();
+    await db.collection('projects').doc(CID).update({theme:_th,coverUrl:cu,title:g('stitle')||CP.title,artist:g('sartist'),label:g('slabel'),coproducer:g('scoprod'),deadline:document.getElementById('sdl').value||null});CM();
   }catch(e){sErr('serr','Error: '+e.message);}
 }
 
@@ -947,56 +996,12 @@ async function logView(pid){
     const ts=now.getTime();
     let name=null,location='Unknown location';
     if(auth.currentUser){name=auth.currentUser.displayName||auth.currentUser.email;}
-    try{
-      const r=await fetch(`https://ipinfo.io/json?token=${IPINFO_TOKEN}`);
-      const d=await r.json();
-      if(d.city&&d.region)location=d.city+', '+d.region;
-      else if(d.country)location=d.country;
-    }catch(e){}
+    try{const r=await fetch(`https://ipinfo.io/json?token=${IPINFO_TOKEN}`);const d=await r.json();if(d.city&&d.region)location=d.city+', '+d.region;else if(d.country)location=d.country;}catch(e){}
     const view={id:'v'+ts,ts,timeStr,name,location};
     const snap=await db.collection('projects').doc(pid).get();
-    const views=snap.data()?.views||[];
-    views.push(view);
+    const views=snap.data()?.views||[];views.push(view);
     await db.collection('projects').doc(pid).update({views});
   }catch(e){}
-}
-
-
-/* ── LYRICS ── */
-function lyricsM(sid){
-  const s=(CP.songs||[]).find(x=>x.id===sid);if(!s)return;
-  SM(`<div class="modal-title">${s.name} — Lyrics</div>
-    <textarea class="field" id="lyric-txt" placeholder="Paste lyrics here..." style="min-height:220px;font-size:12px;line-height:1.7">${s.lyrics||''}</textarea>
-    <div class="mactions">
-      <button class="btn-g" onclick="CM()">Cancel</button>
-      <button class="btn-p" style="width:auto;padding:10px 20px" onclick="saveLyrics('${sid}')">Save</button>
-    </div>`);
-}
-async function saveLyrics(sid){
-  const songs=[...(CP.songs||[])];
-  const i=songs.findIndex(s=>s.id===sid);if(i<0)return;
-  songs[i].lyrics=document.getElementById('lyric-txt')?.value||'';
-  await db.collection('projects').doc(CID).update({songs});CM();
-}
-
-/* ── SIMPLE TASKS (promo / content / todo) ── */
-async function addSimpleTask(field,inputId){
-  const inp=document.getElementById(inputId);
-  const text=inp?.value?.trim();if(!text)return;
-  const tasks=[...(CP[field]||[])];
-  tasks.push({id:'t'+Date.now(),text,done:false});
-  await db.collection('projects').doc(CID).update({[field]:tasks});
-  if(inp)inp.value='';
-}
-async function toggleSimpleTask(field,tid){
-  const tasks=[...(CP[field]||[])];
-  const i=tasks.findIndex(t=>t.id===tid);if(i<0)return;
-  tasks[i].done=!tasks[i].done;
-  await db.collection('projects').doc(CID).update({[field]:tasks});
-}
-async function delSimpleTask(field,tid){
-  const tasks=(CP[field]||[]).filter(t=>t.id!==tid);
-  await db.collection('projects').doc(CID).update({[field]:tasks});
 }
 
 /* ── UTILS ── */
@@ -1007,9 +1012,10 @@ function sErr(id,msg){const e=document.getElementById(id);if(e){e.textContent=ms
 function g(id){return document.getElementById(id)?.value?.trim()||'';}
 function stopL(){if(PL){PL();PL=null;}}
 function SO(){stopL();auth.signOut().then(()=>{location.hash='';authScreen();});}
-function fE(c){return({'auth/email-already-in-use':'Email already in use.','auth/invalid-email':'Invalid email.','auth/wrong-password':'Wrong password.','auth/user-not-found':'No account found.','auth/weak-password':'Password too weak (6+ chars).','auth/invalid-credential':'Invalid email or password.','auth/popup-closed-by-user':'Sign-in cancelled.'})[c]||'Something went wrong. Try again.';}
-function daysLeft(dateStr){if(!dateStr)return null;const d=new Date(dateStr+'T00:00:00');const t=new Date();t.setHours(0,0,0,0);return Math.round((d-t)/(1000*60*60*24));}
-function fmtDate(dateStr){if(!dateStr)return '';try{return new Date(dateStr+'T00:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});}catch(e){return dateStr;}}
+function fE(c){return({'auth/email-already-in-use':'Email already in use.','auth/invalid-email':'Invalid email.','auth/wrong-password':'Wrong password.','auth/user-not-found':'No account found.','auth/weak-password':'Password too weak (6+ chars).','auth/invalid-credential':'Invalid email or password.','auth/popup-closed-by-user':'Sign-in cancelled.'})[c]||'Something went wrong.';}
+function daysLeft(d){if(!d)return null;const dt=new Date(d+'T00:00:00'),t=new Date();t.setHours(0,0,0,0);return Math.round((dt-t)/(864e5));}
+function fmtDate(d){if(!d)return '';try{return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});}catch(e){return d;}}
+function fmtDateShort(d){if(!d)return '';try{return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}catch(e){return d;}}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 </script>
 </body>
