@@ -468,49 +468,102 @@ function bTab(){
 
   /* OVERVIEW */
   if(TAB==='overview'){
-    const dn=songs.filter(s=>(s.tasks||[]).every(t=>t.done)&&(s.tasks||[]).length>0).length;
-    const ac=songs.filter(s=>!(s.tasks||[]).every(t=>t.done)&&(s.tasks||[]).some(t=>t.done)).length;
-    const qu=songs.filter(s=>(s.tasks||[]).length===0||(s.tasks||[]).every(t=>!t.done)).length;
-    const pct=songs.length?Math.round(dn/songs.length*100):0;
     const dl=p.deadline?daysLeft(p.deadline):null;
-    const ms=(p.milestones||[]).filter(m=>m.done).length,mst=(p.milestones||[]).length;
-    const pt=(p.promoTasks||[]).filter(t=>t.done).length,ptt=(p.promoTasks||[]).length;
-    const ct=(p.contentTasks||[]).filter(t=>t.done).length,ctt=(p.contentTasks||[]).length;
-    const td=(p.todoTasks||[]).filter(t=>t.done).length,tdt=(p.todoTasks||[]).length;
+
+    // Music tasks
+    const songTasks=songs.flatMap(s=>(s.tasks||[]).map(t=>({...t,_cat:'Music',_sub:s.name,_color:acc})));
+    const songDone=songTasks.filter(t=>t.done).length;
+
+    // Promo
+    const promoTasks=(p.promoTasks||[]).map(t=>({...t,_cat:'Promo',_color:'#e07b3a'}));
+    const promoDone=promoTasks.filter(t=>t.done).length;
+
+    // Content
+    const contentTasks=(p.contentTasks||[]).map(t=>({...t,_cat:'Content',_color:'#8b68d4'}));
+    const contentDone=contentTasks.filter(t=>t.done).length;
+
+    // Todo
+    const todoTasks=(p.todoTasks||[]).map(t=>({...t,_cat:'To-Do',_color:'#4a8fc4'}));
+    const todoDone=todoTasks.filter(t=>t.done).length;
+
+    // Milestones
+    const mileTasks=(p.milestones||[]).map(m=>({id:m.id,text:m.label,done:m.done,_cat:'Milestone',_color:'#8b68d4',_isMilestone:true}));
+    const mileDone=mileTasks.filter(t=>t.done).length;
+
+    // All combined
+    const allTasks=[...songTasks,...promoTasks,...contentTasks,...todoTasks,...mileTasks];
+    const totalDone=allTasks.filter(t=>t.done).length;
+    const totalAll=allTasks.length;
+    const totalPct=totalAll?Math.round(totalDone/totalAll*100):0;
+
+    // Incomplete tasks grouped
+    const incomplete=[
+      {label:'Music',color:acc,tab:'music',tasks:songTasks.filter(t=>!t.done),icon:'🎵'},
+      {label:'Promo',color:'#e07b3a',tab:'promo',tasks:promoTasks.filter(t=>!t.done),icon:'📸'},
+      {label:'Content',color:'#8b68d4',tab:'content',tasks:contentTasks.filter(t=>!t.done),icon:'📱'},
+      {label:'To-Do',color:'#4a8fc4',tab:'todo',tasks:todoTasks.filter(t=>!t.done),icon:'📋'},
+      {label:'Milestones',color:'#8b68d4',tab:'info',tasks:mileTasks.filter(t=>!t.done),icon:'◆'},
+    ].filter(g=>g.tasks.length>0);
+
     return `
     ${dl!==null?`<div class="card" style="margin-bottom:12px;border-left:3px solid ${dl<0?'#e07070':dl<7?'#d4a843':acc}">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div>
-          <div class="flabel" style="margin-bottom:5px">Release Deadline</div>
+          <div class="flabel" style="margin-bottom:4px">Release Deadline</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:1;color:${dl<0?'#e07070':dl<7?'#d4a843':acc}">${dl<0?`${Math.abs(dl)} DAYS OVERDUE`:dl===0?'DUE TODAY':dl===1?'DUE TOMORROW':`${dl} DAYS LEFT`}</div>
           <div style="font-size:10px;color:var(--muted);margin-top:3px">${fmtDate(p.deadline)}</div>
         </div>
-        <div style="font-size:40px;opacity:.15">${dl<0?'⚠':'📅'}</div>
+        <div style="font-size:36px;opacity:.12">${dl<0?'⚠':'📅'}</div>
       </div>
     </div>`:''}
+
     <div class="card" style="margin-bottom:12px">
-      <div class="slabel">Music Progress</div>
-      <div class="stat-grid">
-        ${[{n:songs.length,l:'Songs',c:'var(--text)'},{n:dn,l:'Done',c:'#4caf82'},{n:ac,l:'Active',c:acc},{n:qu,l:'Queued',c:'var(--muted)'}].map(x=>`
-        <div class="stat-box"><div class="stat-num" style="color:${x.c}">${x.n}</div><div class="stat-lbl">${x.l}</div></div>`).join('')}
-      </div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${acc}"></div></div>
-      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted)"><span>${dn} of ${songs.length} complete</span><span>${pct}%</span></div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-      ${[[`Promo`,pt,ptt,'#e07b3a','promo'],[`Content`,ct,ctt,'#8b68d4','content'],[`To-Do`,td,tdt,'#4a8fc4','todo'],[`Milestones`,ms,mst,'#8b68d4','info']].map(([l,d,t,c,tab])=>`
-      <div class="mini-stat" onclick="sT('${tab}')">
-        <div class="flabel" style="margin-bottom:6px">${l}</div>
-        <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:7px">
-          <span style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${c};line-height:1">${d}</span>
-          <span style="font-size:10px;color:var(--muted)">/ ${t}</span>
+      <div class="slabel">Overall Progress</div>
+      <div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:12px">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:52px;color:${acc};line-height:1">${totalPct}<span style="font-size:26px">%</span></div>
+        <div style="flex:1;padding-bottom:8px">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">${totalDone} of ${totalAll} tasks complete</div>
+          <div class="progress-bar" style="height:6px;margin:0"><div class="progress-fill" style="width:${totalPct}%;background:${acc}"></div></div>
         </div>
-        <div class="progress-bar" style="height:3px;margin:0"><div class="progress-fill" style="width:${t?Math.round(d/t*100):0}%;background:${c}"></div></div>
-      </div>`).join('')}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
+        ${[
+          {l:'Music',d:songDone,t:songTasks.length,c:acc,tab:'music'},
+          {l:'Promo',d:promoDone,t:promoTasks.length,c:'#e07b3a',tab:'promo'},
+          {l:'Content',d:contentDone,t:contentTasks.length,c:'#8b68d4',tab:'content'},
+          {l:'To-Do',d:todoDone,t:todoTasks.length,c:'#4a8fc4',tab:'todo'},
+          {l:'Miles',d:mileDone,t:mileTasks.length,c:'#8b68d4',tab:'info'},
+        ].map(x=>`<div onclick="sT('${x.tab}')" style="text-align:center;cursor:pointer">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1;color:${x.c}">${x.d}<span style="font-size:12px;color:var(--muted)">/${x.t}</span></div>
+          <div style="font-size:8px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:2px">${x.l}</div>
+          <div style="height:2px;background:var(--surf2);border-radius:1px;margin-top:4px;overflow:hidden"><div style="height:100%;width:${x.t?Math.round(x.d/x.t*100):0}%;background:${x.c};border-radius:1px"></div></div>
+        </div>`).join('')}
+      </div>
     </div>
-    <div class="slabel">Songs</div>
-    ${songs.length?songs.map((s,i)=>mCard(s,i,acc)).join(''):'<div class="empty">No songs yet.<br><small>Go to Songs tab to add.</small></div>'}`;
+
+    ${incomplete.length>0?`<div class="slabel">Remaining Tasks</div>
+    ${incomplete.map((group,gi)=>`
+      <div style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div style="display:flex;align-items:center;gap:6px;cursor:pointer" onclick="sT('${group.tab}')">
+            <span style="font-size:13px">${group.icon}</span>
+            <span style="font-size:10px;color:${group.color};letter-spacing:.15em;text-transform:uppercase;font-weight:500">${group.label}</span>
+            <span style="font-size:9px;color:var(--muted)">${group.tasks.length} left</span>
+          </div>
+          <span style="font-size:10px;color:var(--muted);cursor:pointer" onclick="sT('${group.tab}')">See all →</span>
+        </div>
+        ${group.tasks.slice(0,3).map(t=>`<div class="trow" style="cursor:default;margin-bottom:5px">
+          <div class="tcheck" style="border-color:${group.color}40"></div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.text}</div>
+            ${t._sub?`<div style="font-size:9px;color:var(--muted);margin-top:1px">${t._sub}</div>`:''}
+          </div>
+        </div>`).join('')}
+        ${group.tasks.length>3?`<div style="font-size:10px;color:var(--muted);padding:4px 10px;cursor:pointer" onclick="sT('${group.tab}')">+ ${group.tasks.length-3} more in ${group.label}</div>`:''}
+      </div>`).join('')}`
+    :'<div class="empty" style="color:#4caf82;padding:20px 0">🎉 All tasks complete across every category!</div>'}`;
   }
+
 
   /* MUSIC (songs + focus subtabs) */
   if(TAB==='music'){
@@ -521,23 +574,46 @@ function bTab(){
     ${musicSub==='songs'?`
       ${!VO?`<button class="btn-o" onclick="addSongM()" style="margin-bottom:14px">+ Add Song</button>`:''}
       <div id="song-list">${songs.length?songs.map((s,i)=>sCard(s,i,acc)).join(''):'<div class="empty">No songs yet.</div>'}</div>`
-    :`<div class="slabel">Next Up</div>
-      ${songs.filter(s=>!(s.tasks||[]).every(t=>t.done)).length===0?`<div class="empty" style="color:#4caf82">🎉 All songs complete!</div>`:''}
-      ${songs.filter(s=>!(s.tasks||[]).every(t=>t.done)).map((song,i)=>{
-        const nx=(song.tasks||[]).filter(t=>!t.done).slice(0,3);
-        return `<div class="card" style="display:flex;gap:12px;margin-bottom:8px;animation:fadeUp .25s ease ${i*.05}s backwards">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${acc};line-height:1;min-width:24px;opacity:.7">${i+1}</div>
-          <div style="flex:1">
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:19px;margin-bottom:8px;color:var(--text)">${song.name}</div>
-            ${nx.map(task=>{const fk=song.id+'_'+task.id,d=fd[fk];
-              return `<div ${!VO?`onclick="tF('${fk}')"`:''}
-                style="display:flex;align-items:center;gap:8px;font-size:11px;color:${d?'var(--muted)':'var(--text2)'};text-decoration:${d?'line-through':'none'};padding:6px 0;cursor:${VO?'default':'pointer'};border-bottom:1px solid var(--bord)">
-                <span style="color:${d?'#4caf82':acc};font-size:12px;flex-shrink:0">${d?'✓':'→'}</span>${task.text}</div>`;
-            }).join('')}
-            ${nx.length===0?`<div style="font-size:10px;color:#4caf82">All tasks complete ✓</div>`:''}
+    :`<div style="margin-bottom:14px">
+      <div class="slabel" style="margin-bottom:4px">Today's Focus</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Incomplete tasks across all categories</div>
+    </div>
+    ${(()=>{
+      // Gather all incomplete tasks across all categories
+      const groups=[
+        {label:'Music',color:acc,icon:'🎵',tab:'music',items:songs.flatMap(s=>(s.tasks||[]).filter(t=>!t.done).map(t=>({...t,_sub:s.name,_sid:s.id,_tid:t.id,_type:'song'})))},
+        {label:'Promo',color:'#e07b3a',icon:'📸',tab:'promo',items:(p.promoTasks||[]).filter(t=>!t.done).map(t=>({...t,_type:'promo'}))},
+        {label:'Content',color:'#8b68d4',icon:'📱',tab:'content',items:(p.contentTasks||[]).filter(t=>!t.done).map(t=>({...t,_type:'content'}))},
+        {label:'To-Do',color:'#4a8fc4',icon:'📋',tab:'todo',items:(p.todoTasks||[]).filter(t=>!t.done).map(t=>({...t,_type:'todo'}))},
+        {label:'Milestones',color:'#8b68d4',icon:'◆',tab:'info',items:(p.milestones||[]).filter(m=>!m.done).map(m=>({id:m.id,text:m.label,_type:'milestone'}))},
+      ].filter(g=>g.items.length>0);
+
+      if(!groups.length)return '<div class="empty" style="color:#4caf82">🎉 Nothing left to do — everything is complete!</div>';
+
+      return groups.map((group,gi)=>`
+        <div style="margin-bottom:16px;animation:fadeUp .25s ease ${gi*.06}s backwards">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--bord)">
+            <span style="font-size:14px">${group.icon}</span>
+            <span style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:${group.color};letter-spacing:.04em">${group.label}</span>
+            <span style="font-size:10px;color:var(--muted);margin-left:2px">${group.items.length} remaining</span>
           </div>
-        </div>`;
-      }).join('')}`}`;
+          ${group.items.map(t=>`
+          <div class="trow" style="cursor:${VO?'default':'pointer'};margin-bottom:5px" ${!VO?`onclick="${
+            t._type==='song'?`tT('${t._sid}','${t._tid}')`:
+            t._type==='promo'?`toggleSimpleTask('promoTasks','${t.id}')`:
+            t._type==='content'?`toggleSimpleTask('contentTasks','${t.id}')`:
+            t._type==='todo'?`toggleSimpleTask('todoTasks','${t.id}')`:
+            t._type==='milestone'?`toggleMilestone('${t.id}')`:''
+          }"`:''}>
+            <div class="tcheck" style="border-color:${group.color}50"></div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12px;line-height:1.5;color:var(--text)">${t.text}</div>
+              ${t._sub?`<div style="font-size:9px;color:var(--muted);margin-top:1px">${t._sub}</div>`:''}
+            </div>
+          </div>`).join('')}
+        </div>`).join('');
+    })()}
+`};
   }
 
   /* RELEASE SCHEDULE */
