@@ -16,76 +16,141 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <style>
-:root{--acc:#c9383a;--bg:#0a0a0c;--text:#e8e6e0;--surf:#111114;--surf2:#18181d;--bord:#2a2a33;--muted:#6b6970}
+/* ── THEME VARS (light + dark) ── */
+:root{
+  --acc:#c9383a;
+  --bg:#0a0a0c;
+  --text:#e8e6e0;
+  --text2:#b0aead;
+  --surf:#111114;
+  --surf2:#18181d;
+  --surf3:#1e1e24;
+  --bord:#2a2a33;
+  --muted:#6b6970;
+  --ck:#0a0a0c;
+  --shadow:rgba(0,0,0,.4);
+}
+.light{
+  --bg:#f2f1ee;
+  --text:#1a1818;
+  --text2:#4a4846;
+  --surf:#ffffff;
+  --surf2:#ebebea;
+  --surf3:#e2e1de;
+  --bord:#d4d2ce;
+  --muted:#8a8784;
+  --ck:#ffffff;
+  --shadow:rgba(0,0,0,.12);
+}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
+html,body{height:100%;transition:background .3s}
 body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;overflow-x:hidden}
 #app{min-height:100vh}
-.field{width:100%;background:var(--surf2);border:1px solid var(--bord);border-radius:6px;padding:11px 12px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);outline:none;margin-bottom:10px;-webkit-appearance:none;transition:border-color 0.2s}
+
+/* ── FIELDS ── */
+.field{width:100%;background:var(--surf2);border:1px solid var(--bord);border-radius:6px;padding:11px 12px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);outline:none;margin-bottom:10px;-webkit-appearance:none;transition:border-color .2s,background .3s,color .3s}
 .field:focus{border-color:var(--acc)}
 .field::placeholder{color:var(--muted)}
 textarea.field{resize:vertical}
-.btn-p{width:100%;padding:12px;background:var(--acc);color:#fff;border:none;border-radius:6px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:opacity .2s}
-.btn-p:active{opacity:.8}.btn-p:disabled{opacity:.5}
-.btn-o{background:none;border:1px solid var(--acc);color:var(--acc);border-radius:6px;padding:10px 14px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;width:100%;margin-top:8px}
+select.field{cursor:pointer}
+
+/* ── BUTTONS ── */
+.btn-p{width:100%;padding:12px;background:var(--acc);color:#fff;border:none;border-radius:6px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:opacity .2s,transform .1s}
+.btn-p:active{opacity:.8;transform:scale(.98)}
+.btn-p:disabled{opacity:.5}
+.btn-o{background:none;border:1px solid var(--acc);color:var(--acc);border-radius:6px;padding:10px 14px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;width:100%;margin-top:8px;transition:all .2s}
 .btn-g{background:none;border:none;color:var(--muted);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;padding:10px}
-.btn-s{padding:7px 12px;border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;border:none;background:var(--acc);color:#fff}
+.btn-s{padding:7px 12px;border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;border:none;background:var(--acc);color:#fff;transition:opacity .15s}
+.btn-s:active{opacity:.8}
 .btn-s.o{background:none;border:1px solid var(--bord);color:var(--muted)}
-.btn-s.d{background:#2e0d0d;color:#e07070}
-.btn-google{width:100%;padding:11px;background:var(--surf2);border:1px solid var(--bord);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px}
-.iBtn{background:none;border:none;font-size:20px;cursor:pointer;padding:8px;color:var(--muted);line-height:1}
-.err{font-size:11px;color:#e07070;background:#2e0d0d;border-radius:4px;padding:8px 10px;margin-bottom:10px;display:none}
-.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:12px}
-.loading-w{font-family:'Bebas Neue',sans-serif;font-size:60px;color:var(--acc);animation:pulse 1.4s ease infinite}
-.loading-t{font-size:11px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase}
-.empty{color:var(--muted);font-size:12px;padding:20px 0;text-align:center}
-.card{background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:14px;margin-bottom:10px}
-.slabel{font-size:10px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bord)}
-.flabel{font-size:10px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px}
-.badge{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:2px}
-.trow{display:flex;align-items:flex-start;gap:8px;padding:9px 10px;background:var(--surf2);border-radius:4px;margin-bottom:6px;min-height:42px}
-.tcheck{width:17px;height:17px;border:1px solid var(--bord);border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all .15s}
-.tcheck.on{background:#4caf82;border-color:#4caf82}
-.scard{background:var(--surf);border:1px solid var(--bord);border-radius:8px;margin-bottom:10px;overflow:hidden}
+.btn-s.d{background:rgba(224,112,112,.12);color:#e07070;border:1px solid rgba(224,112,112,.25)}
+.btn-google{width:100%;padding:11px;background:var(--surf2);border:1px solid var(--bord);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px;transition:background .2s}
+.iBtn{background:none;border:none;cursor:pointer;padding:8px;color:var(--muted);line-height:1;font-size:20px;transition:color .15s}
+.iBtn:active{opacity:.6}
+
+/* ── STATUS / MISC ── */
+.err{font-size:11px;color:#e07070;background:rgba(224,112,112,.1);border:1px solid rgba(224,112,112,.2);border-radius:4px;padding:8px 10px;margin-bottom:10px;display:none}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:12px;background:var(--bg)}
+.loading-w{font-family:'Bebas Neue',sans-serif;font-size:64px;color:var(--acc);animation:pulse 1.4s ease infinite}
+.loading-t{font-size:11px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase}
+.empty{color:var(--muted);font-size:12px;padding:24px 0;text-align:center;line-height:1.6}
+.card{background:var(--surf);border:1px solid var(--bord);border-radius:10px;padding:14px;margin-bottom:10px;transition:background .3s,border-color .3s}
+.slabel{font-size:10px;color:var(--muted);letter-spacing:.22em;text-transform:uppercase;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--bord)}
+.flabel{font-size:10px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;margin-bottom:7px}
+.badge{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:3px}
+
+/* ── TASK ROW ── */
+.trow{display:flex;align-items:flex-start;gap:8px;padding:9px 10px;background:var(--surf2);border-radius:5px;margin-bottom:6px;min-height:42px;transition:background .15s}
+.trow:active{background:var(--surf3)}
+.tcheck{width:18px;height:18px;border:1.5px solid var(--bord);border-radius:4px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.tcheck.on{background:var(--acc);border-color:var(--acc)}
+.tcheck.on::after{content:'✓';font-size:11px;color:var(--ck);font-weight:700}
+
+/* ── SONG CARDS ── */
+.scard{background:var(--surf);border:1px solid var(--bord);border-radius:10px;margin-bottom:10px;overflow:hidden;transition:all .2s}
 .sheader{display:flex;align-items:center;padding:13px 13px 11px;gap:10px;cursor:pointer;user-select:none;-webkit-user-select:none}
-.drag-handle{cursor:grab;padding:4px 6px;color:var(--muted);font-size:16px;touch-action:none}
-.scard.dragging{opacity:.4}
+.drag-handle{cursor:grab;padding:4px 6px;color:var(--muted);font-size:16px;touch-action:none;opacity:.5}
+.scard.dragging{opacity:.4;transform:scale(.98)}
 .scard.drag-over{border-top:2px solid var(--acc)}
 
-/* NAV DRAWER */
-#nav-drawer{position:fixed;top:0;left:0;width:220px;height:100%;background:var(--surf);border-right:1px solid var(--bord);z-index:200;transform:translateX(-100%);transition:transform .25s ease;overflow-y:auto;padding-bottom:40px}
-#nav-drawer.open{transform:translateX(0)}
-#nav-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199}
+/* ── NAV DRAWER ── */
+#nav-drawer{position:fixed;top:0;left:0;width:240px;height:100%;background:var(--surf);border-right:1px solid var(--bord);z-index:200;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1),background .3s,border-color .3s;overflow-y:auto;padding-bottom:40px}
+#nav-drawer.open{transform:translateX(0);box-shadow:4px 0 24px var(--shadow)}
+#nav-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:199;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
 #nav-overlay.open{display:block}
-.nav-item{display:flex;align-items:center;gap:10px;padding:13px 18px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:color .15s,background .15s}
-.nav-item:active,.nav-item.on{color:var(--text);background:var(--surf2)}
-.nav-item.on{border-left:3px solid var(--acc);padding-left:15px}
-.nav-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.nav-section{font-size:9px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;padding:14px 18px 6px;opacity:.6}
+.nav-head{padding:44px 18px 16px;border-bottom:1px solid var(--bord);margin-bottom:8px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:12px 18px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:color .15s,background .15s;border-left:3px solid transparent}
+.nav-item:active{background:var(--surf2)}
+.nav-item.on{color:var(--text);background:var(--surf2);border-left-color:var(--acc)}
+.nav-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;transition:transform .2s}
+.nav-item.on .nav-dot{transform:scale(1.3)}
+.nav-section{font-size:9px;color:var(--muted);letter-spacing:.22em;text-transform:uppercase;padding:14px 18px 5px;opacity:.55}
 
-/* MODAL */
-#modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
-#modal-box{background:var(--surf);border:1px solid var(--bord);border-radius:16px 16px 0 0;padding:24px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;animation:slideUp .2s ease}
-.modal-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.05em;margin-bottom:16px}
-.mactions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+/* ── MODAL ── */
+#modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+#modal-box{background:var(--surf);border:1px solid var(--bord);border-radius:18px 18px 0 0;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;animation:slideUp .22s cubic-bezier(.4,0,.2,1);transition:background .3s}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:.05em;margin-bottom:16px;color:var(--text)}
+.mactions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
 
-/* RELEASE TABLE */
+/* ── FAB ── */
+#fab{position:fixed;bottom:24px;right:20px;z-index:150;width:52px;height:52px;border-radius:50%;background:var(--acc);border:none;color:#fff;font-size:26px;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 4px 20px var(--shadow);transition:transform .15s,box-shadow .15s}
+#fab:active{transform:scale(.92);box-shadow:0 2px 10px var(--shadow)}
+#fab.show{display:flex}
+
+/* ── RELEASE TABLE ── */
+.rel-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--bord);margin-bottom:14px}
 .rel-table{width:100%;border-collapse:collapse;font-size:11px}
-.rel-table th{background:var(--surf2);color:var(--muted);font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:8px 10px;text-align:left;border-bottom:1px solid var(--bord)}
-.rel-table td{padding:10px;border-bottom:1px solid var(--bord);vertical-align:middle}
+.rel-table th{background:var(--surf2);color:var(--muted);font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:9px 10px;text-align:left;border-bottom:1px solid var(--bord);white-space:nowrap}
+.rel-table td{padding:10px;border-bottom:1px solid var(--bord);vertical-align:middle;color:var(--text)}
 .rel-table tr:last-child td{border-bottom:none}
-.rel-table tr:hover td{background:var(--surf2)}
-.rel-chip{font-size:9px;padding:2px 7px;border-radius:2px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.rel-table tbody tr{transition:background .1s}
+.rel-table tbody tr:active td{background:var(--surf2)}
+.rel-chip{font-size:9px;padding:2px 8px;border-radius:3px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;display:inline-block}
 
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+/* ── MISC ── */
+.progress-bar{background:var(--surf2);border-radius:3px;height:5px;overflow:hidden;margin-bottom:5px}
+.progress-fill{height:100%;border-radius:3px;transition:width .4s cubic-bezier(.4,0,.2,1)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.stat-box{text-align:center}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1;margin-bottom:3px}
+.stat-lbl{font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.mini-stat{background:var(--surf);border:1px solid var(--bord);border-radius:10px;padding:12px 14px;cursor:pointer;transition:background .15s}
+.mini-stat:active{background:var(--surf2)}
+a.link-btn{display:flex;align-items:center;justify-content:center;padding:8px 12px;background:var(--surf2);border:1px solid var(--bord);border-radius:5px;font-size:11px;text-decoration:none;font-family:'DM Mono',monospace;transition:background .15s;gap:6px}
+a.link-btn:active{background:var(--surf3)}
+.divider{height:1px;background:var(--bord);margin:12px 0}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
 </style>
 </head>
 <body>
-<div id="app"><div class="loading"><div class="loading-w">W</div><div class="loading-t">Wavmancer</div></div></div>
+<div id="app"><div class="loading"><div class="loading-w">W</div><div class="loading-t">Loading</div></div></div>
 <div id="nav-overlay" onclick="closeNav()"></div>
 <div id="nav-drawer"></div>
+<button id="fab" onclick="fabAction()">+</button>
 <div id="modal-ov" onclick="if(event.target===this)CM()"><div id="modal-box"></div></div>
 <script>
 firebase.initializeApp({
@@ -98,7 +163,13 @@ firebase.initializeApp({
 });
 const auth=firebase.auth(),db=firebase.firestore(),stor=firebase.storage();
 const IPINFO_TOKEN='9445a4621618c3';
-let CU=null,CP=null,CID=null,PL=null,VO=false,TAB='overview',OC={},dragSrc=null;
+let CU=null,CP=null,CID=null,PL=null,VO=false,TAB='overview',OC={},dragSrc=null,musicSub='songs';
+
+/* ── THEME ── */
+function applyTheme(dark){
+  document.body.classList.toggle('light',!dark);
+  document.documentElement.style.setProperty('--bg', dark?'#0a0a0c':'#f2f1ee');
+}
 
 auth.onAuthStateChanged(u=>{CU=u;route();});
 function route(){
@@ -110,38 +181,59 @@ function route(){
 }
 window.addEventListener('hashchange',route);
 
+/* ── SWIPE NAV ── */
+let _swX=0,_swY=0;
+const TABS_ORDER=['overview','music','release','promo','content','todo','budget','info'];
+document.addEventListener('touchstart',e=>{_swX=e.touches[0].clientX;_swY=e.touches[0].clientY;},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(!CP||VO)return;
+  const dx=e.changedTouches[0].clientX-_swX;
+  const dy=e.changedTouches[0].clientY-_swY;
+  if(Math.abs(dx)<50||Math.abs(dy)>Math.abs(dx)*1.2)return;
+  const cur=TAB==='music'?'music':'overview';
+  const tabs=TABS_ORDER;
+  const ci=tabs.indexOf(TAB);
+  if(ci<0)return;
+  if(dx<-50&&ci<tabs.length-1)sT(tabs[ci+1]);
+  else if(dx>50&&ci>0)sT(tabs[ci-1]);
+},{passive:true});
+
 /* ── NAV DRAWER ── */
-const TABS_DEF=[
+const NAV_ITEMS=[
   {id:'overview',label:'Overview',dot:'#4caf82',section:null},
-  {id:'music',label:'Songs',dot:'#c9383a',section:'Production'},
-  {id:'focus',label:'Focus / Next Steps',dot:'#d4a843',section:null},
-  {id:'release',label:'Release Schedule',dot:'#4a8fc4',section:'Release'},
+  {id:'music',label:'Songs',dot:'var(--acc)',section:'Production'},
+  {id:'focus',label:'Focus',dot:'#d4a843',section:null},
+  {id:'release',label:'Release Schedule',dot:'#4a8fc4',section:'Release & Promo'},
   {id:'promo',label:'Promo & Photos',dot:'#e07b3a',section:null},
   {id:'content',label:'Content',dot:'#8b68d4',section:null},
   {id:'todo',label:'To-Do',dot:'#4a8fc4',section:'General'},
   {id:'budget',label:'Budget',dot:'#4caf82',section:null},
   {id:'info',label:'Info & Notes',dot:'var(--muted)',section:null},
+  {id:'insights',label:'Insights',dot:'#8b68d4',section:'Analytics'},
 ];
 
 function openNav(){
-  const acc=CP?.theme?.accent||'#c9383a';
-  const tabs=VO?TABS_DEF.filter(t=>t.id!=='insights'):TABS_DEF.concat([{id:'insights',label:'Insights',dot:'#8b68d4',section:'Analytics'}]);
-  let lastSection=null;
-  const items=tabs.map(t=>{
-    let html='';
-    if(t.section&&t.section!==lastSection){lastSection=t.section;html+=`<div class="nav-section">${t.section}</div>`;}
-    html+=`<button class="nav-item${TAB===t.id?' on':''}" onclick="sT('${t.id}');closeNav()">
-      <div class="nav-dot" style="background:${TAB===t.id?acc:t.dot}"></div>
-      ${t.label}
+  const p=CP;
+  const items=NAV_ITEMS.filter(t=>!(VO&&t.id==='insights'));
+  let lastSec=null;
+  const html=items.map(t=>{
+    let s='';
+    if(t.section&&t.section!==lastSec){lastSec=t.section;s=`<div class="nav-section">${t.section}</div>`;}
+    const on=TAB===t.id||(t.id==='focus'&&TAB==='music'&&musicSub==='focus');
+    return s+`<button class="nav-item${on?' on':''}" onclick="sT('${t.id}');closeNav()">
+      <div class="nav-dot" style="background:${on?'var(--acc)':t.dot}"></div>${t.label}
     </button>`;
-    return html;
   }).join('');
+  const dark=p?.theme?.dark!==false;
   document.getElementById('nav-drawer').innerHTML=`
-    <div style="padding:40px 18px 16px;border-bottom:1px solid var(--bord);margin-bottom:8px">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.06em;color:${acc}">Wavmancer</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${CP?.title||''}</div>
-    </div>
-    ${items}`;
+    <div class="nav-head">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.06em;color:var(--acc)">Wavmancer</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p?.title||''}</div>
+      ${!VO?`<div style="display:flex;gap:8px;margin-top:14px">
+        <button onclick="toggleDark();closeNav()" style="flex:1;padding:7px;background:var(--surf2);border:1px solid var(--bord);border-radius:5px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text);cursor:pointer">${dark?'☀ Light':'🌙 Dark'}</button>
+        <button onclick="settingsM();closeNav()" style="flex:1;padding:7px;background:var(--surf2);border:1px solid var(--bord);border-radius:5px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text);cursor:pointer">⚙ Settings</button>
+      </div>`:''}
+    </div>${html}`;
   document.getElementById('nav-drawer').classList.add('open');
   document.getElementById('nav-overlay').classList.add('open');
 }
@@ -150,35 +242,56 @@ function closeNav(){
   document.getElementById('nav-overlay').classList.remove('open');
 }
 
+/* ── FAB ── */
+const FAB_ACTIONS={
+  music:()=>addSongM(),
+  promo:()=>addSimpleTask('promoTasks','pt-inp',true),
+  content:()=>addSimpleTask('contentTasks','ct-inp',true),
+  todo:()=>addSimpleTask('todoTasks','td-inp',true),
+  budget:()=>addExpModal(),
+  release:()=>addReleaseRowM(),
+  info:()=>addMilestoneM(),
+};
+function fabAction(){
+  const fn=FAB_ACTIONS[TAB]||(TAB==='overview'?()=>newProjM():null);
+  if(fn)fn();
+}
+function updateFab(){
+  const fab=document.getElementById('fab');
+  if(!fab)return;
+  if(CP&&!VO&&FAB_ACTIONS[TAB]){fab.classList.add('show');}
+  else{fab.classList.remove('show');}
+}
+
 /* ── AUTH ── */
 function authScreen(){
   let mode='login';
-  setA(`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:linear-gradient(160deg,#1a0808,#0a0a0c 50%,#0a0a14)">
-  <div style="text-align:center;margin-bottom:28px">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:64px;color:var(--acc);line-height:1">W</div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:.1em">Wavmancer</div>
-    <div style="font-size:10px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-top:4px">Music Production Tracker</div>
+  setA(`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:var(--bg)">
+  <div style="text-align:center;margin-bottom:32px">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:72px;color:var(--acc);line-height:1;letter-spacing:.02em">W</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:.12em;color:var(--text)">Wavmancer</div>
+    <div style="font-size:10px;color:var(--muted);letter-spacing:.25em;text-transform:uppercase;margin-top:5px">Music Production Tracker</div>
   </div>
-  <div style="background:var(--surf);border:1px solid var(--bord);border-radius:12px;padding:22px;width:100%;max-width:380px">
-    <div style="display:flex;margin-bottom:16px;border-bottom:1px solid var(--bord)">
-      <button id="tl" style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid var(--acc);color:var(--acc);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer" onclick="setMode('login')">Sign In</button>
-      <button id="ts" style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer" onclick="setMode('signup')">Sign Up</button>
+  <div style="background:var(--surf);border:1px solid var(--bord);border-radius:14px;padding:24px;width:100%;max-width:380px;box-shadow:0 8px 32px var(--shadow)">
+    <div style="display:flex;margin-bottom:18px;border-bottom:1px solid var(--bord);gap:0">
+      <button id="tl" style="flex:1;padding:11px;background:none;border:none;border-bottom:2px solid var(--acc);color:var(--acc);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer" onclick="setMode('login')">Sign In</button>
+      <button id="ts" style="flex:1;padding:11px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer" onclick="setMode('signup')">Sign Up</button>
     </div>
     <div id="nrow" style="display:none"><input class="field" id="aname" placeholder="Your name" autocomplete="name"></div>
     <input class="field" id="aemail" type="email" placeholder="Email address" autocomplete="email">
     <input class="field" id="apass" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doA()">
     <div class="err" id="aerr"></div>
     <button class="btn-p" id="abtn" onclick="doA()">Sign In</button>
-    <div style="text-align:center;font-size:10px;color:var(--muted);margin:12px 0">or</div>
+    <div style="text-align:center;font-size:10px;color:var(--muted);margin:14px 0;letter-spacing:.1em">or</div>
     <button class="btn-google" onclick="gAuth()">
-      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.8 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.8 6C12.2 13.2 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17z"/><path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.9-4.7l-7.8-6A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.4 0-11.8-3.7-13.6-9.2l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>
+      <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.8 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.8 6C12.2 13.2 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17z"/><path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.9-4.7l-7.8-6A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.4 0-11.8-3.7-13.6-9.2l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>
       Continue with Google
     </button>
   </div></div>`);
   window.setMode=m=>{
     mode=m;
-    document.getElementById('tl').style.cssText=`flex:1;padding:10px;background:none;border:none;border-bottom:2px solid ${m==='login'?'var(--acc)':'transparent'};color:${m==='login'?'var(--acc)':'var(--muted)'};font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer`;
-    document.getElementById('ts').style.cssText=`flex:1;padding:10px;background:none;border:none;border-bottom:2px solid ${m==='signup'?'var(--acc)':'transparent'};color:${m==='signup'?'var(--acc)':'var(--muted)'};font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer`;
+    document.getElementById('tl').style.cssText=`flex:1;padding:11px;background:none;border:none;border-bottom:2px solid ${m==='login'?'var(--acc)':'transparent'};color:${m==='login'?'var(--acc)':'var(--muted)'};font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer`;
+    document.getElementById('ts').style.cssText=`flex:1;padding:11px;background:none;border:none;border-bottom:2px solid ${m==='signup'?'var(--acc)':'transparent'};color:${m==='signup'?'var(--acc)':'var(--muted)'};font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer`;
     document.getElementById('nrow').style.display=m==='signup'?'block':'none';
     document.getElementById('abtn').textContent=m==='signup'?'Create Account':'Sign In';
     document.getElementById('apass').autocomplete=m==='signup'?'new-password':'current-password';
@@ -190,7 +303,7 @@ function authScreen(){
     btn.disabled=true;btn.textContent='...';
     try{
       if(mode==='signup'){const name=g('aname');const c=await auth.createUserWithEmailAndPassword(email,pass);if(name)await c.user.updateProfile({displayName:name});}
-      else{await auth.signInWithEmailAndPassword(email,pass);}
+      else await auth.signInWithEmailAndPassword(email,pass);
       dash();
     }catch(e){sErr('aerr',fE(e.code));btn.disabled=false;btn.textContent=mode==='signup'?'Create Account':'Sign In';}
   };
@@ -200,15 +313,18 @@ function authScreen(){
 /* ── DASH ── */
 async function dash(){
   VO=false;location.hash='';stopL();CP=null;CID=null;
-  setA(`<div style="display:flex;align-items:center;justify-content:space-between;padding:36px 16px 16px;background:linear-gradient(180deg,#1a0808,var(--bg));border-bottom:1px solid var(--bord)">
-    <div style="min-width:0">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:.06em;line-height:1">Wavmancer</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${CU.displayName||CU.email}</div>
+  document.getElementById('fab').classList.remove('show');
+  setA(`<div style="padding:44px 16px 16px;background:linear-gradient(180deg,var(--surf) 0%,var(--bg) 100%);border-bottom:1px solid var(--bord)">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:.06em;line-height:1;color:var(--acc)">Wavmancer</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">${CU.displayName||CU.email}</div>
+      </div>
+      <button class="btn-s o" onclick="SO()" style="margin-top:4px">Sign Out</button>
     </div>
-    <button class="btn-s o" onclick="SO()">Sign Out</button>
   </div>
-  <div style="padding:14px">
-    <button class="btn-p" onclick="newProjM()" style="margin-bottom:18px">+ New Project</button>
+  <div style="padding:16px">
+    <button class="btn-p" onclick="newProjM()" style="margin-bottom:20px">+ New Project</button>
     <div class="slabel">Your Projects</div>
     <div id="plist"><div class="empty">Loading...</div></div>
   </div>`);
@@ -216,26 +332,29 @@ async function dash(){
     const snap=await db.collection('projects').get();
     const el=document.getElementById('plist');if(!el)return;
     const ps=[];snap.forEach(d=>{const data=d.data();if(data.ownerId===CU.uid)ps.push({id:d.id,...data});});
-    if(!ps.length){el.innerHTML='<div class="empty">No projects yet — create your first!</div>';return;}
+    if(!ps.length){el.innerHTML='<div class="empty">No projects yet.<br>Create your first one above.</div>';return;}
     ps.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-    el.innerHTML=ps.map(p=>{
+    el.innerHTML=ps.map((p,i)=>{
       const acc=p.theme?.accent||'#c9383a';
       const s=p.songs||[];
-      const dn=s.filter(x=>(x.tasks||[]).every(t=>t.done)).length;
+      const dn=s.filter(x=>(x.tasks||[]).every(t=>t.done)&&(x.tasks||[]).length>0).length;
       const pct=s.length?Math.round(dn/s.length*100):0;
       const dl=p.deadline?daysLeft(p.deadline):null;
-      return `<div onclick="openP('${p.id}')" style="background:var(--surf);border:1px solid var(--bord);border-left:3px solid ${acc};border-radius:8px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 14px">
-        ${p.coverUrl?`<img src="${p.coverUrl}" style="width:52px;height:52px;border-radius:6px;object-fit:cover;flex-shrink:0">`:`<div style="width:52px;height:52px;border-radius:6px;background:${acc}22;border:1px solid ${acc}44;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">♪</div>`}
-        <div style="flex:1;min-width:0">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;line-height:1;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title||'Untitled'}</div>
-          <div style="font-size:10px;color:var(--muted);margin-bottom:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${[p.artist,p.label].filter(Boolean).join(' · ')}</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="flex:1;height:3px;background:var(--surf2);border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${acc};border-radius:2px"></div></div>
-            <span style="font-size:9px;color:var(--muted)">${dn}/${s.length}</span>
+      return `<div onclick="openP('${p.id}')" style="background:var(--surf);border:1px solid var(--bord);border-radius:10px;margin-bottom:10px;cursor:pointer;overflow:hidden;animation:fadeUp .3s ease ${i*.05}s backwards">
+        <div style="height:3px;background:${acc};opacity:.6"></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:13px 14px">
+          ${p.coverUrl?`<img src="${p.coverUrl}" style="width:50px;height:50px;border-radius:8px;object-fit:cover;flex-shrink:0">`:`<div style="width:50px;height:50px;border-radius:8px;background:${acc}18;border:1px solid ${acc}30;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">♪</div>`}
+          <div style="flex:1;min-width:0">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${p.title||'Untitled'}</div>
+            <div style="font-size:10px;color:var(--muted);margin:3px 0 7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${[p.artist,p.label].filter(Boolean).join(' · ')}</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="flex:1;height:3px;background:var(--surf2);border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${acc};border-radius:2px;transition:width .4s"></div></div>
+              <span style="font-size:9px;color:var(--muted)">${dn}/${s.length}</span>
+            </div>
+            ${dl!==null?`<div style="font-size:9px;color:${dl<0?'#e07070':dl<7?'#d4a843':'var(--muted)'};margin-top:5px">${dl<0?`⚠ ${Math.abs(dl)}d overdue`:dl===0?'⚠ Due today':dl===1?'Tomorrow':dl<7?`${dl}d left`:`${dl} days left`}</div>`:''}
           </div>
-          ${dl!==null?`<div style="font-size:9px;color:${dl<7?'#e07070':dl<14?'#d4a843':'var(--muted)'};margin-top:4px">${dl<0?`🔴 ${Math.abs(dl)}d overdue`:dl===0?'🔴 Due today':dl===1?'🟡 Due tomorrow':`📅 ${dl} days left`}</div>`:''}
+          <div style="color:var(--muted);font-size:16px">›</div>
         </div>
-        <div style="color:var(--muted);font-size:18px">›</div>
       </div>`;
     }).join('');
   }catch(e){
@@ -255,7 +374,7 @@ function newProjM(){
     <div class="err" id="ne"></div>
     <div class="mactions">
       <button class="btn-g" onclick="CM()">Cancel</button>
-      <button class="btn-p" style="width:auto;padding:10px 20px" onclick="cProj()">Create</button>
+      <button class="btn-p" style="width:auto;padding:10px 22px" onclick="cProj()">Create</button>
     </div>`);
 }
 async function cProj(){
@@ -276,72 +395,74 @@ async function cProj(){
 
 /* ── PROJECT ── */
 function openP(pid){
-  VO=false;TAB='overview';OC={};CID=pid;
+  VO=false;TAB='overview';OC={};CID=pid;musicSub='songs';
   location.hash='#/project/'+pid;stopL();
-  setA(`<div class="loading"><div class="loading-w">W</div><div class="loading-t">Loading...</div></div>`);
+  setA(`<div class="loading"><div class="loading-w">W</div><div class="loading-t">Loading</div></div>`);
   PL=db.collection('projects').doc(pid).onSnapshot(snap=>{
     if(!snap.data()){setA(`<div class="loading"><div class="loading-t" style="color:#e07070">Not found.<br><button class="btn-s o" onclick="dash()" style="margin-top:12px">← Back</button></div></div>`);return;}
-    CP={id:snap.id,...snap.data()};rP();
+    CP={id:snap.id,...snap.data()};
+    applyTheme(CP.theme?.dark!==false);
+    rP();
   },err=>setA(`<div class="loading" style="padding:30px;text-align:center"><div style="color:#e07070;font-size:12px">${err.message}</div><button class="btn-s o" onclick="dash()" style="margin-top:12px">← Back</button></div>`));
 }
 function loadView(pid){
-  VO=true;TAB='overview';OC={};stopL();
-  setA(`<div class="loading"><div class="loading-w">W</div><div class="loading-t">Loading...</div></div>`);
+  VO=true;TAB='overview';OC={};musicSub='songs';stopL();
+  setA(`<div class="loading"><div class="loading-w">W</div><div class="loading-t">Loading</div></div>`);
   logView(pid);
   PL=db.collection('projects').doc(pid).onSnapshot(snap=>{
     if(!snap.data()){setA(`<div class="loading"><div class="loading-t">Project not found.</div></div>`);return;}
-    CP={id:snap.id,...snap.data()};rP();
+    CP={id:snap.id,...snap.data()};
+    applyTheme(CP.theme?.dark!==false);
+    rP();
   },err=>setA(`<div class="loading"><div class="loading-t" style="color:#e07070">${err.message}</div></div>`));
 }
 
 function rP(){
-  const p=CP,th=p.theme||{accent:'#c9383a',bg:'#0a0a0c',dark:true};
-  const dark=th.dark!==false;
-  const text=dark?'#e8e6e0':'#1a1a1a';
-  const surf=dark?'#111114':'#f4f4f4';
-  const surf2=dark?'#18181d':'#e8e8e8';
-  const bord=dark?'#2a2a33':'#d0d0d8';
-  const muted=dark?'#6b6970':'#888';
-  const bg=th.bg||'#0a0a0c';
+  const p=CP,th=p.theme||{accent:'#c9383a',dark:true};
   const acc=th.accent||'#c9383a';
-  document.documentElement.style.cssText=`--acc:${acc};--bg:${bg};--text:${text};--surf:${surf};--surf2:${surf2};--bord:${bord};--muted:${muted}`;
-  document.body.style.background=bg;
+  document.documentElement.style.setProperty('--acc',acc);
+  applyTheme(th.dark!==false);
   const dl=p.deadline?daysLeft(p.deadline):null;
-  const subTab=window._musicSub||'songs';
-  const tabLabel=TAB==='music'?(subTab==='focus'?'Focus / Next Steps':'Songs'):TABS_DEF.find(t=>t.id===TAB)?.label||TAB;
-  setA(`<div style="background:${bg};min-height:100vh;color:${text}">
-    <div style="position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);background:linear-gradient(180deg,${acc}22,${bg});border-bottom:1px solid ${acc}33">
-      <div style="display:flex;align-items:center;gap:8px;padding:30px 14px 14px">
-        <button class="iBtn" onclick="${VO?"location.hash=''":"dash()"}" style="color:${muted};font-size:22px">←</button>
-        <button class="iBtn" onclick="openNav()" style="color:${muted};font-size:22px;padding:8px 10px" title="Menu">☰</button>
-        <div style="flex:1;min-width:0">
-          ${VO?`<div style="display:inline-block;background:#1a0d2e;color:#8b68d4;font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:2px 8px;border-radius:10px;margin-bottom:3px">View Only</div><br>`:''}
-          <div style="font-size:10px;color:${acc};letter-spacing:.2em;text-transform:uppercase;margin-bottom:1px">${p.artist||''}</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.05em;line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title||'Untitled'}</div>
+  const tabLabel=NAV_ITEMS.find(t=>{
+    if(TAB==='music'&&musicSub==='focus')return t.id==='focus';
+    return t.id===TAB;
+  })?.label||TAB;
+  updateFab();
+  setA(`<div style="min-height:100vh;background:var(--bg)">
+    <div style="position:sticky;top:0;z-index:100;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:color-mix(in srgb,var(--bg) 85%,transparent);border-bottom:1px solid var(--bord)">
+      <div style="display:flex;align-items:center;gap:6px;padding:36px 12px 12px">
+        <button class="iBtn" onclick="${VO?"location.hash=''":"dash()"}" style="font-size:20px">←</button>
+        <button class="iBtn" onclick="openNav()" style="font-size:20px">☰</button>
+        <div style="flex:1;min-width:0;padding:0 4px">
+          ${VO?`<span style="background:rgba(139,104,212,.15);color:#8b68d4;font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:2px 8px;border-radius:10px;margin-bottom:4px;display:inline-block">View Only</span><br>`:''}
+          <div style="font-size:9px;color:${acc};letter-spacing:.2em;text-transform:uppercase;margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.artist||'Wavmancer'}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.05em;line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${p.title||'Untitled'}</div>
         </div>
-        ${p.coverUrl?`<img src="${p.coverUrl}" style="width:42px;height:42px;border-radius:6px;object-fit:cover;border:1px solid ${acc}44;flex-shrink:0">`:''}
-        ${!VO?`<button class="iBtn" onclick="toggleDark()" style="color:${muted};font-size:15px">${dark?'☀':'🌙'}</button>
-        <button class="iBtn" onclick="shareM()" style="color:${acc};font-size:18px">⤴</button>
-        <button class="iBtn" onclick="settingsM()" style="color:${muted};font-size:18px">⚙</button>`:''}
+        ${p.coverUrl?`<img src="${p.coverUrl}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid var(--bord)">`:''}
+        ${!VO?`<button class="iBtn" onclick="shareM()" style="color:${acc};font-size:18px">⤴</button>`:''}
       </div>
-      <div style="display:flex;align-items:center;padding:0 14px 10px;gap:6px">
-        <div style="font-size:10px;color:${acc};letter-spacing:.15em;text-transform:uppercase">${tabLabel}</div>
-        ${dl!==null?`<div style="margin-left:auto;font-size:10px;color:${dl<0?'#e07070':dl<7?'#d4a843':muted}">${dl<0?`⚠ ${Math.abs(dl)}d overdue`:dl===0?'⚠ Due today':`📅 ${dl}d left`}</div>`:''}
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 16px 10px">
+        <div style="font-size:10px;color:${acc};letter-spacing:.18em;text-transform:uppercase;font-weight:500">${tabLabel}</div>
+        ${dl!==null?`<div style="font-size:10px;color:${dl<0?'#e07070':dl<7?'#d4a843':'var(--muted)'}">${dl<0?`⚠ ${Math.abs(dl)}d over`:dl===0?'⚠ Today':dl===1?'Tomorrow':`${dl}d left`}</div>`:''}
       </div>
     </div>
-    <div style="padding:14px;padding-bottom:80px">${bTab()}</div>
+    <div style="padding:14px;padding-bottom:96px">${bTab()}</div>
   </div>`);
-  if(TAB==='music')initDrag();
+  if(TAB==='music'&&musicSub==='songs')initDrag();
 }
 
 function sT(t){
-  if(t==='focus'){TAB='music';window._musicSub='focus';}
-  else{TAB=t;if(t==='music')window._musicSub=window._musicSub||'songs';}
+  if(t==='focus'){TAB='music';musicSub='focus';}
+  else{TAB=t;if(t==='music')musicSub=musicSub||'songs';}
   rP();
 }
-function toggleDark(){const th={...(CP.theme||{})};th.dark=!th.dark;db.collection('projects').doc(CID).update({theme:th});}
+function toggleDark(){
+  const th={...(CP.theme||{accent:'#c9383a',dark:true})};
+  th.dark=!th.dark;
+  db.collection('projects').doc(CID).update({theme:th});
+}
 
-/* ── TABS ── */
+/* ── TAB CONTENT ── */
 function bTab(){
   const p=CP,songs=p.songs||[],acc=p.theme?.accent||'#c9383a',fd=p.focusDone||{};
 
@@ -357,71 +478,63 @@ function bTab(){
     const ct=(p.contentTasks||[]).filter(t=>t.done).length,ctt=(p.contentTasks||[]).length;
     const td=(p.todoTasks||[]).filter(t=>t.done).length,tdt=(p.todoTasks||[]).length;
     return `
-    ${dl!==null?`<div class="card" style="margin-bottom:10px;border-left:3px solid ${dl<0?'#e07070':dl<7?'#d4a843':acc}">
+    ${dl!==null?`<div class="card" style="margin-bottom:12px;border-left:3px solid ${dl<0?'#e07070':dl<7?'#d4a843':acc}">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div>
-          <div style="font-size:10px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px">Release Deadline</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:${dl<0?'#e07070':dl<7?'#d4a843':acc}">${dl<0?`${Math.abs(dl)} DAYS OVERDUE`:dl===0?'DUE TODAY':dl===1?'DUE TOMORROW':`${dl} DAYS LEFT`}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px">${fmtDate(p.deadline)}</div>
+          <div class="flabel" style="margin-bottom:5px">Release Deadline</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:1;color:${dl<0?'#e07070':dl<7?'#d4a843':acc}">${dl<0?`${Math.abs(dl)} DAYS OVERDUE`:dl===0?'DUE TODAY':dl===1?'DUE TOMORROW':`${dl} DAYS LEFT`}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">${fmtDate(p.deadline)}</div>
         </div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:44px;color:${dl<0?'#e07070':dl<7?'#d4a843':acc}22">${dl<0?'⚠':'📅'}</div>
+        <div style="font-size:40px;opacity:.15">${dl<0?'⚠':'📅'}</div>
       </div>
     </div>`:''}
-    <div class="card" style="margin-bottom:10px">
-      <div style="font-size:10px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-bottom:12px">Music Progress</div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px">
+    <div class="card" style="margin-bottom:12px">
+      <div class="slabel">Music Progress</div>
+      <div class="stat-grid">
         ${[{n:songs.length,l:'Songs',c:'var(--text)'},{n:dn,l:'Done',c:'#4caf82'},{n:ac,l:'Active',c:acc},{n:qu,l:'Queued',c:'var(--muted)'}].map(x=>`
-        <div style="text-align:center">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1;color:${x.c};margin-bottom:2px">${x.n}</div>
-          <div style="font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase">${x.l}</div>
-        </div>`).join('')}
+        <div class="stat-box"><div class="stat-num" style="color:${x.c}">${x.n}</div><div class="stat-lbl">${x.l}</div></div>`).join('')}
       </div>
-      <div style="background:var(--surf2);border-radius:2px;height:6px;overflow:hidden;margin-bottom:5px">
-        <div style="height:100%;background:${acc};border-radius:2px;width:${pct}%;transition:width .3s"></div>
-      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${acc}"></div></div>
       <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted)"><span>${dn} of ${songs.length} complete</span><span>${pct}%</span></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
       ${[[`Promo`,pt,ptt,'#e07b3a','promo'],[`Content`,ct,ctt,'#8b68d4','content'],[`To-Do`,td,tdt,'#4a8fc4','todo'],[`Milestones`,ms,mst,'#8b68d4','info']].map(([l,d,t,c,tab])=>`
-      <div class="card" style="margin:0;cursor:pointer" onclick="sT('${tab}')">
-        <div style="font-size:9px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px">${l}</div>
-        <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:6px">
-          <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:${c};line-height:1">${d}</span>
+      <div class="mini-stat" onclick="sT('${tab}')">
+        <div class="flabel" style="margin-bottom:6px">${l}</div>
+        <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:7px">
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${c};line-height:1">${d}</span>
           <span style="font-size:10px;color:var(--muted)">/ ${t}</span>
         </div>
-        <div style="background:var(--surf2);border-radius:2px;height:3px;overflow:hidden">
-          <div style="height:100%;background:${c};border-radius:2px;width:${t?Math.round(d/t*100):0}%"></div>
-        </div>
+        <div class="progress-bar" style="height:3px;margin:0"><div class="progress-fill" style="width:${t?Math.round(d/t*100):0}%;background:${c}"></div></div>
       </div>`).join('')}
     </div>
     <div class="slabel">Songs</div>
-    ${songs.length?songs.map((s,i)=>mCard(s,i,acc)).join(''):'<div class="empty">No songs yet — go to Music tab.</div>'}`;
+    ${songs.length?songs.map((s,i)=>mCard(s,i,acc)).join(''):'<div class="empty">No songs yet.<br><small>Go to Songs tab to add.</small></div>'}`;
   }
 
-  /* MUSIC */
+  /* MUSIC (songs + focus subtabs) */
   if(TAB==='music'){
-    const subTab=window._musicSub||'songs';
     return `<div style="display:flex;gap:8px;margin-bottom:14px">
-      <button onclick="window._musicSub='songs';rP()" style="flex:1;padding:9px;background:${subTab==='songs'?acc:'var(--surf2)'};color:${subTab==='songs'?'#fff':'var(--muted)'};border:1px solid ${subTab==='songs'?acc:'var(--bord)'};border-radius:6px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">Songs</button>
-      <button onclick="window._musicSub='focus';rP()" style="flex:1;padding:9px;background:${subTab==='focus'?'#d4a843':'var(--surf2)'};color:${subTab==='focus'?'#0a0a0c':'var(--muted)'};border:1px solid ${subTab==='focus'?'#d4a843':'var(--bord)'};border-radius:6px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">Focus</button>
+      <button onclick="musicSub='songs';rP()" style="flex:1;padding:9px 6px;background:${musicSub==='songs'?acc:'var(--surf2)'};color:${musicSub==='songs'?'#fff':'var(--muted)'};border:1px solid ${musicSub==='songs'?acc:'var(--bord)'};border-radius:6px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s">Songs</button>
+      <button onclick="musicSub='focus';rP()" style="flex:1;padding:9px 6px;background:${musicSub==='focus'?'#d4a843':'var(--surf2)'};color:${musicSub==='focus'?'var(--bg)':'var(--muted)'};border:1px solid ${musicSub==='focus'?'#d4a843':'var(--bord)'};border-radius:6px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s">Focus</button>
     </div>
-    ${subTab==='songs'?`
+    ${musicSub==='songs'?`
       ${!VO?`<button class="btn-o" onclick="addSongM()" style="margin-bottom:14px">+ Add Song</button>`:''}
       <div id="song-list">${songs.length?songs.map((s,i)=>sCard(s,i,acc)).join(''):'<div class="empty">No songs yet.</div>'}</div>`
-    :`<div class="slabel">Current Focus Order</div>
-      ${songs.filter(s=>!(s.tasks||[]).every(t=>t.done)).length===0?'<div class="empty" style="color:#4caf82">🎉 All songs complete!</div>':''}
+    :`<div class="slabel">Next Up</div>
+      ${songs.filter(s=>!(s.tasks||[]).every(t=>t.done)).length===0?`<div class="empty" style="color:#4caf82">🎉 All songs complete!</div>`:''}
       ${songs.filter(s=>!(s.tasks||[]).every(t=>t.done)).map((song,i)=>{
         const nx=(song.tasks||[]).filter(t=>!t.done).slice(0,3);
-        return `<div class="card" style="display:flex;gap:12px;margin-bottom:8px">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:${acc};line-height:1;min-width:22px">${i+1}</div>
+        return `<div class="card" style="display:flex;gap:12px;margin-bottom:8px;animation:fadeUp .25s ease ${i*.05}s backwards">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${acc};line-height:1;min-width:24px;opacity:.7">${i+1}</div>
           <div style="flex:1">
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:19px;margin-bottom:6px">${song.name}</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:19px;margin-bottom:8px;color:var(--text)">${song.name}</div>
             ${nx.map(task=>{const fk=song.id+'_'+task.id,d=fd[fk];
               return `<div ${!VO?`onclick="tF('${fk}')"`:''}
-                style="display:flex;align-items:center;gap:6px;font-size:11px;color:${d?'#555':'var(--muted)'};text-decoration:${d?'line-through':'none'};padding:5px 0;cursor:${VO?'default':'pointer'};min-height:30px">
-                <span style="color:${d?'#4caf82':acc};font-size:10px">${d?'✓':'→'}</span>${task.text}</div>`;
+                style="display:flex;align-items:center;gap:8px;font-size:11px;color:${d?'var(--muted)':'var(--text2)'};text-decoration:${d?'line-through':'none'};padding:6px 0;cursor:${VO?'default':'pointer'};border-bottom:1px solid var(--bord)">
+                <span style="color:${d?'#4caf82':acc};font-size:12px;flex-shrink:0">${d?'✓':'→'}</span>${task.text}</div>`;
             }).join('')}
-            ${nx.length===0?`<div style="font-size:10px;color:#4caf82">All tasks done ✓</div>`:''}
+            ${nx.length===0?`<div style="font-size:10px;color:#4caf82">All tasks complete ✓</div>`:''}
           </div>
         </div>`;
       }).join('')}`}`;
@@ -430,100 +543,56 @@ function bTab(){
   /* RELEASE SCHEDULE */
   if(TAB==='release'){
     const rs=p.releaseSchedule||[];
-    const cols=['Release','Release Date','Due Date','Audio File','Artwork','Metadata','Status'];
     const statusColors={'Not Started':'var(--muted)','In Progress':'#d4a843','Complete':'#4caf82','Overdue':'#e07070'};
-    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <div class="slabel" style="margin:0;border:none;padding:0">Release Schedule</div>
-      ${!VO?`<button class="btn-s" onclick="addReleaseRowM()">+ Add Row</button>`:''}
-    </div>
-    ${rs.length?`<div style="overflow-x:auto;border-radius:8px;border:1px solid var(--bord)">
+    return `${rs.length?`<div class="rel-wrap">
       <table class="rel-table">
-        <thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}${!VO?'<th></th>':''}</tr></thead>
+        <thead><tr><th>Release</th><th>Release Date</th><th>Due Date</th><th>Audio</th><th>Art</th><th>Meta</th><th>Status</th>${!VO?'<th></th>':''}</tr></thead>
         <tbody>${rs.map(row=>{
           const sc=statusColors[row.status]||'var(--muted)';
           const dl=row.releaseDate?daysLeft(row.releaseDate):null;
+          const chipBg=(v)=>v==='Done'?'rgba(76,175,130,.15)':v==='In Progress'?'rgba(212,168,67,.12)':'var(--surf2)';
+          const chipCol=(v)=>v==='Done'?'#4caf82':v==='In Progress'?'#d4a843':'var(--muted)';
           return `<tr>
-            <td style="font-family:'Bebas Neue',sans-serif;font-size:15px;white-space:nowrap">${row.release||'—'}</td>
-            <td style="white-space:nowrap;color:${dl!==null&&dl<7?'#e07070':'var(--text)'}">${row.releaseDate?fmtDateShort(row.releaseDate):'—'}</td>
-            <td style="white-space:nowrap;color:var(--muted)">${row.dueDate?fmtDateShort(row.dueDate):'—'}</td>
-            <td><span class="rel-chip" style="background:${row.audioFile==='Done'?'#0d2e1f':'var(--surf2)'};color:${row.audioFile==='Done'?'#4caf82':'var(--muted)'}">${row.audioFile||'—'}</span></td>
-            <td><span class="rel-chip" style="background:${row.artwork==='Done'?'#0d2e1f':'var(--surf2)'};color:${row.artwork==='Done'?'#4caf82':'var(--muted)'}">${row.artwork||'—'}</span></td>
-            <td><span class="rel-chip" style="background:${row.metadata==='Done'?'#0d2e1f':'var(--surf2)'};color:${row.metadata==='Done'?'#4caf82':'var(--muted)'}">${row.metadata||'—'}</span></td>
-            <td><span class="rel-chip" style="background:${sc}22;color:${sc}">${row.status||'Not Started'}</span></td>
-            ${!VO?`<td><button onclick="editReleaseRowM('${row.id}')" class="iBtn" style="font-size:14px;padding:4px">✎</button><button onclick="delReleaseRow('${row.id}')" class="iBtn" style="font-size:12px;padding:4px;opacity:.4">✕</button></td>`:''}
+            <td><strong style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.03em">${row.release||'—'}</strong></td>
+            <td style="color:${dl!==null&&dl<7?'#e07070':'var(--text2)'};font-size:11px">${row.releaseDate?fmtDateShort(row.releaseDate):'—'}</td>
+            <td style="color:var(--muted);font-size:11px">${row.dueDate?fmtDateShort(row.dueDate):'—'}</td>
+            <td><span class="rel-chip" style="background:${chipBg(row.audioFile)};color:${chipCol(row.audioFile)}">${row.audioFile||'—'}</span></td>
+            <td><span class="rel-chip" style="background:${chipBg(row.artwork)};color:${chipCol(row.artwork)}">${row.artwork||'—'}</span></td>
+            <td><span class="rel-chip" style="background:${chipBg(row.metadata)};color:${chipCol(row.metadata)}">${row.metadata||'—'}</span></td>
+            <td><span class="rel-chip" style="background:${sc}18;color:${sc};border:1px solid ${sc}30">${row.status||'Not Started'}</span></td>
+            ${!VO?`<td style="white-space:nowrap"><button onclick="editReleaseRowM('${row.id}')" class="iBtn" style="font-size:14px;padding:4px">✎</button><button onclick="delReleaseRow('${row.id}')" class="iBtn" style="font-size:12px;padding:4px;opacity:.4">✕</button></td>`:''}
           </tr>`;
         }).join('')}</tbody>
       </table>
-    </div>`:`<div class="empty">No releases scheduled yet.${!VO?' Tap + Add Row to build your schedule.':''}</div>`}`;
+    </div>`:''}
+    ${!rs.length?`<div class="empty">No releases scheduled yet.${!VO?'<br>Tap + to add your first row.':''}</div>`:''}
+    ${!VO?`<button class="btn-o" onclick="addReleaseRowM()" style="margin-top:4px">+ Add Row</button>`:''}`;
   }
 
-  /* PROMO */
-  if(TAB==='promo'){
-    const tasks=p.promoTasks||[];
+  /* PROMO / CONTENT / TODO — shared renderer */
+  if(['promo','content','todo'].includes(TAB)){
+    const cfg={
+      promo:{field:'promoTasks',label:'Promo & Photos',color:acc,inputId:'pt-inp',placeholder:'Add promo task...'},
+      content:{field:'contentTasks',label:'Content Plan',color:'#8b68d4',inputId:'ct-inp',placeholder:'Add content task...'},
+      todo:{field:'todoTasks',label:'General To-Do',color:'#4a8fc4',inputId:'td-inp',placeholder:'Add to-do...'},
+    }[TAB];
+    const tasks=p[cfg.field]||[];
     const dn=tasks.filter(t=>t.done).length;
     const pct=tasks.length?Math.round(dn/tasks.length*100):0;
-    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <div class="slabel" style="margin:0;border:none;padding:0">Promo & Photos</div>
-      <span style="font-size:10px;color:var(--muted)">${dn}/${tasks.length}</span>
+    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div class="slabel" style="margin:0;border:none;padding:0">${cfg.label}</div>
+      <span style="font-size:10px;color:var(--muted)">${dn}/${tasks.length} done</span>
     </div>
-    <div style="background:var(--surf2);border-radius:2px;height:3px;overflow:hidden;margin-bottom:14px">
-      <div style="height:100%;background:${acc};border-radius:2px;width:${pct}%"></div>
-    </div>
-    ${!VO?`<div class="card" style="margin-bottom:14px">
-      <input class="field" id="pt-inp" placeholder="Add promo task..." style="margin-bottom:8px" onkeydown="if(event.key==='Enter')addSimpleTask('promoTasks','pt-inp')">
-      <button class="btn-s" onclick="addSimpleTask('promoTasks','pt-inp')" style="width:100%">Add Task</button>
+    <div class="progress-bar" style="margin-bottom:16px"><div class="progress-fill" style="width:${pct}%;background:${cfg.color}"></div></div>
+    ${!VO?`<div style="display:flex;gap:8px;margin-bottom:14px">
+      <input class="field" id="${cfg.inputId}" placeholder="${cfg.placeholder}" style="flex:1;margin:0" onkeydown="if(event.key==='Enter')addSimpleTask('${cfg.field}','${cfg.inputId}')">
+      <button class="btn-s" onclick="addSimpleTask('${cfg.field}','${cfg.inputId}')" style="background:${cfg.color}">Add</button>
     </div>`:''}
-    ${tasks.length?tasks.map(t=>`<div class="trow" ${!VO?`onclick="toggleSimpleTask('promoTasks','${t.id}')"`:''}  style="cursor:${VO?'default':'pointer'}">
-      <div class="tcheck${t.done?' on':''}">${t.done?`<span style="font-size:10px;color:#0a0a0c;font-weight:bold">✓</span>`:''}</div>
+    ${tasks.length?tasks.map(t=>`<div class="trow" ${!VO?`onclick="toggleSimpleTask('${cfg.field}','${t.id}')"`:''}  style="cursor:${VO?'default':'pointer'}">
+      <div class="tcheck${t.done?' on':''}" style="${t.done?'':`border-color:${cfg.color}40`}"></div>
       <div style="font-size:12px;line-height:1.5;flex:1;color:${t.done?'var(--muted)':'var(--text)'};text-decoration:${t.done?'line-through':'none'}">${t.text}</div>
-      ${!VO?`<button onclick="event.stopPropagation();delSimpleTask('promoTasks','${t.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.4">✕</button>`:''}
-    </div>`).join(''):'<div class="empty">No promo tasks yet.</div>'}`;
-  }
-
-  /* CONTENT */
-  if(TAB==='content'){
-    const tasks=p.contentTasks||[];
-    const dn=tasks.filter(t=>t.done).length;
-    const pct=tasks.length?Math.round(dn/tasks.length*100):0;
-    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <div class="slabel" style="margin:0;border:none;padding:0">Content Plan</div>
-      <span style="font-size:10px;color:var(--muted)">${dn}/${tasks.length}</span>
-    </div>
-    <div style="background:var(--surf2);border-radius:2px;height:3px;overflow:hidden;margin-bottom:14px">
-      <div style="height:100%;background:#8b68d4;border-radius:2px;width:${pct}%"></div>
-    </div>
-    ${!VO?`<div class="card" style="margin-bottom:14px">
-      <input class="field" id="ct-inp" placeholder="Add content task..." style="margin-bottom:8px" onkeydown="if(event.key==='Enter')addSimpleTask('contentTasks','ct-inp')">
-      <button class="btn-s" onclick="addSimpleTask('contentTasks','ct-inp')" style="width:100%;background:#8b68d4">Add Task</button>
-    </div>`:''}
-    ${tasks.length?tasks.map(t=>`<div class="trow" ${!VO?`onclick="toggleSimpleTask('contentTasks','${t.id}')"`:''}  style="cursor:${VO?'default':'pointer'}">
-      <div class="tcheck${t.done?' on':''}" style="${t.done?'':'border-color:#8b68d4'}">${t.done?`<span style="font-size:10px;color:#0a0a0c;font-weight:bold">✓</span>`:''}</div>
-      <div style="font-size:12px;line-height:1.5;flex:1;color:${t.done?'var(--muted)':'var(--text)'};text-decoration:${t.done?'line-through':'none'}">${t.text}</div>
-      ${!VO?`<button onclick="event.stopPropagation();delSimpleTask('contentTasks','${t.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.4">✕</button>`:''}
-    </div>`).join(''):'<div class="empty">No content tasks yet.</div>'}`;
-  }
-
-  /* TODO */
-  if(TAB==='todo'){
-    const tasks=p.todoTasks||[];
-    const dn=tasks.filter(t=>t.done).length;
-    const pct=tasks.length?Math.round(dn/tasks.length*100):0;
-    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <div class="slabel" style="margin:0;border:none;padding:0">General To-Do</div>
-      <span style="font-size:10px;color:var(--muted)">${dn}/${tasks.length}</span>
-    </div>
-    <div style="background:var(--surf2);border-radius:2px;height:3px;overflow:hidden;margin-bottom:14px">
-      <div style="height:100%;background:#4a8fc4;border-radius:2px;width:${pct}%"></div>
-    </div>
-    ${!VO?`<div class="card" style="margin-bottom:14px">
-      <input class="field" id="td-inp" placeholder="Add to-do..." style="margin-bottom:8px" onkeydown="if(event.key==='Enter')addSimpleTask('todoTasks','td-inp')">
-      <button class="btn-s" onclick="addSimpleTask('todoTasks','td-inp')" style="width:100%;background:#4a8fc4">Add Task</button>
-    </div>`:''}
-    ${tasks.length?tasks.map(t=>`<div class="trow" ${!VO?`onclick="toggleSimpleTask('todoTasks','${t.id}')"`:''}  style="cursor:${VO?'default':'pointer'}">
-      <div class="tcheck${t.done?' on':''}" style="${t.done?'':'border-color:#4a8fc4'}">${t.done?`<span style="font-size:10px;color:#0a0a0c;font-weight:bold">✓</span>`:''}</div>
-      <div style="font-size:12px;line-height:1.5;flex:1;color:${t.done?'var(--muted)':'var(--text)'};text-decoration:${t.done?'line-through':'none'}">${t.text}</div>
-      ${!VO?`<button onclick="event.stopPropagation();delSimpleTask('todoTasks','${t.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.4">✕</button>`:''}
-    </div>`).join(''):'<div class="empty">No to-dos yet.</div>'}`;
+      ${!VO?`<button onclick="event.stopPropagation();delSimpleTask('${cfg.field}','${t.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.35">✕</button>`:''}
+    </div>`).join(''):'<div class="empty">Nothing here yet.<br><small>Add your first item above.</small></div>'}`;
   }
 
   /* BUDGET */
@@ -532,16 +601,25 @@ function bTab(){
     const total=expenses.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
     const byCategory={};
     expenses.forEach(e=>{const c=e.category||'Other';byCategory[c]=(byCategory[c]||0)+(parseFloat(e.amount)||0);});
-    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <div class="slabel" style="margin:0;border:none;padding:0">Budget</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${acc}">$${total.toFixed(2)}</div>
+    return `<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px">
+      <div>
+        <div class="flabel">Total Spent</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;color:${acc};line-height:1">$${total.toFixed(2)}</div>
+      </div>
+      ${Object.keys(byCategory).length>0?`<div style="text-align:right;font-size:10px;color:var(--muted)">${Object.keys(byCategory).length} categor${Object.keys(byCategory).length===1?'y':'ies'}</div>`:''}
     </div>
     ${Object.keys(byCategory).length>1?`<div class="card" style="margin-bottom:14px">
       <div class="flabel">By Category</div>
-      ${Object.entries(byCategory).map(([cat,amt])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bord)">
-        <span style="font-size:11px">${cat}</span>
-        <span style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:${acc}">$${amt.toFixed(2)}</span>
-      </div>`).join('')}
+      ${Object.entries(byCategory).sort((a,b)=>b[1]-a[1]).map(([cat,amt])=>{
+        const pct=Math.round(amt/total*100);
+        return `<div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+            <span style="color:var(--text)">${cat}</span>
+            <span style="color:${acc}">$${amt.toFixed(2)} <span style="color:var(--muted)">${pct}%</span></span>
+          </div>
+          <div class="progress-bar" style="height:3px;margin:0"><div class="progress-fill" style="width:${pct}%;background:${acc}"></div></div>
+        </div>`;
+      }).join('')}
     </div>`:''}
     ${!VO?`<div class="card" style="margin-bottom:14px">
       <div class="flabel">Add Expense</div>
@@ -549,17 +627,17 @@ function bTab(){
         <input class="field" id="exp-amt" type="number" placeholder="$0.00" style="width:90px;margin:0">
         <input class="field" id="exp-desc" placeholder="Description" style="flex:1;margin:0">
       </div>
-      <input class="field" id="exp-cat" placeholder="Category (e.g. Studio, Features, Mixing)" style="margin-bottom:8px">
+      <input class="field" id="exp-cat" placeholder="Category (Studio, Features, Mixing...)" style="margin-bottom:8px">
       <button class="btn-s" onclick="addExp()" style="width:100%">Add Expense</button>
     </div>`:''}
     ${expenses.length?`<div class="card" style="padding:0;overflow:hidden">
-      ${[...expenses].reverse().map((e,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--bord);${i===expenses.length-1?'border:none':''}">
+      ${[...expenses].reverse().map((e,i,a)=>`<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:${i===a.length-1?'none':'1px solid var(--bord)'}">
         <div style="flex:1;min-width:0">
-          <div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.desc||'Untitled'}</div>
+          <div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${e.desc||'Untitled'}</div>
           <div style="font-size:10px;color:var(--muted);margin-top:2px">${e.category?`${e.category} · `:''}${e.date||''}</div>
         </div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:${acc};flex-shrink:0">$${(parseFloat(e.amount)||0).toFixed(2)}</div>
-        ${!VO?`<button onclick="delExp('${e.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.4">✕</button>`:''}
+        ${!VO?`<button onclick="delExp('${e.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.35">✕</button>`:''}
       </div>`).join('')}
     </div>`:'<div class="empty">No expenses yet.</div>'}`;
   }
@@ -569,26 +647,26 @@ function bTab(){
     const views=p.views||[];
     const sorted=[...views].sort((a,b)=>(b.ts||0)-(a.ts||0));
     const unique=new Set(views.map(v=>v.name||v.location)).size;
-    return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+    return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
       <div class="card" style="text-align:center;margin:0">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;color:${acc};line-height:1">${views.length}</div>
-        <div style="font-size:9px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-top:4px">Total Views</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:44px;color:${acc};line-height:1">${views.length}</div>
+        <div class="flabel" style="margin:6px 0 0">Total Views</div>
       </div>
       <div class="card" style="text-align:center;margin:0">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;color:#8b68d4;line-height:1">${unique}</div>
-        <div style="font-size:9px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-top:4px">Unique Viewers</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:44px;color:#8b68d4;line-height:1">${unique}</div>
+        <div class="flabel" style="margin:6px 0 0">Unique Viewers</div>
       </div>
     </div>
     <div class="slabel">View History</div>
-    ${!sorted.length?'<div class="empty">No views yet.</div>':''}
+    ${!sorted.length?'<div class="empty">No views yet.<br>Share your project link to start tracking.</div>':''}
     ${sorted.length?`<div class="card" style="padding:0;overflow:hidden">
-      ${sorted.map((v,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--bord);${i===sorted.length-1?'border:none':''}">
-        <div style="width:32px;height:32px;border-radius:50%;background:${acc}22;border:1px solid ${acc}44;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${v.name?v.name[0].toUpperCase():'👁'}</div>
+      ${sorted.map((v,i,a)=>`<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:${i===a.length-1?'none':'1px solid var(--bord)'}">
+        <div style="width:34px;height:34px;border-radius:50%;background:${acc}18;border:1px solid ${acc}30;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;font-family:'Bebas Neue',sans-serif;color:${acc}">${v.name?v.name[0].toUpperCase():'👁'}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.name||'Anonymous Viewer'}</div>
+          <div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${v.name||'Anonymous Viewer'}</div>
           <div style="font-size:10px;color:var(--muted);margin-top:2px">${v.location||'Unknown location'}</div>
         </div>
-        <div style="font-size:10px;color:var(--muted);text-align:right;flex-shrink:0;min-width:80px">${v.timeStr||''}</div>
+        <div style="font-size:10px;color:var(--muted);text-align:right;flex-shrink:0;min-width:76px;line-height:1.4">${v.timeStr||''}</div>
       </div>`).join('')}
     </div>`:''}`; 
   }
@@ -597,32 +675,32 @@ function bTab(){
   if(TAB==='info'){
     const ms=p.milestones||[];
     return `<div class="slabel">Project Info</div>
-    <div class="card" style="margin-bottom:14px">
-      ${[['Title',p.title],['Artist',p.artist],['Label',p.label],['Co-Producer',p.coproducer],['Deadline',p.deadline?fmtDate(p.deadline):null]].filter(r=>r[1]).map(([k,v])=>`
-      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bord)">
-        <span style="font-size:10px;color:var(--muted)">${k}</span><span style="font-size:11px">${v}</span>
+    <div class="card" style="margin-bottom:14px;padding:0;overflow:hidden">
+      ${[['Title',p.title],['Artist',p.artist],['Label',p.label],['Co-Producer',p.coproducer],['Deadline',p.deadline?fmtDate(p.deadline):null]].filter(r=>r[1]).map(([k,v],i,a)=>`
+      <div style="display:flex;justify-content:space-between;padding:11px 14px;border-bottom:${i===a.filter(r=>r[1]).length-1?'none':'1px solid var(--bord)'}">
+        <span style="font-size:10px;color:var(--muted)">${k}</span><span style="font-size:11px;color:var(--text)">${v}</span>
       </div>`).join('')}
     </div>
     <div class="slabel">Milestones</div>
     ${!VO?`<button class="btn-o" onclick="addMilestoneM()" style="margin-bottom:12px">+ Add Milestone</button>`:''}
     ${ms.length?`<div class="card" style="margin-bottom:14px;padding:0;overflow:hidden">
-      ${ms.map((m,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--bord);${i===ms.length-1?'border:none':''}">
-        <div style="width:10px;height:10px;border-radius:50%;background:${m.done?'#4caf82':'#8b68d4'};flex-shrink:0"></div>
+      ${ms.map((m,i,a)=>`<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:${i===a.length-1?'none':'1px solid var(--bord)'}">
+        <div style="width:10px;height:10px;border-radius:50%;background:${m.done?'#4caf82':'#8b68d4'};flex-shrink:0;transition:background .2s"></div>
         <div style="flex:1;min-width:0">
           <div style="font-size:12px;color:${m.done?'var(--muted)':'var(--text)'};text-decoration:${m.done?'line-through':'none'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.label}</div>
           ${m.date?`<div style="font-size:10px;color:var(--muted);margin-top:2px">${fmtDate(m.date)}</div>`:''}
         </div>
         ${!VO?`<div style="display:flex;gap:4px">
           <button onclick="toggleMilestone('${m.id}')" class="btn-s o" style="font-size:10px;padding:4px 8px">${m.done?'Undo':'Done'}</button>
-          <button onclick="delMilestone('${m.id}')" class="iBtn" style="font-size:12px;opacity:.4">✕</button>
+          <button onclick="delMilestone('${m.id}')" class="iBtn" style="font-size:12px;opacity:.35">✕</button>
         </div>`:''}
       </div>`).join('')}
     </div>`:'<div class="empty" style="margin-bottom:14px">No milestones yet.</div>'}
     <div class="slabel">Project Notes</div>
     ${!VO
-      ?`<textarea class="field" id="pnotes" placeholder="General notes..." style="min-height:90px" oninput="sN(this.value)">${p.notes||''}</textarea>
+      ?`<textarea class="field" id="pnotes" placeholder="General notes, ideas, reminders..." style="min-height:100px" oninput="sN(this.value)">${p.notes||''}</textarea>
         <div style="font-size:10px;color:var(--muted);margin-top:4px">Auto-saved <span id="ndot" style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#4caf82;opacity:0;transition:opacity .3s;vertical-align:middle"></span></div>`
-      :`<div class="card" style="font-size:12px;white-space:pre-wrap">${p.notes||'No notes.'}</div>`}`;
+      :`<div class="card" style="font-size:12px;white-space:pre-wrap;line-height:1.7;color:var(--text)">${p.notes||'No notes.'}</div>`}`;
   }
   return '';
 }
@@ -632,16 +710,20 @@ function mCard(s,i,acc){
   const dn=(s.tasks||[]).every(t=>t.done)&&(s.tasks||[]).length>0;
   const dt=(s.tasks||[]).filter(t=>t.done).length,tot=(s.tasks||[]).length;
   const bc=dn?'#4caf82':s.priority?'#d4a843':acc;
-  return `<div style="background:var(--surf);border:1px solid var(--bord);border-left:3px solid ${bc};border-radius:7px;margin-bottom:8px;padding:11px 13px;display:flex;align-items:center;gap:10px;animation:fadeUp .3s ease ${i*.04}s backwards" onclick="sT('music')">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--muted);min-width:22px">${s.order||i+1}</div>
-    <div style="flex:1;min-width:0">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.name}</div>
-      <div style="display:flex;gap:5px;margin-top:3px;align-items:center;flex-wrap:wrap">
-        <span class="badge" style="background:${dn?'#0d2e1f':'var(--surf2)'};color:${dn?'#4caf82':'var(--muted)'}">${dn?'Complete':s.statusLabel||'In Progress'}</span>
-        <span style="font-size:9px;color:var(--muted)">${dt}/${tot}</span>
+  const pct=tot?Math.round(dt/tot*100):0;
+  return `<div onclick="sT('music')" style="background:var(--surf);border:1px solid var(--bord);border-radius:10px;margin-bottom:8px;overflow:hidden;cursor:pointer;animation:fadeUp .25s ease ${i*.04}s backwards;transition:background .15s">
+    <div style="height:2px;background:linear-gradient(90deg,${bc},${bc}44);width:${pct}%"></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:11px 13px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--muted);min-width:24px;line-height:1">${s.order||i+1}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${s.name}</div>
+        <div style="display:flex;gap:5px;margin-top:3px;align-items:center;flex-wrap:wrap">
+          <span class="badge" style="background:${dn?'rgba(76,175,130,.15)':'var(--surf2)'};color:${dn?'#4caf82':'var(--muted)'}">${dn?'Complete':s.statusLabel||'In Progress'}</span>
+          <span style="font-size:9px;color:var(--muted)">${dt}/${tot}</span>
+        </div>
       </div>
+      <div style="color:var(--muted);font-size:14px">›</div>
     </div>
-    <div style="color:var(--muted);font-size:14px">›</div>
   </div>`;
 }
 
@@ -650,55 +732,53 @@ function sCard(s,i,acc){
   const dt=(s.tasks||[]).filter(t=>t.done).length,tot=(s.tasks||[]).length;
   const bc=dn?'#4caf82':s.priority?'#d4a843':acc,op=OC[s.id];
   const pct=tot?Math.round(dt/tot*100):0;
-  return `<div class="scard" id="sc-${s.id}" draggable="true" style="border-left:3px solid ${bc};animation:fadeUp .3s ease ${i*.04}s backwards"
+  return `<div class="scard" id="sc-${s.id}" draggable="true" style="animation:fadeUp .25s ease ${i*.04}s backwards"
     ondragstart="dStart(event,'${s.id}')" ondragover="dOver(event,'${s.id}')" ondrop="dDrop(event,'${s.id}')" ondragend="dEnd()">
+    <div style="height:2px;background:linear-gradient(90deg,${bc},${bc}44);width:${pct}%;transition:width .3s"></div>
     <div class="sheader" onclick="tC('${s.id}')">
       <div class="drag-handle" onclick="event.stopPropagation()">⠿</div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--muted);min-width:24px">${s.order||i+1}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.name}</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${s.name}</div>
         <div style="display:flex;gap:5px;margin-top:3px;flex-wrap:wrap;align-items:center">
-          <span class="badge" style="background:${dn?'#0d2e1f':'var(--surf2)'};color:${dn?'#4caf82':'var(--muted)'}">${dn?'Complete':s.statusLabel||'In Progress'}</span>
-          ${s.priority&&!dn?`<span class="badge" style="background:#2e240d;color:#d4a843">Priority</span>`:''}
-          ${s.lyrics?`<span class="badge" style="background:#0d1a2e;color:#4a8fc4">Lyrics</span>`:''}
+          <span class="badge" style="background:${dn?'rgba(76,175,130,.15)':'var(--surf2)'};color:${dn?'#4caf82':'var(--muted)'}">${dn?'Complete':s.statusLabel||'In Progress'}</span>
+          ${s.priority&&!dn?`<span class="badge" style="background:rgba(212,168,67,.15);color:#d4a843">Priority</span>`:''}
+          ${s.lyrics?`<span class="badge" style="background:rgba(74,143,196,.15);color:#4a8fc4">Lyrics</span>`:''}
           <span style="font-size:9px;color:var(--muted)">${dt}/${tot} · ${pct}%</span>
         </div>
       </div>
-      <span style="color:var(--muted);font-size:13px;transition:transform .2s;transform:${op?'rotate(180deg)':'none'};padding:4px">▾</span>
+      <span style="color:var(--muted);font-size:13px;transition:transform .25s;transform:${op?'rotate(180deg)':'none'};padding:4px">▾</span>
     </div>
     ${op?`<div style="padding:0 13px 13px;border-top:1px solid var(--bord)">
-      ${tot>0?`<div style="background:var(--surf2);border-radius:2px;height:3px;overflow:hidden;margin:10px 0 12px">
-        <div style="height:100%;background:${bc};border-radius:2px;width:${pct}%"></div>
-      </div>`:''}
-      <div style="font-size:9px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px">Tasks</div>
+      <div class="flabel" style="margin:12px 0 8px">Tasks</div>
       ${(s.tasks||[]).map(task=>`
       <div class="trow" ${!VO?`onclick="tT('${s.id}','${task.id}')"`:''}  style="cursor:${VO?'default':'pointer'}">
-        <div class="tcheck${task.done?' on':''}">${task.done?`<span style="font-size:10px;color:#0a0a0c;font-weight:bold">✓</span>`:''}</div>
+        <div class="tcheck${task.done?' on':''}"></div>
         <div style="font-size:12px;line-height:1.5;flex:1;color:${task.done?'var(--muted)':'var(--text)'};text-decoration:${task.done?'line-through':'none'}">${task.text}</div>
-        ${!VO?`<button onclick="event.stopPropagation();dT('${s.id}','${task.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.4">✕</button>`:''}
+        ${!VO?`<button onclick="event.stopPropagation();dT('${s.id}','${task.id}')" class="iBtn" style="font-size:11px;padding:2px 6px;opacity:.3">✕</button>`:''}
       </div>`).join('')}
-      ${!VO?`<div style="display:flex;gap:6px;margin-top:6px">
+      ${!VO?`<div style="display:flex;gap:6px;margin-top:8px">
         <input class="field" id="ni-${s.id}" placeholder="Add task..." style="flex:1;margin:0" onkeydown="if(event.key==='Enter')aT('${s.id}')">
         <button class="btn-s" onclick="aT('${s.id}')">Add</button>
       </div>
+      ${(s.listenLink||s.fileLink)?`<div style="display:flex;gap:8px;margin-top:10px">
+        ${s.listenLink?`<a href="${s.listenLink}" target="_blank" class="link-btn" style="flex:1;color:${acc}">▶ Listen</a>`:''}
+        ${s.fileLink?`<a href="${s.fileLink}" target="_blank" class="link-btn" style="flex:1;color:var(--muted)">📂 Session</a>`:''}
+      </div>`:''}
       <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
-        ${s.listenLink?`<a href="${s.listenLink}" target="_blank" style="flex:1;text-align:center;padding:7px 10px;background:var(--surf2);border:1px solid var(--bord);border-radius:4px;font-size:11px;color:var(--acc);text-decoration:none;font-family:'DM Mono',monospace">▶ Listen</a>`:''}
-        ${s.fileLink?`<a href="${s.fileLink}" target="_blank" style="flex:1;text-align:center;padding:7px 10px;background:var(--surf2);border:1px solid var(--bord);border-radius:4px;font-size:11px;color:var(--muted);text-decoration:none;font-family:'DM Mono',monospace">📂 Session</a>`:''}
-      </div>
-      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
         <button class="btn-s o" onclick="eSM('${s.id}')">Edit</button>
         <button class="btn-s o" onclick="lyricsM('${s.id}')">Lyrics</button>
         <button class="btn-s o" onclick="addSongNote('${s.id}')">+ Note</button>
         <button class="btn-s d" onclick="dS('${s.id}')">Delete</button>
       </div>`:''}
       ${s.lyrics&&VO?`<div style="margin-top:12px">
-        <div style="font-size:9px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px">Lyrics</div>
-        <div style="background:var(--surf2);border-radius:4px;padding:10px;font-size:12px;line-height:1.8;white-space:pre-wrap">${s.lyrics}</div>
+        <div class="flabel" style="margin-bottom:6px">Lyrics</div>
+        <div style="background:var(--surf2);border-radius:6px;padding:12px;font-size:12px;line-height:1.9;white-space:pre-wrap;color:var(--text)">${s.lyrics}</div>
       </div>`:''}
-      ${(s.sessionNotes||[]).length?`<div style="margin-top:10px">
-        <div style="font-size:9px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px">Session Log</div>
-        ${[...(s.sessionNotes||[])].reverse().map(n=>`<div style="background:var(--surf2);border-radius:4px;padding:8px 10px;margin-bottom:5px;font-size:11px;line-height:1.5">
-          <div style="color:var(--muted);font-size:9px;margin-bottom:3px">${n.date}</div>${n.text}
+      ${(s.sessionNotes||[]).length?`<div style="margin-top:12px">
+        <div class="flabel" style="margin-bottom:8px">Session Log</div>
+        ${[...(s.sessionNotes||[])].reverse().map(n=>`<div style="background:var(--surf2);border-radius:6px;padding:10px 12px;margin-bottom:6px;font-size:11px;line-height:1.6;color:var(--text)">
+          <div style="color:var(--muted);font-size:9px;letter-spacing:.1em;margin-bottom:4px">${n.date}</div>${n.text}
         </div>`).join('')}
       </div>`:''}
     </div>`:''}
@@ -730,9 +810,7 @@ async function tT(sid,tid){
   const songs=[...(CP.songs||[])];
   const si=songs.findIndex(s=>s.id===sid);if(si<0)return;
   const ti=songs[si].tasks.findIndex(t=>t.id===tid);if(ti<0)return;
-  const was=songs[si].tasks[ti].done;
-  songs[si].tasks[ti].done=!was;
-  if(!was){const now=new Date();songs[si].statusHistory=[...(songs[si].statusHistory||[]),{event:`Task: ${songs[si].tasks[ti].text}`,date:now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),ts:now.getTime()}];}
+  songs[si].tasks[ti].done=!songs[si].tasks[ti].done;
   await db.collection('projects').doc(CID).update({songs});
 }
 async function tF(fk){const fd={...(CP.focusDone||{})};fd[fk]=!fd[fk];await db.collection('projects').doc(CID).update({focusDone:fd});}
@@ -751,56 +829,55 @@ async function dS(sid){if(!confirm('Delete this song?'))return;await db.collecti
 function addSongM(){
   SM(`<div class="modal-title">Add Song</div>
     <input class="field" id="sn" placeholder="Song title" autofocus>
-    <input class="field" id="ss" placeholder="Status label (e.g. Ready for Vocals)">
-    <input class="field" id="sf" placeholder="Session file link (Google Drive, Dropbox...)">
-    <input class="field" id="sl" placeholder="Listen link (SoundCloud, Drive, etc.)">
+    <input class="field" id="ss" placeholder="Status (e.g. Ready for Vocals)">
+    <input class="field" id="sf" placeholder="Session file link (Drive, Dropbox...)">
+    <input class="field" id="sl" placeholder="Listen link (SoundCloud, Drive...)">
     <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:12px;cursor:pointer">
       <input type="checkbox" id="sp"> Mark as Priority
     </label>
     <div class="err" id="se"></div>
     <div class="mactions">
       <button class="btn-g" onclick="CM()">Cancel</button>
-      <button class="btn-p" style="width:auto;padding:10px 20px" onclick="addSong()">Add</button>
+      <button class="btn-p" style="width:auto;padding:10px 22px" onclick="addSong()">Add Song</button>
     </div>`);
 }
 async function addSong(){
   const name=g('sn');if(!name)return sErr('se','Enter a song title.');
   const songs=[...(CP.songs||[])];
   const now=new Date();
-  songs.push({id:'s'+Date.now(),name,statusLabel:g('ss')||'In Progress',priority:document.getElementById('sp').checked,fileLink:g('sf'),listenLink:g('sl'),tasks:[],order:songs.length+1,sessionNotes:[],statusHistory:[{event:'Song added',date:now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),ts:now.getTime()}]});
-  await db.collection('projects').doc(CID).update({songs});CM();window._musicSub='songs';
+  songs.push({id:'s'+Date.now(),name,statusLabel:g('ss')||'In Progress',priority:document.getElementById('sp').checked,fileLink:g('sf'),listenLink:g('sl'),tasks:[],order:songs.length+1,sessionNotes:[],statusHistory:[{event:'Added',date:now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),ts:now.getTime()}]});
+  await db.collection('projects').doc(CID).update({songs});CM();musicSub='songs';
 }
 function eSM(sid){
   const s=(CP.songs||[]).find(x=>x.id===sid);if(!s)return;
-  SM(`<div class="modal-title">Edit Song</div>
-    <input class="field" id="en" value="${s.name}" placeholder="Song title">
-    <input class="field" id="es" value="${s.statusLabel||''}" placeholder="Status label">
-    <input class="field" id="ef" value="${s.fileLink||''}" placeholder="Session file link">
-    <input class="field" id="el" value="${s.listenLink||''}" placeholder="Listen link">
+  SM(`<div class="modal-title">Edit — ${s.name}</div>
+    <input class="field" id="en" value="${esc(s.name)}" placeholder="Song title">
+    <input class="field" id="es" value="${esc(s.statusLabel||'')}" placeholder="Status label">
+    <input class="field" id="ef" value="${esc(s.fileLink||'')}" placeholder="Session file link">
+    <input class="field" id="el" value="${esc(s.listenLink||'')}" placeholder="Listen link">
     <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:12px;cursor:pointer">
-      <input type="checkbox" id="ep" ${s.priority?'checked':''}> Mark as Priority
+      <input type="checkbox" id="ep" ${s.priority?'checked':''}> Priority
     </label>
     <div class="mactions">
       <button class="btn-g" onclick="CM()">Cancel</button>
-      <button class="btn-p" style="width:auto;padding:10px 20px" onclick="savES('${sid}')">Save</button>
+      <button class="btn-p" style="width:auto;padding:10px 22px" onclick="savES('${sid}')">Save</button>
     </div>`);
 }
 async function savES(sid){
   const songs=[...(CP.songs||[])];const i=songs.findIndex(s=>s.id===sid);if(i<0)return;
-  const old=songs[i].statusLabel,ns=g('es')||songs[i].statusLabel;
-  songs[i].name=g('en')||songs[i].name;songs[i].fileLink=g('ef');songs[i].listenLink=g('el');songs[i].priority=document.getElementById('ep').checked;
-  if(ns!==old){const now=new Date();songs[i].statusHistory=[...(songs[i].statusHistory||[]),{event:`Status → ${ns}`,date:now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),ts:now.getTime()}];}
-  songs[i].statusLabel=ns;
+  const ns=g('es')||songs[i].statusLabel;
+  if(ns!==songs[i].statusLabel){const now=new Date();songs[i].statusHistory=[...(songs[i].statusHistory||[]),{event:`→ ${ns}`,date:now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),ts:now.getTime()}];}
+  songs[i]={...songs[i],name:g('en')||songs[i].name,statusLabel:ns,fileLink:g('ef'),listenLink:g('el'),priority:document.getElementById('ep').checked};
   await db.collection('projects').doc(CID).update({songs});CM();
 }
 function addSongNote(sid){
   const s=(CP.songs||[]).find(x=>x.id===sid);
   SM(`<div class="modal-title">Session Note</div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">${s?.name||'Song'}</div>
-    <textarea class="field" id="snote" placeholder="e.g. Recorded vocals, fixed bridge..." style="min-height:80px" autofocus></textarea>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">${s?.name||''}</div>
+    <textarea class="field" id="snote" placeholder="What happened this session?" style="min-height:80px" autofocus></textarea>
     <div class="mactions">
       <button class="btn-g" onclick="CM()">Cancel</button>
-      <button class="btn-p" style="width:auto;padding:10px 20px" onclick="savSongNote('${sid}')">Save</button>
+      <button class="btn-p" style="width:auto;padding:10px 22px" onclick="savSongNote('${sid}')">Save</button>
     </div>`);
 }
 async function savSongNote(sid){
@@ -812,11 +889,11 @@ async function savSongNote(sid){
 }
 function lyricsM(sid){
   const s=(CP.songs||[]).find(x=>x.id===sid);if(!s)return;
-  SM(`<div class="modal-title">${s.name} — Lyrics</div>
-    <textarea class="field" id="lyric-txt" placeholder="Paste lyrics here..." style="min-height:220px;font-size:12px;line-height:1.7">${s.lyrics||''}</textarea>
+  SM(`<div class="modal-title">${esc(s.name)} — Lyrics</div>
+    <textarea class="field" id="lyric-txt" placeholder="Paste or type lyrics here..." style="min-height:200px;font-size:12px;line-height:1.8">${esc(s.lyrics||'')}</textarea>
     <div class="mactions">
       <button class="btn-g" onclick="CM()">Cancel</button>
-      <button class="btn-p" style="width:auto;padding:10px 20px" onclick="saveLyrics('${sid}')">Save</button>
+      <button class="btn-p" style="width:auto;padding:10px 22px" onclick="saveLyrics('${sid}')">Save</button>
     </div>`);
 }
 async function saveLyrics(sid){
@@ -825,59 +902,35 @@ async function saveLyrics(sid){
   await db.collection('projects').doc(CID).update({songs});CM();
 }
 let nT;
-function sN(val){clearTimeout(nT);nT=setTimeout(async()=>{await db.collection('projects').doc(CID).update({notes:val});const d=document.getElementById('ndot');if(d){d.style.opacity=1;setTimeout(()=>d.style.opacity=0,1200);}},600);}
+function sN(val){clearTimeout(nT);nT=setTimeout(async()=>{await db.collection('projects').doc(CID).update({notes:val});const d=document.getElementById('ndot');if(d){d.style.opacity=1;setTimeout(()=>d.style.opacity=0,1400);}},700);}
 
 /* ── RELEASE SCHEDULE ── */
 function addReleaseRowM(existingId){
   const row=existingId?(CP.releaseSchedule||[]).find(r=>r.id===existingId):null;
-  SM(`<div class="modal-title">${row?'Edit Release':'Add Release'}</div>
-    <input class="field" id="rr-rel" value="${row?.release||''}" placeholder="Release name (e.g. Single #1, Full EP)" autofocus>
+  const sel=(id,val,opts)=>`<select class="field" id="${id}">${opts.map(o=>`<option value="${o}" ${val===o?'selected':''}>${o}</option>`).join('')}</select>`;
+  SM(`<div class="modal-title">${row?'Edit':'Add'} Release</div>
+    <input class="field" id="rr-rel" value="${esc(row?.release||'')}" placeholder="Release name (e.g. Single, Full EP)" autofocus>
     <div class="flabel">Release Date</div>
     <input class="field" id="rr-rd" type="date" value="${row?.releaseDate||''}">
-    <div class="flabel">Due Date (4 weeks prior)</div>
+    <div class="flabel">Due / Delivery Date</div>
     <input class="field" id="rr-dd" type="date" value="${row?.dueDate||''}">
-    <div class="flabel">Audio File Status</div>
-    <select class="field" id="rr-af" style="cursor:pointer">
-      ${['—','Pending','In Progress','Done'].map(o=>`<option value="${o}" ${(row?.audioFile||'—')===o?'selected':''}>${o}</option>`).join('')}
-    </select>
-    <div class="flabel">Artwork Status</div>
-    <select class="field" id="rr-aw" style="cursor:pointer">
-      ${['—','Pending','In Progress','Done'].map(o=>`<option value="${o}" ${(row?.artwork||'—')===o?'selected':''}>${o}</option>`).join('')}
-    </select>
-    <div class="flabel">Metadata Status</div>
-    <select class="field" id="rr-md" style="cursor:pointer">
-      ${['—','Pending','In Progress','Done'].map(o=>`<option value="${o}" ${(row?.metadata||'—')===o?'selected':''}>${o}</option>`).join('')}
-    </select>
-    <div class="flabel">Overall Status</div>
-    <select class="field" id="rr-st" style="cursor:pointer">
-      ${['Not Started','In Progress','Complete','Overdue'].map(o=>`<option value="${o}" ${(row?.status||'Not Started')===o?'selected':''}>${o}</option>`).join('')}
-    </select>
+    <div class="flabel">Audio File</div>${sel('rr-af',row?.audioFile||'—',['—','Pending','In Progress','Done'])}
+    <div class="flabel">Artwork</div>${sel('rr-aw',row?.artwork||'—',['—','Pending','In Progress','Done'])}
+    <div class="flabel">Metadata</div>${sel('rr-md',row?.metadata||'—',['—','Pending','In Progress','Done'])}
+    <div class="flabel">Overall Status</div>${sel('rr-st',row?.status||'Not Started',['Not Started','In Progress','Complete','Overdue'])}
     <div class="mactions">
       <button class="btn-g" onclick="CM()">Cancel</button>
-      <button class="btn-p" style="width:auto;padding:10px 20px" onclick="saveReleaseRow('${existingId||''}')">Save</button>
+      <button class="btn-p" style="width:auto;padding:10px 22px" onclick="saveReleaseRow('${existingId||''}')">Save</button>
     </div>`);
 }
 function editReleaseRowM(id){addReleaseRowM(id);}
 async function saveReleaseRow(existingId){
   const rs=[...(CP.releaseSchedule||[])];
-  const row={
-    id:existingId||'r'+Date.now(),
-    release:g('rr-rel'),
-    releaseDate:document.getElementById('rr-rd').value||null,
-    dueDate:document.getElementById('rr-dd').value||null,
-    audioFile:document.getElementById('rr-af').value,
-    artwork:document.getElementById('rr-aw').value,
-    metadata:document.getElementById('rr-md').value,
-    status:document.getElementById('rr-st').value
-  };
-  if(existingId){const i=rs.findIndex(r=>r.id===existingId);if(i>=0)rs[i]=row;else rs.push(row);}
-  else rs.push(row);
+  const row={id:existingId||'r'+Date.now(),release:g('rr-rel'),releaseDate:document.getElementById('rr-rd').value||null,dueDate:document.getElementById('rr-dd').value||null,audioFile:document.getElementById('rr-af').value,artwork:document.getElementById('rr-aw').value,metadata:document.getElementById('rr-md').value,status:document.getElementById('rr-st').value};
+  if(existingId){const i=rs.findIndex(r=>r.id===existingId);if(i>=0)rs[i]=row;else rs.push(row);}else rs.push(row);
   await db.collection('projects').doc(CID).update({releaseSchedule:rs});CM();
 }
-async function delReleaseRow(id){
-  const rs=(CP.releaseSchedule||[]).filter(r=>r.id!==id);
-  await db.collection('projects').doc(CID).update({releaseSchedule:rs});
-}
+async function delReleaseRow(id){await db.collection('projects').doc(CID).update({releaseSchedule:(CP.releaseSchedule||[]).filter(r=>r.id!==id)});}
 
 /* ── MILESTONES ── */
 function addMilestoneM(){
@@ -887,14 +940,15 @@ function addMilestoneM(){
     <input class="field" id="md" type="date">
     <div class="mactions">
       <button class="btn-g" onclick="CM()">Cancel</button>
-      <button class="btn-p" style="width:auto;padding:10px 20px" onclick="addMilestone()">Add</button>
+      <button class="btn-p" style="width:auto;padding:10px 22px" onclick="addMilestone()">Add</button>
     </div>`);
 }
 async function addMilestone(){const label=g('ml');if(!label)return;const milestones=[...(CP.milestones||[])];milestones.push({id:'m'+Date.now(),label,date:document.getElementById('md').value||null,done:false});await db.collection('projects').doc(CID).update({milestones});CM();}
-async function toggleMilestone(mid){const milestones=[...(CP.milestones||[])];const i=milestones.findIndex(m=>m.id===mid);if(i<0)return;milestones[i].done=!milestones[i].done;if(milestones[i].done){const now=new Date();milestones[i].completedDate=now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}await db.collection('projects').doc(CID).update({milestones});}
+async function toggleMilestone(mid){const ms=[...(CP.milestones||[])];const i=ms.findIndex(m=>m.id===mid);if(i<0)return;ms[i].done=!ms[i].done;await db.collection('projects').doc(CID).update({milestones:ms});}
 async function delMilestone(mid){await db.collection('projects').doc(CID).update({milestones:(CP.milestones||[]).filter(m=>m.id!==mid)});}
 
 /* ── BUDGET ── */
+function addExpModal(){document.querySelector('#exp-amt')?.focus();}
 async function addExp(){
   const amt=document.getElementById('exp-amt')?.value?.trim();
   const desc=document.getElementById('exp-desc')?.value?.trim();
@@ -908,7 +962,12 @@ async function addExp(){
 async function delExp(eid){await db.collection('projects').doc(CID).update({expenses:(CP.expenses||[]).filter(e=>e.id!==eid)});}
 
 /* ── SIMPLE TASKS ── */
-async function addSimpleTask(field,inputId){
+async function addSimpleTask(field,inputId,fromFab){
+  if(fromFab){
+    const inp=document.getElementById(inputId);
+    if(inp)inp.focus();
+    return;
+  }
   const inp=document.getElementById(inputId);const text=inp?.value?.trim();if(!text)return;
   const tasks=[...(CP[field]||[])];tasks.push({id:'t'+Date.now(),text,done:false});
   await db.collection('projects').doc(CID).update({[field]:tasks});if(inp)inp.value='';
@@ -919,10 +978,10 @@ async function toggleSimpleTask(field,tid){
 }
 async function delSimpleTask(field,tid){await db.collection('projects').doc(CID).update({[field]:(CP[field]||[]).filter(t=>t.id!==tid)});}
 
-/* ── DELETE ── */
+/* ── DELETE PROJECT ── */
 async function deleteProject(){
-  if(!confirm('Delete this project? Cannot be undone.'))return;
-  if(!confirm('Are you absolutely sure?'))return;
+  if(!confirm('Delete this project? This cannot be undone.'))return;
+  if(!confirm('Final confirmation — all data will be lost.'))return;
   stopL();await db.collection('projects').doc(CID).delete();dash();
 }
 
@@ -930,8 +989,8 @@ async function deleteProject(){
 function shareM(){
   const link=location.origin+location.pathname+'#/view/'+CID;
   SM(`<div class="modal-title">Share Project</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Anyone with this link can view (read only). Views tracked in Insights.</div>
-    <div style="background:var(--surf2);border:1px solid var(--bord);border-radius:6px;padding:12px;font-size:11px;word-break:break-all;margin-bottom:14px">${link}</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6">Anyone with this link can view your project (read only). Views are tracked in Insights.</div>
+    <div style="background:var(--surf2);border:1px solid var(--bord);border-radius:8px;padding:12px 14px;font-size:11px;word-break:break-all;margin-bottom:14px;color:var(--text);line-height:1.5">${link}</div>
     <button class="btn-p" id="cbtn" onclick="cpL('${link}')">Copy Link</button>
     <div class="mactions"><button class="btn-g" onclick="CM()">Close</button></div>`);
 }
@@ -940,56 +999,64 @@ function cpL(l){navigator.clipboard.writeText(l).then(()=>{const b=document.getE
 /* ── SETTINGS ── */
 let _th={},_pf=null;
 function settingsM(){
-  const p=CP;_th={...(p.theme||{accent:'#c9383a',bg:'#0a0a0c',dark:true})};_pf=null;
-  const ACCS=['#c9383a','#e07b3a','#d4a843','#4caf82','#4a8fc4','#8b68d4','#e84393','#e8e6e0'];
-  const BGS=['#0a0a0c','#0d0d1a','#0a0d0a','#1a0a0a','#f5f5f5','#ffffff','#fafaf0','#f0f0f5'];
-  SM(`<div class="modal-title">Project Settings</div>
+  const p=CP;_th={...(p.theme||{accent:'#c9383a',dark:true})};_pf=null;
+  const ACCS=['#c9383a','#e07b3a','#d4a843','#4caf82','#4a8fc4','#8b68d4','#e84393','#e8584a'];
+  const BGS_DARK=['#0a0a0c','#0d0d1a','#0a0d0a','#1a0808','#0d0a14'];
+  const BGS_LIGHT=['#f2f1ee','#ffffff','#f0f4f8','#fff8f0','#f5f0ff'];
+  SM(`<div class="modal-title">Settings</div>
     <div class="flabel">Cover Photo</div>
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <div id="cprev" style="width:64px;height:64px;border-radius:8px;background:var(--surf2);border:1px solid var(--bord);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+      <div id="cprev" style="width:68px;height:68px;border-radius:10px;background:var(--surf2);border:1px solid var(--bord);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">
         ${p.coverUrl?`<img src="${p.coverUrl}" style="width:100%;height:100%;object-fit:cover">`:'♪'}
       </div>
       <div>
         <input type="file" id="cfile" accept="image/*" style="display:none" onchange="pCov(this)">
         <button class="btn-s o" onclick="document.getElementById('cfile').click()">Upload Photo</button>
-        <div style="font-size:10px;color:var(--muted);margin-top:5px">Square recommended</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:5px">Square crop recommended</div>
       </div>
     </div>
     <div class="flabel">Accent Color</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
-      ${ACCS.map(c=>`<div onclick="sA('${c}')" style="width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;border:${_th.accent===c?'3px solid white':'2px solid #444'};flex-shrink:0"></div>`).join('')}
-      <input type="color" value="${_th.accent}" oninput="sA(this.value)" style="width:28px;height:28px;border-radius:50%;border:2px solid #444;cursor:pointer;padding:2px;background:none">
+    <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px;align-items:center">
+      ${ACCS.map(c=>`<div onclick="sA('${c}')" style="width:30px;height:30px;border-radius:50%;background:${c};cursor:pointer;border:${_th.accent===c?'3px solid var(--text)':'2px solid var(--bord)'};flex-shrink:0;transition:transform .15s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"></div>`).join('')}
+      <input type="color" value="${_th.accent}" oninput="sA(this.value)" style="width:30px;height:30px;border-radius:50%;border:2px solid var(--bord);cursor:pointer;padding:2px;background:none">
     </div>
-    <div class="flabel">Background</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
-      ${BGS.map(c=>`<div onclick="sB('${c}')" style="width:28px;height:28px;border-radius:4px;background:${c};cursor:pointer;border:${_th.bg===c?'3px solid #fff':'2px solid #444'};flex-shrink:0"></div>`).join('')}
-      <input type="color" value="${_th.bg}" oninput="sB(this.value)" style="width:28px;height:28px;border-radius:4px;border:2px solid #444;cursor:pointer;padding:2px;background:none">
+    <div class="flabel">Background (Dark Mode)</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+      ${BGS_DARK.map(c=>`<div onclick="sBg('${c}')" style="width:30px;height:30px;border-radius:6px;background:${c};cursor:pointer;border:${_th.bg===c?'3px solid var(--text)':'2px solid var(--bord)'};flex-shrink:0"></div>`).join('')}
+    </div>
+    <div class="flabel">Background (Light Mode)</div>
+    <div style="display:flex;gap:8px;margin-bottom:18px;align-items:center">
+      ${BGS_LIGHT.map(c=>`<div onclick="sBg('${c}')" style="width:30px;height:30px;border-radius:6px;background:${c};border:${_th.bg===c?'3px solid #333':'2px solid var(--bord)'};cursor:pointer;flex-shrink:0"></div>`).join('')}
+      <input type="color" value="${_th.bg||'#0a0a0c'}" oninput="sBg(this.value)" style="width:30px;height:30px;border-radius:6px;border:2px solid var(--bord);cursor:pointer;padding:2px;background:none">
     </div>
     <div class="flabel">Project Info</div>
-    <input class="field" id="stitle" value="${p.title||''}" placeholder="Project title">
-    <input class="field" id="sartist" value="${p.artist||''}" placeholder="Artist name">
-    <input class="field" id="slabel" value="${p.label||''}" placeholder="Label">
-    <input class="field" id="scoprod" value="${p.coproducer||''}" placeholder="Co-producer">
+    <input class="field" id="stitle" value="${esc(p.title||'')}" placeholder="Project title">
+    <input class="field" id="sartist" value="${esc(p.artist||'')}" placeholder="Artist name">
+    <input class="field" id="slabel" value="${esc(p.label||'')}" placeholder="Label">
+    <input class="field" id="scoprod" value="${esc(p.coproducer||'')}" placeholder="Co-producer">
     <div class="flabel" style="margin-top:4px">Release Deadline</div>
     <input class="field" id="sdl" type="date" value="${p.deadline||''}">
     <div class="err" id="serr"></div>
-    <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--bord)">
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--bord)">
       <div class="flabel" style="color:#e07070">Danger Zone</div>
       <button class="btn-s d" onclick="CM();deleteProject()" style="width:100%;padding:11px">Delete This Project</button>
     </div>
     <div class="mactions">
       <button class="btn-g" onclick="CM()">Cancel</button>
-      <button class="btn-p" style="width:auto;padding:10px 20px" onclick="savSet()">Save</button>
+      <button class="btn-p" style="width:auto;padding:10px 22px" onclick="savSet()">Save</button>
     </div>`);
 }
 function pCov(inp){_pf=inp.files[0];if(!_pf)return;const r=new FileReader();r.onload=e=>{const el=document.getElementById('cprev');if(el)el.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;};r.readAsDataURL(_pf);}
 function sA(c){_th.accent=c;}
-function sB(c){_th.bg=c;}
+function sBg(c){_th.bg=c;}
 async function savSet(){
   try{
     let cu=CP.coverUrl||null;
     if(_pf){const ref=stor.ref(`covers/${CID}/${Date.now()}`);await ref.put(_pf);cu=await ref.getDownloadURL();}
-    await db.collection('projects').doc(CID).update({theme:_th,coverUrl:cu,title:g('stitle')||CP.title,artist:g('sartist'),label:g('slabel'),coproducer:g('scoprod'),deadline:document.getElementById('sdl').value||null});CM();
+    const dark=_th.dark!==false;
+    // Set bg based on dark/light if not explicitly set
+    if(!_th.bg)_th.bg=dark?'#0a0a0c':'#f2f1ee';
+    await db.collection('projects').doc(CID).update({theme:{..._th},coverUrl:cu,title:g('stitle')||CP.title,artist:g('sartist'),label:g('slabel'),coproducer:g('scoprod'),deadline:document.getElementById('sdl').value||null});CM();
   }catch(e){sErr('serr','Error: '+e.message);}
 }
 
@@ -1002,9 +1069,8 @@ async function logView(pid){
     let name=null,location='Unknown location';
     if(auth.currentUser){name=auth.currentUser.displayName||auth.currentUser.email;}
     try{const r=await fetch(`https://ipinfo.io/json?token=${IPINFO_TOKEN}`);const d=await r.json();if(d.city&&d.region)location=d.city+', '+d.region;else if(d.country)location=d.country;}catch(e){}
-    const view={id:'v'+ts,ts,timeStr,name,location};
     const snap=await db.collection('projects').doc(pid).get();
-    const views=snap.data()?.views||[];views.push(view);
+    const views=snap.data()?.views||[];views.push({id:'v'+ts,ts,timeStr,name,location});
     await db.collection('projects').doc(pid).update({views});
   }catch(e){}
 }
@@ -1015,10 +1081,11 @@ function SM(h){document.getElementById('modal-box').innerHTML=h;document.getElem
 function CM(){document.getElementById('modal-ov').style.display='none';}
 function sErr(id,msg){const e=document.getElementById(id);if(e){e.textContent=msg;e.style.display='block';}}
 function g(id){return document.getElementById(id)?.value?.trim()||'';}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function stopL(){if(PL){PL();PL=null;}}
-function SO(){stopL();auth.signOut().then(()=>{location.hash='';authScreen();});}
-function fE(c){return({'auth/email-already-in-use':'Email already in use.','auth/invalid-email':'Invalid email.','auth/wrong-password':'Wrong password.','auth/user-not-found':'No account found.','auth/weak-password':'Password too weak (6+ chars).','auth/invalid-credential':'Invalid email or password.','auth/popup-closed-by-user':'Sign-in cancelled.'})[c]||'Something went wrong.';}
-function daysLeft(d){if(!d)return null;const dt=new Date(d+'T00:00:00'),t=new Date();t.setHours(0,0,0,0);return Math.round((dt-t)/(864e5));}
+function SO(){stopL();auth.signOut().then(()=>{location.hash='';applyTheme(true);authScreen();});}
+function fE(c){return({'auth/email-already-in-use':'Email already in use.','auth/invalid-email':'Invalid email.','auth/wrong-password':'Wrong password.','auth/user-not-found':'No account with that email.','auth/weak-password':'Password must be 6+ characters.','auth/invalid-credential':'Invalid email or password.','auth/popup-closed-by-user':'Sign-in cancelled.'})[c]||'Something went wrong. Try again.';}
+function daysLeft(d){if(!d)return null;const dt=new Date(d+'T00:00:00'),t=new Date();t.setHours(0,0,0,0);return Math.round((dt-t)/864e5);}
 function fmtDate(d){if(!d)return '';try{return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});}catch(e){return d;}}
 function fmtDateShort(d){if(!d)return '';try{return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}catch(e){return d;}}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
