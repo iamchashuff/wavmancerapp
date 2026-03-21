@@ -343,7 +343,7 @@ async function dash(){
       return `<div onclick="openP('${p.id}')" style="background:var(--surf);border:1px solid var(--bord);border-radius:10px;margin-bottom:10px;cursor:pointer;overflow:hidden;animation:fadeUp .3s ease ${i*.05}s backwards">
         <div style="height:3px;background:${acc};opacity:.6"></div>
         <div style="display:flex;align-items:center;gap:12px;padding:13px 14px">
-          ${p.coverUrl?`<img src="${p.coverUrl}" style="width:50px;height:50px;border-radius:8px;object-fit:cover;flex-shrink:0">`:`<div style="width:50px;height:50px;border-radius:8px;background:${acc}18;border:1px solid ${acc}30;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">♪</div>`}
+          '+(p.coverUrl?'<img src="'+p.coverUrl+'" style="width:50px;height:50px;border-radius:8px;object-fit:cover;flex-shrink:0">':('<div style="width:50px;height:50px;border-radius:8px;background:'+acc+'18;border:1px solid '+acc+'30;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">♪</div>'))+'
           <div style="flex:1;min-width:0">
             <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${p.title||'Untitled'}</div>
             <div style="font-size:10px;color:var(--muted);margin:3px 0 7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${[p.artist,p.label].filter(Boolean).join(' · ')}</div>
@@ -351,7 +351,7 @@ async function dash(){
               <div style="flex:1;height:3px;background:var(--surf2);border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${acc};border-radius:2px;transition:width .4s"></div></div>
               <span style="font-size:9px;color:var(--muted)">${dn}/${s.length}</span>
             </div>
-            ${dl!==null?`<div style="font-size:9px;color:${dl<0?'#e07070':dl<7?'#d4a843':'var(--muted)'};margin-top:5px">${dl<0?`⚠ ${Math.abs(dl)}d overdue`:dl===0?'⚠ Due today':dl===1?'Tomorrow':dl<7?`${dl}d left`:`${dl} days left`}</div>`:''}
+            '+(dl!==null?('<div style="font-size:9px;color:'+(dl<0?'#e07070':dl<7?'#d4a843':'var(--muted)')+';margin-top:5px">'+(dl<0?('⚠ '+Math.abs(dl)+'d overdue'):dl===0?'⚠ Due today':dl===1?'Tomorrow':dl<7?(dl+'d left'):(dl+' days left'))+'</div>'):'')+'
           </div>
           <div style="color:var(--muted);font-size:16px">›</div>
         </div>
@@ -443,7 +443,7 @@ function rP(){
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 16px 10px">
         <div style="font-size:10px;color:${acc};letter-spacing:.18em;text-transform:uppercase;font-weight:500">${tabLabel}</div>
-        ${dl!==null?`<div style="font-size:10px;color:${dl<0?'#e07070':dl<7?'#d4a843':'var(--muted)'}">${dl<0?`⚠ ${Math.abs(dl)}d over`:dl===0?'⚠ Today':dl===1?'Tomorrow':`${dl}d left`}</div>`:''}
+        '+(dl!==null?('<div style="font-size:10px;color:'+(dl<0?'#e07070':dl<7?'#d4a843':'var(--muted)')+'">'+(dl<0?('⚠ '+Math.abs(dl)+'d over'):dl===0?'⚠ Today':dl===1?'Tomorrow':(dl+'d left'))+'</div>'):'')+'
       </div>
     </div>
     <div style="padding:14px;padding-bottom:96px">${bTab()}</div>
@@ -463,317 +463,332 @@ function toggleDark(){
 }
 
 /* ── TAB CONTENT ── */
+/* ── TAB CONTENT ── */
 function bTab(){
-  const p=CP,songs=p.songs||[],acc=p.theme?.accent||'#c9383a',fd=p.focusDone||{};
+  var p=CP,songs=p.songs||[],acc=p.theme&&p.theme.accent?p.theme.accent:'#c9383a',fd=p.focusDone||{};
 
   /* OVERVIEW */
   if(TAB==='overview'){
-    const dl=p.deadline?daysLeft(p.deadline):null;
-    const songTasks=songs.flatMap(s=>(s.tasks||[]).map(t=>({...t,_sub:s.name,_sid:s.id,_tid:t.id,_color:acc})));
-    const promoT=p.promoTasks||[],contentT=p.contentTasks||[],todoT=p.todoTasks||[];
-    const mileT=(p.milestones||[]).map(m=>({id:m.id,text:m.label,done:m.done}));
-    const totalDone=songTasks.filter(t=>t.done).length+promoT.filter(t=>t.done).length+contentT.filter(t=>t.done).length+todoT.filter(t=>t.done).length+mileT.filter(t=>t.done).length;
-    const totalAll=songTasks.length+promoT.length+contentT.length+todoT.length+mileT.length;
-    const pct=totalAll?Math.round(totalDone/totalAll*100):0;
-
-    const cats=[
-      {l:'Music',d:songTasks.filter(t=>t.done).length,t:songTasks.length,c:acc,tab:'music',icon:'🎵',items:songTasks.filter(t=>!t.done)},
-      {l:'Promo',d:promoT.filter(t=>t.done).length,t:promoT.length,c:'#e07b3a',tab:'promo',icon:'📸',items:promoT.filter(t=>!t.done)},
-      {l:'Content',d:contentT.filter(t=>t.done).length,t:contentT.length,c:'#8b68d4',tab:'content',icon:'📱',items:contentT.filter(t=>!t.done)},
-      {l:'To-Do',d:todoT.filter(t=>t.done).length,t:todoT.length,c:'#4a8fc4',tab:'todo',icon:'📋',items:todoT.filter(t=>!t.done)},
-      {l:'Miles',d:mileT.filter(t=>t.done).length,t:mileT.length,c:'#8b68d4',tab:'info',icon:'◆',items:mileT.filter(t=>!t.done)},
+    var dl=p.deadline?daysLeft(p.deadline):null;
+    var songTasks=[];
+    songs.forEach(function(s){(s.tasks||[]).forEach(function(t){songTasks.push({id:t.id,text:t.text,done:t.done,_sub:s.name,_sid:s.id,_tid:t.id});});});
+    var promoT=p.promoTasks||[],contentT=p.contentTasks||[],todoT=p.todoTasks||[];
+    var mileT=(p.milestones||[]).map(function(m){return {id:m.id,text:m.label,done:m.done};});
+    var totalDone=songTasks.filter(function(t){return t.done;}).length+promoT.filter(function(t){return t.done;}).length+contentT.filter(function(t){return t.done;}).length+todoT.filter(function(t){return t.done;}).length+mileT.filter(function(t){return t.done;}).length;
+    var totalAll=songTasks.length+promoT.length+contentT.length+todoT.length+mileT.length;
+    var pct=totalAll?Math.round(totalDone/totalAll*100):0;
+    var cats=[
+      {l:'Music',d:songTasks.filter(function(t){return t.done;}).length,t:songTasks.length,c:acc,tab:'music',icon:'🎵',items:songTasks.filter(function(t){return !t.done;})},
+      {l:'Promo',d:promoT.filter(function(t){return t.done;}).length,t:promoT.length,c:'#e07b3a',tab:'promo',icon:'📸',items:promoT.filter(function(t){return !t.done;})},
+      {l:'Content',d:contentT.filter(function(t){return t.done;}).length,t:contentT.length,c:'#8b68d4',tab:'content',icon:'📱',items:contentT.filter(function(t){return !t.done;})},
+      {l:'To-Do',d:todoT.filter(function(t){return t.done;}).length,t:todoT.length,c:'#4a8fc4',tab:'todo',icon:'📋',items:todoT.filter(function(t){return !t.done;})},
+      {l:'Miles',d:mileT.filter(function(t){return t.done;}).length,t:mileT.length,c:'#8b68d4',tab:'info',icon:'◆',items:mileT.filter(function(t){return !t.done;})},
     ];
-
-    let html='';
-
-    // Deadline card
+    var html='';
     if(dl!==null){
-      const dc=dl<0?'#e07070':dl<7?'#d4a843':acc;
-      const dlabel=dl<0?(Math.abs(dl)+' DAYS OVERDUE'):dl===0?'DUE TODAY':dl===1?'DUE TOMORROW':(dl+' DAYS LEFT');
-      html+='<div class="card" style="margin-bottom:12px;border-left:3px solid '+dc+'">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center">'
-        +'<div><div class="flabel" style="margin-bottom:4px">Release Deadline</div>'
-        +'<div style="font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:1;color:'+dc+'">'+dlabel+'</div>'
-        +'<div style="font-size:10px;color:var(--muted);margin-top:3px">'+fmtDate(p.deadline)+'</div>'
-        +'</div><div style="font-size:36px;opacity:.12">'+(dl<0?'⚠':'📅')+'</div>'
-        +'</div></div>';
+      var dc=dl<0?'#e07070':dl<7?'#d4a843':acc;
+      var dlabel=dl<0?(Math.abs(dl)+' DAYS OVERDUE'):dl===0?'DUE TODAY':dl===1?'DUE TOMORROW':(dl+' DAYS LEFT');
+      html+='<div class="card" style="margin-bottom:12px;border-left:3px solid '+dc+'">';
+      html+='<div style="display:flex;justify-content:space-between;align-items:center">';
+      html+='<div><div class="flabel" style="margin-bottom:4px">Release Deadline</div>';
+      html+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:28px;line-height:1;color:'+dc+'">'+dlabel+'</div>';
+      html+='<div style="font-size:10px;color:var(--muted);margin-top:3px">'+fmtDate(p.deadline)+'</div></div>';
+      html+='<div style="font-size:36px;opacity:.12">'+(dl<0?'⚠':'📅')+'</div></div></div>';
     }
-
-    // Master progress
-    html+='<div class="card" style="margin-bottom:12px">'
-      +'<div class="slabel">Overall Progress</div>'
-      +'<div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:12px">'
-      +'<div style="font-family:'Bebas Neue',sans-serif;font-size:52px;color:'+acc+';line-height:1">'+pct+'<span style="font-size:26px">%</span></div>'
-      +'<div style="flex:1;padding-bottom:8px">'
-      +'<div style="font-size:10px;color:var(--muted);margin-bottom:4px">'+totalDone+' of '+totalAll+' tasks complete</div>'
-      +'<div class="progress-bar" style="height:6px;margin:0"><div class="progress-fill" style="width:'+pct+'%;background:'+acc+'"></div></div>'
-      +'</div></div>'
-      +'<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">';
+    html+='<div class="card" style="margin-bottom:12px">';
+    html+='<div class="slabel">Overall Progress</div>';
+    html+='<div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:12px">';
+    html+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:52px;color:'+acc+';line-height:1">'+pct+'<span style="font-size:26px">%</span></div>';
+    html+='<div style="flex:1;padding-bottom:8px"><div style="font-size:10px;color:var(--muted);margin-bottom:4px">'+totalDone+' of '+totalAll+' tasks complete</div>';
+    html+='<div class="progress-bar" style="height:6px;margin:0"><div class="progress-fill" style="width:'+pct+'%;background:'+acc+'"></div></div></div></div>';
+    html+='<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">';
     cats.forEach(function(x){
-      const cp=x.t?Math.round(x.d/x.t*100):0;
-      html+='<div onclick="sT(''+x.tab+'')" style="text-align:center;cursor:pointer">'
-        +'<div style="font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1;color:'+x.c+'">'+x.d+'<span style="font-size:12px;color:var(--muted);">/'+x.t+'</span></div>'
-        +'<div style="font-size:8px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:2px">'+x.l+'</div>'
-        +'<div style="height:2px;background:var(--surf2);border-radius:1px;margin-top:4px;overflow:hidden"><div style="height:100%;width:'+cp+'%;background:'+x.c+';border-radius:1px"></div></div>'
-        +'</div>';
+      var cp=x.t?Math.round(x.d/x.t*100):0;
+      html+='<div onclick="sT(\''+x.tab+'\')" style="text-align:center;cursor:pointer">';
+      html+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:22px;line-height:1;color:'+x.c+'">'+x.d+'<span style="font-size:12px;color:var(--muted)">/'+x.t+'</span></div>';
+      html+='<div style="font-size:8px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:2px">'+x.l+'</div>';
+      html+='<div style="height:2px;background:var(--surf2);border-radius:1px;margin-top:4px;overflow:hidden"><div style="height:100%;width:'+cp+'%;background:'+x.c+';border-radius:1px"></div></div>';
+      html+='</div>';
     });
     html+='</div></div>';
-
-    // Remaining tasks by category
-    const hasIncomplete=cats.some(function(g){return g.items.length>0;});
-    if(!hasIncomplete){
+    var hasInc=cats.some(function(g){return g.items.length>0;});
+    if(!hasInc){
       html+='<div class="empty" style="color:#4caf82;padding:24px 0">🎉 All tasks complete!</div>';
     } else {
       html+='<div class="slabel">Remaining Tasks</div>';
       cats.forEach(function(group){
         if(!group.items.length)return;
-        html+='<div style="margin-bottom:14px">'
-          +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">'
-          +'<div style="display:flex;align-items:center;gap:6px;cursor:pointer" onclick="sT(''+group.tab+'')">'
-          +'<span>'+group.icon+'</span>'
-          +'<span style="font-size:10px;color:'+group.c+';letter-spacing:.15em;text-transform:uppercase">'+group.l+'</span>'
-          +'<span style="font-size:9px;color:var(--muted)">'+group.items.length+' left</span></div>'
-          +'<span style="font-size:10px;color:var(--muted);cursor:pointer" onclick="sT(''+group.tab+'')">See all →</span>'
-          +'</div>';
+        html+='<div style="margin-bottom:14px">';
+        html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">';
+        html+='<div style="display:flex;align-items:center;gap:6px;cursor:pointer" onclick="sT(\''+group.tab+'\')">';
+        html+='<span>'+group.icon+'</span>';
+        html+='<span style="font-size:10px;color:'+group.c+';letter-spacing:.15em;text-transform:uppercase">'+group.l+'</span>';
+        html+='<span style="font-size:9px;color:var(--muted)">'+group.items.length+' left</span></div>';
+        html+='<span style="font-size:10px;color:var(--muted);cursor:pointer" onclick="sT(\''+group.tab+'\')">See all →</span></div>';
         group.items.slice(0,3).forEach(function(t){
-          html+='<div class="trow" style="cursor:default;margin-bottom:5px">'
-            +'<div class="tcheck" style="border-color:'+group.c+'40"></div>'
-            +'<div style="flex:1;min-width:0">'
-            +'<div style="font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+t.text+'</div>'
-            +(t._sub?'<div style="font-size:9px;color:var(--muted);margin-top:1px">'+t._sub+'</div>':'')
-            +'</div></div>';
+          html+='<div class="trow" style="cursor:default;margin-bottom:5px">';
+          html+='<div class="tcheck" style="border-color:'+group.c+'40"></div>';
+          html+='<div style="flex:1;min-width:0">';
+          html+='<div style="font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+t.text+'</div>';
+          if(t._sub)html+='<div style="font-size:9px;color:var(--muted);margin-top:1px">'+t._sub+'</div>';
+          html+='</div></div>';
         });
-        if(group.items.length>3){
-          html+='<div style="font-size:10px;color:var(--muted);padding:4px 10px;cursor:pointer" onclick="sT(''+group.tab+'')">'
-            +'+ '+(group.items.length-3)+' more in '+group.l+'</div>';
-        }
+        if(group.items.length>3)html+='<div style="font-size:10px;color:var(--muted);padding:4px 10px;cursor:pointer" onclick="sT(\''+group.tab+'\')">'+'+ '+(group.items.length-3)+' more</div>';
         html+='</div>';
       });
     }
     return html;
   }
 
-
-
-  /* MUSIC (songs + focus subtabs) */
+  /* MUSIC */
   if(TAB==='music'){
-    return `<div style="display:flex;gap:8px;margin-bottom:14px">
-      <button onclick="musicSub='songs';rP()" style="flex:1;padding:9px 6px;background:${musicSub==='songs'?acc:'var(--surf2)'};color:${musicSub==='songs'?'#fff':'var(--muted)'};border:1px solid ${musicSub==='songs'?acc:'var(--bord)'};border-radius:6px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s">Songs</button>
-      <button onclick="musicSub='focus';rP()" style="flex:1;padding:9px 6px;background:${musicSub==='focus'?'#d4a843':'var(--surf2)'};color:${musicSub==='focus'?'var(--bg)':'var(--muted)'};border:1px solid ${musicSub==='focus'?'#d4a843':'var(--bord)'};border-radius:6px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s">Focus</button>
-    </div>
-    ${musicSub==='songs'?`
-      ${!VO?`<button class="btn-o" onclick="addSongM()" style="margin-bottom:14px">+ Add Song</button>`:''}
-      <div id="song-list">${songs.length?songs.map((s,i)=>sCard(s,i,acc)).join(''):'<div class="empty">No songs yet.</div>'}</div>`
-    // FOCUS SUBTAB BELOW
-        // FOCUS subtab
-    const focusGroups=[
-      {label:'Music',color:acc,icon:'🎵',tab:'music',type:'song',items:songs.flatMap(function(s){return (s.tasks||[]).filter(function(t){return !t.done;}).map(function(t){return {id:t.id,text:t.text,_sub:s.name,_sid:s.id,_tid:t.id};});})},
-      {label:'Promo',color:'#e07b3a',icon:'📸',tab:'promo',type:'promo',items:(p.promoTasks||[]).filter(function(t){return !t.done;})},
-      {label:'Content',color:'#8b68d4',icon:'📱',tab:'content',type:'content',items:(p.contentTasks||[]).filter(function(t){return !t.done;})},
-      {label:'To-Do',color:'#4a8fc4',icon:'📋',tab:'todo',type:'todo',items:(p.todoTasks||[]).filter(function(t){return !t.done;})},
-      {label:'Milestones',color:'#8b68d4',icon:'◆',tab:'info',type:'milestone',items:(p.milestones||[]).filter(function(m){return !m.done;}).map(function(m){return {id:m.id,text:m.label};})},
-    ].filter(function(g){return g.items.length>0;});
-
-    if(!focusGroups.length) return '<div class="empty" style="color:#4caf82;padding:24px 0">🎉 All done — nothing left to do!</div>';
-
-    let fhtml='<div style="margin-bottom:14px"><div class="slabel" style="margin-bottom:3px">Today's Focus</div>'
-      +'<div style="font-size:11px;color:var(--muted);margin-bottom:14px">Incomplete tasks across all categories</div></div>';
-
-    focusGroups.forEach(function(group,gi){
-      fhtml+='<div style="margin-bottom:16px;animation:fadeUp .25s ease '+(gi*.06)+'s backwards">'
-        +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--bord)">'
-        +'<span style="font-size:14px">'+group.icon+'</span>'
-        +'<span style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:'+group.color+';letter-spacing:.04em">'+group.label+'</span>'
-        +'<span style="font-size:10px;color:var(--muted)">'+group.items.length+' remaining</span>'
-        +'</div>';
-
-      group.items.forEach(function(t){
-        let handler='';
-        if(!VO){
-          if(group.type==='song') handler='onclick="tT(''+t._sid+'',''+t._tid+'')"';
-          else if(group.type==='promo') handler='onclick="toggleSimpleTask('promoTasks',''+t.id+'')"';
-          else if(group.type==='content') handler='onclick="toggleSimpleTask('contentTasks',''+t.id+'')"';
-          else if(group.type==='todo') handler='onclick="toggleSimpleTask('todoTasks',''+t.id+'')"';
-          else if(group.type==='milestone') handler='onclick="toggleMilestone(''+t.id+'')"';
-        }
-        fhtml+='<div class="trow" '+handler+' style="cursor:'+(VO?'default':'pointer')+';margin-bottom:5px">'
-          +'<div class="tcheck" style="border-color:'+group.color+'50"></div>'
-          +'<div style="flex:1;min-width:0">'
-          +'<div style="font-size:12px;line-height:1.5;color:var(--text)">'+t.text+'</div>'
-          +(t._sub?'<div style="font-size:9px;color:var(--muted);margin-top:1px">'+t._sub+'</div>':'')
-          +'</div></div>';
+    var subTab=musicSub||'songs';
+    var html2='<div style="display:flex;gap:8px;margin-bottom:14px">';
+    html2+='<button onclick="musicSub=\'songs\';rP()" style="flex:1;padding:9px 6px;background:'+(subTab==='songs'?acc:'var(--surf2)')+';color:'+(subTab==='songs'?'#fff':'var(--muted)')+';border:1px solid '+(subTab==='songs'?acc:'var(--bord)')+';border-radius:6px;font-family:\'DM Mono\',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer">Songs</button>';
+    html2+='<button onclick="musicSub=\'focus\';rP()" style="flex:1;padding:9px 6px;background:'+(subTab==='focus'?'#d4a843':'var(--surf2)')+';color:'+(subTab==='focus'?'var(--bg)':'var(--muted)')+';border:1px solid '+(subTab==='focus'?'#d4a843':'var(--bord)')+';border-radius:6px;font-family:\'DM Mono\',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer">Focus</button>';
+    html2+='</div>';
+    if(subTab==='songs'){
+      if(!VO)html2+='<button class="btn-o" onclick="addSongM()" style="margin-bottom:14px">+ Add Song</button>';
+      html2+='<div id="song-list">';
+      if(songs.length){songs.forEach(function(s,i){html2+=sCard(s,i,acc);});}
+      else html2+='<div class="empty">No songs yet.</div>';
+      html2+='</div>';
+    } else {
+      // FOCUS - all categories
+      var focusGroups=[
+        {label:'Music',color:acc,icon:'🎵',type:'song',items:[]},
+        {label:'Promo',color:'#e07b3a',icon:'📸',type:'promo',items:(p.promoTasks||[]).filter(function(t){return !t.done;})},
+        {label:'Content',color:'#8b68d4',icon:'📱',type:'content',items:(p.contentTasks||[]).filter(function(t){return !t.done;})},
+        {label:'To-Do',color:'#4a8fc4',icon:'📋',type:'todo',items:(p.todoTasks||[]).filter(function(t){return !t.done;})},
+        {label:'Milestones',color:'#8b68d4',icon:'◆',type:'milestone',items:(p.milestones||[]).filter(function(m){return !m.done;}).map(function(m){return {id:m.id,text:m.label};})},
+      ];
+      songs.forEach(function(s){
+        (s.tasks||[]).filter(function(t){return !t.done;}).forEach(function(t){
+          focusGroups[0].items.push({id:t.id,text:t.text,_sub:s.name,_sid:s.id,_tid:t.id});
+        });
       });
-      fhtml+='</div>';
-    });
-    return fhtml;
-  }`;
-
-
+      var active=focusGroups.filter(function(g){return g.items.length>0;});
+      html2+='<div style="margin-bottom:14px"><div class="slabel" style="margin-bottom:3px">Today\'s Focus</div>';
+      html2+='<div style="font-size:11px;color:var(--muted);margin-bottom:14px">All incomplete tasks across categories</div></div>';
+      if(!active.length){
+        html2+='<div class="empty" style="color:#4caf82;padding:24px 0">🎉 All done — nothing left!</div>';
+      } else {
+        active.forEach(function(group,gi){
+          html2+='<div style="margin-bottom:16px">';
+          html2+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--bord)">';
+          html2+='<span style="font-size:14px">'+group.icon+'</span>';
+          html2+='<span style="font-family:\'Bebas Neue\',sans-serif;font-size:18px;color:'+group.color+';letter-spacing:.04em">'+group.label+'</span>';
+          html2+='<span style="font-size:10px;color:var(--muted)">'+group.items.length+' remaining</span>';
+          html2+='</div>';
+          group.items.forEach(function(t){
+            var handler='';
+            if(!VO){
+              if(group.type==='song')handler='onclick="tT(\''+t._sid+'\',\''+t._tid+'\')"';
+              else if(group.type==='promo')handler='onclick="toggleSimpleTask(\'promoTasks\',\''+t.id+'\')"';
+              else if(group.type==='content')handler='onclick="toggleSimpleTask(\'contentTasks\',\''+t.id+'\')"';
+              else if(group.type==='todo')handler='onclick="toggleSimpleTask(\'todoTasks\',\''+t.id+'\')"';
+              else if(group.type==='milestone')handler='onclick="toggleMilestone(\''+t.id+'\')"';
+            }
+            html2+='<div class="trow" '+handler+' style="cursor:'+(VO?'default':'pointer')+';margin-bottom:5px">';
+            html2+='<div class="tcheck" style="border-color:'+group.color+'50"></div>';
+            html2+='<div style="flex:1;min-width:0">';
+            html2+='<div style="font-size:12px;line-height:1.5;color:var(--text)">'+t.text+'</div>';
+            if(t._sub)html2+='<div style="font-size:9px;color:var(--muted);margin-top:1px">'+t._sub+'</div>';
+            html2+='</div></div>';
+          });
+          html2+='</div>';
+        });
+      }
+    }
+    return html2;
+  }
 
   /* RELEASE SCHEDULE */
   if(TAB==='release'){
-    const rs=p.releaseSchedule||[];
-    const statusColors={'Not Started':'var(--muted)','In Progress':'#d4a843','Complete':'#4caf82','Overdue':'#e07070'};
-    return `${rs.length?`<div class="rel-wrap">
-      <table class="rel-table">
-        <thead><tr><th>Release</th><th>Release Date</th><th>Due Date</th><th>Audio</th><th>Art</th><th>Meta</th><th>Status</th>${!VO?'<th></th>':''}</tr></thead>
-        <tbody>${rs.map(row=>{
-          const sc=statusColors[row.status]||'var(--muted)';
-          const dl=row.releaseDate?daysLeft(row.releaseDate):null;
-          const chipBg=(v)=>v==='Done'?'rgba(76,175,130,.15)':v==='In Progress'?'rgba(212,168,67,.12)':'var(--surf2)';
-          const chipCol=(v)=>v==='Done'?'#4caf82':v==='In Progress'?'#d4a843':'var(--muted)';
-          return `<tr>
-            <td><strong style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.03em">${row.release||'—'}</strong></td>
-            <td style="color:${dl!==null&&dl<7?'#e07070':'var(--text2)'};font-size:11px">${row.releaseDate?fmtDateShort(row.releaseDate):'—'}</td>
-            <td style="color:var(--muted);font-size:11px">${row.dueDate?fmtDateShort(row.dueDate):'—'}</td>
-            <td><span class="rel-chip" style="background:${chipBg(row.audioFile)};color:${chipCol(row.audioFile)}">${row.audioFile||'—'}</span></td>
-            <td><span class="rel-chip" style="background:${chipBg(row.artwork)};color:${chipCol(row.artwork)}">${row.artwork||'—'}</span></td>
-            <td><span class="rel-chip" style="background:${chipBg(row.metadata)};color:${chipCol(row.metadata)}">${row.metadata||'—'}</span></td>
-            <td><span class="rel-chip" style="background:${sc}18;color:${sc};border:1px solid ${sc}30">${row.status||'Not Started'}</span></td>
-            ${!VO?`<td style="white-space:nowrap"><button onclick="editReleaseRowM('${row.id}')" class="iBtn" style="font-size:14px;padding:4px">✎</button><button onclick="delReleaseRow('${row.id}')" class="iBtn" style="font-size:12px;padding:4px;opacity:.4">✕</button></td>`:''}
-          </tr>`;
-        }).join('')}</tbody>
-      </table>
-    </div>`:''}
-    ${!rs.length?`<div class="empty">No releases scheduled yet.${!VO?'<br>Tap + to add your first row.':''}</div>`:''}
-    ${!VO?`<button class="btn-o" onclick="addReleaseRowM()" style="margin-top:4px">+ Add Row</button>`:''}`;
+    var rs=p.releaseSchedule||[];
+    var statusColors={'Not Started':'var(--muted)','In Progress':'#d4a843','Complete':'#4caf82','Overdue':'#e07070'};
+    var chipBg=function(v){return v==='Done'?'rgba(76,175,130,.15)':v==='In Progress'?'rgba(212,168,67,.12)':'var(--surf2)';};
+    var chipCol=function(v){return v==='Done'?'#4caf82':v==='In Progress'?'#d4a843':'var(--muted)';};
+    var rhtml='';
+    if(rs.length){
+      rhtml+='<div class="rel-wrap"><table class="rel-table"><thead><tr><th>Release</th><th>Release Date</th><th>Due Date</th><th>Audio</th><th>Art</th><th>Meta</th><th>Status</th>';
+      if(!VO)rhtml+='<th></th>';
+      rhtml+='</tr></thead><tbody>';
+      rs.forEach(function(row){
+        var sc=statusColors[row.status]||'var(--muted)';
+        var rdl=row.releaseDate?daysLeft(row.releaseDate):null;
+        rhtml+='<tr>';
+        rhtml+='<td><strong style="font-family:\'Bebas Neue\',sans-serif;font-size:14px">'+esc(row.release||'—')+'</strong></td>';
+        rhtml+='<td style="color:'+(rdl!==null&&rdl<7?'#e07070':'var(--text2)')+';font-size:11px">'+(row.releaseDate?fmtDateShort(row.releaseDate):'—')+'</td>';
+        rhtml+='<td style="color:var(--muted);font-size:11px">'+(row.dueDate?fmtDateShort(row.dueDate):'—')+'</td>';
+        rhtml+='<td><span class="rel-chip" style="background:'+chipBg(row.audioFile)+';color:'+chipCol(row.audioFile)+'">'+(row.audioFile||'—')+'</span></td>';
+        rhtml+='<td><span class="rel-chip" style="background:'+chipBg(row.artwork)+';color:'+chipCol(row.artwork)+'">'+(row.artwork||'—')+'</span></td>';
+        rhtml+='<td><span class="rel-chip" style="background:'+chipBg(row.metadata)+';color:'+chipCol(row.metadata)+'">'+(row.metadata||'—')+'</span></td>';
+        rhtml+='<td><span class="rel-chip" style="background:'+sc+'18;color:'+sc+';border:1px solid '+sc+'30">'+(row.status||'Not Started')+'</span></td>';
+        if(!VO)rhtml+='<td><button onclick="editReleaseRowM(\''+row.id+'\')" class="iBtn" style="font-size:14px;padding:4px">✎</button><button onclick="delReleaseRow(\''+row.id+'\')" class="iBtn" style="font-size:12px;padding:4px;opacity:.4">✕</button></td>';
+        rhtml+='</tr>';
+      });
+      rhtml+='</tbody></table></div>';
+    } else {
+      rhtml+='<div class="empty">No releases scheduled yet.'+(VO?'':'<br>Tap + to add your first row.')+'</div>';
+    }
+    if(!VO)rhtml+='<button class="btn-o" onclick="addReleaseRowM()" style="margin-top:4px">+ Add Row</button>';
+    return rhtml;
   }
 
-  /* PROMO / CONTENT / TODO — shared renderer */
-  if(['promo','content','todo'].includes(TAB)){
-    const cfg={
-      promo:{field:'promoTasks',label:'Promo & Photos',color:acc,inputId:'pt-inp',placeholder:'Add promo task...'},
-      content:{field:'contentTasks',label:'Content Plan',color:'#8b68d4',inputId:'ct-inp',placeholder:'Add content task...'},
-      todo:{field:'todoTasks',label:'General To-Do',color:'#4a8fc4',inputId:'td-inp',placeholder:'Add to-do...'},
-    }[TAB];
-    const tasks=p[cfg.field]||[];
-    const dn=tasks.filter(t=>t.done).length;
-    const pct=tasks.length?Math.round(dn/tasks.length*100):0;
-    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <div class="slabel" style="margin:0;border:none;padding:0">${cfg.label}</div>
-      <span style="font-size:10px;color:var(--muted)">${dn}/${tasks.length} done</span>
-    </div>
-    <div class="progress-bar" style="margin-bottom:16px"><div class="progress-fill" style="width:${pct}%;background:${cfg.color}"></div></div>
-    ${!VO?`<div style="display:flex;gap:8px;margin-bottom:14px">
-      <input class="field" id="${cfg.inputId}" placeholder="${cfg.placeholder}" style="flex:1;margin:0" onkeydown="if(event.key==='Enter')addSimpleTask('${cfg.field}','${cfg.inputId}')">
-      <button class="btn-s" onclick="addSimpleTask('${cfg.field}','${cfg.inputId}')" style="background:${cfg.color}">Add</button>
-    </div>`:''}
-    ${tasks.length?tasks.map(t=>`<div class="trow" ${!VO?`onclick="toggleSimpleTask('${cfg.field}','${t.id}')"`:''}  style="cursor:${VO?'default':'pointer'}">
-      <div class="tcheck${t.done?' on':''}" style="${t.done?'':`border-color:${cfg.color}40`}"></div>
-      <div style="font-size:12px;line-height:1.5;flex:1;color:${t.done?'var(--muted)':'var(--text)'};text-decoration:${t.done?'line-through':'none'}">${t.text}</div>
-      ${!VO?`<button onclick="event.stopPropagation();delSimpleTask('${cfg.field}','${t.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.35">✕</button>`:''}
-    </div>`).join(''):'<div class="empty">Nothing here yet.<br><small>Add your first item above.</small></div>'}`;
+  /* PROMO / CONTENT / TODO */
+  if(TAB==='promo'||TAB==='content'||TAB==='todo'){
+    var cfgMap={
+      promo:{field:'promoTasks',label:'Promo & Photos',color:acc,inputId:'pt-inp',ph:'Add promo task...'},
+      content:{field:'contentTasks',label:'Content Plan',color:'#8b68d4',inputId:'ct-inp',ph:'Add content task...'},
+      todo:{field:'todoTasks',label:'General To-Do',color:'#4a8fc4',inputId:'td-inp',ph:'Add to-do...'}
+    };
+    var cfg=cfgMap[TAB];
+    var tasks=p[cfg.field]||[];
+    var dn2=tasks.filter(function(t){return t.done;}).length;
+    var pct2=tasks.length?Math.round(dn2/tasks.length*100):0;
+    var thtml='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+    thtml+='<div class="slabel" style="margin:0;border:none;padding:0">'+cfg.label+'</div>';
+    thtml+='<span style="font-size:10px;color:var(--muted)">'+dn2+'/'+tasks.length+' done</span></div>';
+    thtml+='<div class="progress-bar" style="margin-bottom:16px"><div class="progress-fill" style="width:'+pct2+'%;background:'+cfg.color+'"></div></div>';
+    if(!VO){
+      thtml+='<div style="display:flex;gap:8px;margin-bottom:14px">';
+      thtml+='<input class="field" id="'+cfg.inputId+'" placeholder="'+cfg.ph+'" style="flex:1;margin:0" onkeydown="if(event.key===\'Enter\')addSimpleTask(\''+cfg.field+'\',\''+cfg.inputId+'\')">';
+      thtml+='<button class="btn-s" onclick="addSimpleTask(\''+cfg.field+'\',\''+cfg.inputId+'\')" style="background:'+cfg.color+'">Add</button>';
+      thtml+='</div>';
+    }
+    if(tasks.length){
+      tasks.forEach(function(t){
+        var borderStyle=t.done?'':'border-color:'+cfg.color+'40';
+        thtml+='<div class="trow" '+(VO?'':'onclick="toggleSimpleTask(\''+cfg.field+'\',\''+t.id+'\')"')+' style="cursor:'+(VO?'default':'pointer')+'">';
+        thtml+='<div class="tcheck'+(t.done?' on':'')+'" style="'+borderStyle+'"></div>';
+        thtml+='<div style="font-size:12px;line-height:1.5;flex:1;color:'+(t.done?'var(--muted)':'var(--text)')+';text-decoration:'+(t.done?'line-through':'none')+'">'+t.text+'</div>';
+        if(!VO)thtml+='<button onclick="event.stopPropagation();delSimpleTask(\''+cfg.field+'\',\''+t.id+'\')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.35">✕</button>';
+        thtml+='</div>';
+      });
+    } else {
+      thtml+='<div class="empty">Nothing here yet.<br><small>Add your first item above.</small></div>';
+    }
+    return thtml;
   }
 
   /* BUDGET */
   if(TAB==='budget'){
-    const expenses=p.expenses||[];
-    const total=expenses.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
-    const byCategory={};
-    expenses.forEach(e=>{const c=e.category||'Other';byCategory[c]=(byCategory[c]||0)+(parseFloat(e.amount)||0);});
-    return `<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px">
-      <div>
-        <div class="flabel">Total Spent</div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;color:${acc};line-height:1">$${total.toFixed(2)}</div>
-      </div>
-      ${Object.keys(byCategory).length>0?`<div style="text-align:right;font-size:10px;color:var(--muted)">${Object.keys(byCategory).length} categor${Object.keys(byCategory).length===1?'y':'ies'}</div>`:''}
-    </div>
-    ${Object.keys(byCategory).length>1?`<div class="card" style="margin-bottom:14px">
-      <div class="flabel">By Category</div>
-      ${Object.entries(byCategory).sort((a,b)=>b[1]-a[1]).map(([cat,amt])=>{
-        const pct=Math.round(amt/total*100);
-        return `<div style="margin-bottom:10px">
-          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
-            <span style="color:var(--text)">${cat}</span>
-            <span style="color:${acc}">$${amt.toFixed(2)} <span style="color:var(--muted)">${pct}%</span></span>
-          </div>
-          <div class="progress-bar" style="height:3px;margin:0"><div class="progress-fill" style="width:${pct}%;background:${acc}"></div></div>
-        </div>`;
-      }).join('')}
-    </div>`:''}
-    ${!VO?`<div class="card" style="margin-bottom:14px">
-      <div class="flabel">Add Expense</div>
-      <div style="display:flex;gap:6px;margin-bottom:8px">
-        <input class="field" id="exp-amt" type="number" placeholder="$0.00" style="width:90px;margin:0">
-        <input class="field" id="exp-desc" placeholder="Description" style="flex:1;margin:0">
-      </div>
-      <input class="field" id="exp-cat" placeholder="Category (Studio, Features, Mixing...)" style="margin-bottom:8px">
-      <button class="btn-s" onclick="addExp()" style="width:100%">Add Expense</button>
-    </div>`:''}
-    ${expenses.length?`<div class="card" style="padding:0;overflow:hidden">
-      ${[...expenses].reverse().map((e,i,a)=>`<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:${i===a.length-1?'none':'1px solid var(--bord)'}">
-        <div style="flex:1;min-width:0">
-          <div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${e.desc||'Untitled'}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px">${e.category?`${e.category} · `:''}${e.date||''}</div>
-        </div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:${acc};flex-shrink:0">$${(parseFloat(e.amount)||0).toFixed(2)}</div>
-        ${!VO?`<button onclick="delExp('${e.id}')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.35">✕</button>`:''}
-      </div>`).join('')}
-    </div>`:'<div class="empty">No expenses yet.</div>'}`;
+    var expenses=p.expenses||[];
+    var total=expenses.reduce(function(s,e){return s+(parseFloat(e.amount)||0);},0);
+    var byCategory={};
+    expenses.forEach(function(e){var c=e.category||'Other';byCategory[c]=(byCategory[c]||0)+(parseFloat(e.amount)||0);});
+    var bhtml='<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px">';
+    bhtml+='<div><div class="flabel">Total Spent</div>';
+    bhtml+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:40px;color:'+acc+';line-height:1">$'+total.toFixed(2)+'</div></div></div>';
+    var catKeys=Object.keys(byCategory);
+    if(catKeys.length>1){
+      bhtml+='<div class="card" style="margin-bottom:14px"><div class="flabel">By Category</div>';
+      catKeys.sort(function(a,b){return byCategory[b]-byCategory[a];}).forEach(function(cat){
+        var amt=byCategory[cat],cpct=Math.round(amt/total*100);
+        bhtml+='<div style="margin-bottom:10px">';
+        bhtml+='<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">';
+        bhtml+='<span style="color:var(--text)">'+cat+'</span>';
+        bhtml+='<span style="color:'+acc+'">$'+amt.toFixed(2)+' <span style="color:var(--muted)">'+cpct+'%</span></span></div>';
+        bhtml+='<div class="progress-bar" style="height:3px;margin:0"><div class="progress-fill" style="width:'+cpct+'%;background:'+acc+'"></div></div>';
+        bhtml+='</div>';
+      });
+      bhtml+='</div>';
+    }
+    if(!VO){
+      bhtml+='<div class="card" style="margin-bottom:14px"><div class="flabel">Add Expense</div>';
+      bhtml+='<div style="display:flex;gap:6px;margin-bottom:8px"><input class="field" id="exp-amt" type="number" placeholder="$0.00" style="width:90px;margin:0"><input class="field" id="exp-desc" placeholder="Description" style="flex:1;margin:0"></div>';
+      bhtml+='<input class="field" id="exp-cat" placeholder="Category (Studio, Features, Mixing...)" style="margin-bottom:8px">';
+      bhtml+='<button class="btn-s" onclick="addExp()" style="width:100%">Add Expense</button></div>';
+    }
+    if(expenses.length){
+      bhtml+='<div class="card" style="padding:0;overflow:hidden">';
+      var rev=[].concat(expenses).reverse();
+      rev.forEach(function(e,i){
+        bhtml+='<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:'+(i===rev.length-1?'none':'1px solid var(--bord)')+'">';
+        bhtml+='<div style="flex:1;min-width:0"><div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">'+esc(e.desc||'Untitled')+'</div>';
+        bhtml+='<div style="font-size:10px;color:var(--muted);margin-top:2px">'+(e.category?e.category+' · ':'')+''+(e.date||'')+'</div></div>';
+        bhtml+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:18px;color:'+acc+';flex-shrink:0">$'+(parseFloat(e.amount)||0).toFixed(2)+'</div>';
+        if(!VO)bhtml+='<button onclick="delExp(\''+e.id+'\')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.35">✕</button>';
+        bhtml+='</div>';
+      });
+      bhtml+='</div>';
+    } else {
+      bhtml+='<div class="empty">No expenses yet.</div>';
+    }
+    return bhtml;
   }
 
   /* INSIGHTS */
   if(TAB==='insights'){
-    const views=p.views||[];
-    const sorted=[...views].sort((a,b)=>(b.ts||0)-(a.ts||0));
-    const unique=new Set(views.map(v=>v.name||v.location)).size;
-    return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-      <div class="card" style="text-align:center;margin:0">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:44px;color:${acc};line-height:1">${views.length}</div>
-        <div class="flabel" style="margin:6px 0 0">Total Views</div>
-      </div>
-      <div class="card" style="text-align:center;margin:0">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:44px;color:#8b68d4;line-height:1">${unique}</div>
-        <div class="flabel" style="margin:6px 0 0">Unique Viewers</div>
-      </div>
-    </div>
-    <div class="slabel">View History</div>
-    ${!sorted.length?'<div class="empty">No views yet.<br>Share your project link to start tracking.</div>':''}
-    ${sorted.length?`<div class="card" style="padding:0;overflow:hidden">
-      ${sorted.map((v,i,a)=>`<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:${i===a.length-1?'none':'1px solid var(--bord)'}">
-        <div style="width:34px;height:34px;border-radius:50%;background:${acc}18;border:1px solid ${acc}30;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;font-family:'Bebas Neue',sans-serif;color:${acc}">${v.name?v.name[0].toUpperCase():'👁'}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${v.name||'Anonymous Viewer'}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px">${v.location||'Unknown location'}</div>
-        </div>
-        <div style="font-size:10px;color:var(--muted);text-align:right;flex-shrink:0;min-width:76px;line-height:1.4">${v.timeStr||''}</div>
-      </div>`).join('')}
-    </div>`:''}`; 
+    var views=p.views||[];
+    var sorted=[].concat(views).sort(function(a,b){return (b.ts||0)-(a.ts||0);});
+    var unique=new Set(views.map(function(v){return v.name||v.location;})).size;
+    var ihtml='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">';
+    ihtml+='<div class="card" style="text-align:center;margin:0"><div style="font-family:\'Bebas Neue\',sans-serif;font-size:44px;color:'+acc+';line-height:1">'+views.length+'</div><div class="flabel" style="margin:6px 0 0">Total Views</div></div>';
+    ihtml+='<div class="card" style="text-align:center;margin:0"><div style="font-family:\'Bebas Neue\',sans-serif;font-size:44px;color:#8b68d4;line-height:1">'+unique+'</div><div class="flabel" style="margin:6px 0 0">Unique Viewers</div></div>';
+    ihtml+='</div><div class="slabel">View History</div>';
+    if(!sorted.length){
+      ihtml+='<div class="empty">No views yet.<br>Share your project link to start tracking.</div>';
+    } else {
+      ihtml+='<div class="card" style="padding:0;overflow:hidden">';
+      sorted.forEach(function(v,i){
+        ihtml+='<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:'+(i===sorted.length-1?'none':'1px solid var(--bord)')+'">';
+        ihtml+='<div style="width:34px;height:34px;border-radius:50%;background:'+acc+'18;border:1px solid '+acc+'30;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;font-family:\'Bebas Neue\',sans-serif;color:'+acc+'">'+esc(v.name?v.name[0].toUpperCase():'👁')+'</div>';
+        ihtml+='<div style="flex:1;min-width:0"><div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">'+esc(v.name||'Anonymous Viewer')+'</div>';
+        ihtml+='<div style="font-size:10px;color:var(--muted);margin-top:2px">'+esc(v.location||'Unknown location')+'</div></div>';
+        ihtml+='<div style="font-size:10px;color:var(--muted);text-align:right;flex-shrink:0;min-width:76px">'+esc(v.timeStr||'')+'</div></div>';
+      });
+      ihtml+='</div>';
+    }
+    return ihtml;
   }
 
   /* INFO */
   if(TAB==='info'){
-    const ms=p.milestones||[];
-    return `<div class="slabel">Project Info</div>
-    <div class="card" style="margin-bottom:14px;padding:0;overflow:hidden">
-      ${[['Title',p.title],['Artist',p.artist],['Label',p.label],['Co-Producer',p.coproducer],['Deadline',p.deadline?fmtDate(p.deadline):null]].filter(r=>r[1]).map(([k,v],i,a)=>`
-      <div style="display:flex;justify-content:space-between;padding:11px 14px;border-bottom:${i===a.filter(r=>r[1]).length-1?'none':'1px solid var(--bord)'}">
-        <span style="font-size:10px;color:var(--muted)">${k}</span><span style="font-size:11px;color:var(--text)">${v}</span>
-      </div>`).join('')}
-    </div>
-    <div class="slabel">Milestones</div>
-    ${!VO?`<button class="btn-o" onclick="addMilestoneM()" style="margin-bottom:12px">+ Add Milestone</button>`:''}
-    ${ms.length?`<div class="card" style="margin-bottom:14px;padding:0;overflow:hidden">
-      ${ms.map((m,i,a)=>`<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:${i===a.length-1?'none':'1px solid var(--bord)'}">
-        <div style="width:10px;height:10px;border-radius:50%;background:${m.done?'#4caf82':'#8b68d4'};flex-shrink:0;transition:background .2s"></div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:12px;color:${m.done?'var(--muted)':'var(--text)'};text-decoration:${m.done?'line-through':'none'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.label}</div>
-          ${m.date?`<div style="font-size:10px;color:var(--muted);margin-top:2px">${fmtDate(m.date)}</div>`:''}
-        </div>
-        ${!VO?`<div style="display:flex;gap:4px">
-          <button onclick="toggleMilestone('${m.id}')" class="btn-s o" style="font-size:10px;padding:4px 8px">${m.done?'Undo':'Done'}</button>
-          <button onclick="delMilestone('${m.id}')" class="iBtn" style="font-size:12px;opacity:.35">✕</button>
-        </div>`:''}
-      </div>`).join('')}
-    </div>`:'<div class="empty" style="margin-bottom:14px">No milestones yet.</div>'}
-    <div class="slabel">Project Notes</div>
-    ${!VO
-      ?`<textarea class="field" id="pnotes" placeholder="General notes, ideas, reminders..." style="min-height:100px" oninput="sN(this.value)">${p.notes||''}</textarea>
-        <div style="font-size:10px;color:var(--muted);margin-top:4px">Auto-saved <span id="ndot" style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#4caf82;opacity:0;transition:opacity .3s;vertical-align:middle"></span></div>`
-      :`<div class="card" style="font-size:12px;white-space:pre-wrap;line-height:1.7;color:var(--text)">${p.notes||'No notes.'}</div>`}`;
+    var ms=p.milestones||[];
+    var infoRows=[['Title',p.title],['Artist',p.artist],['Label',p.label],['Co-Producer',p.coproducer],['Deadline',p.deadline?fmtDate(p.deadline):null]].filter(function(r){return r[1];});
+    var infhtml='<div class="slabel">Project Info</div>';
+    infhtml+='<div class="card" style="margin-bottom:14px;padding:0;overflow:hidden">';
+    infoRows.forEach(function(r,i){
+      infhtml+='<div style="display:flex;justify-content:space-between;padding:11px 14px;border-bottom:'+(i===infoRows.length-1?'none':'1px solid var(--bord)')+'">';
+      infhtml+='<span style="font-size:10px;color:var(--muted)">'+r[0]+'</span><span style="font-size:11px;color:var(--text)">'+esc(r[1])+'</span></div>';
+    });
+    infhtml+='</div>';
+    infhtml+='<div class="slabel">Milestones</div>';
+    if(!VO)infhtml+='<button class="btn-o" onclick="addMilestoneM()" style="margin-bottom:12px">+ Add Milestone</button>';
+    if(ms.length){
+      infhtml+='<div class="card" style="margin-bottom:14px;padding:0;overflow:hidden">';
+      ms.forEach(function(m,i){
+        infhtml+='<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:'+(i===ms.length-1?'none':'1px solid var(--bord)')+'">';
+        infhtml+='<div style="width:10px;height:10px;border-radius:50%;background:'+(m.done?'#4caf82':'#8b68d4')+';flex-shrink:0"></div>';
+        infhtml+='<div style="flex:1;min-width:0"><div style="font-size:12px;color:'+(m.done?'var(--muted)':'var(--text)')+';text-decoration:'+(m.done?'line-through':'none')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(m.label)+'</div>';
+        if(m.date)infhtml+='<div style="font-size:10px;color:var(--muted);margin-top:2px">'+fmtDate(m.date)+'</div>';
+        infhtml+='</div>';
+        if(!VO){
+          infhtml+='<div style="display:flex;gap:4px">';
+          infhtml+='<button onclick="toggleMilestone(\''+m.id+'\')" class="btn-s o" style="font-size:10px;padding:4px 8px">'+(m.done?'Undo':'Done')+'</button>';
+          infhtml+='<button onclick="delMilestone(\''+m.id+'\')" class="iBtn" style="font-size:12px;opacity:.35">✕</button></div>';
+        }
+        infhtml+='</div>';
+      });
+      infhtml+='</div>';
+    } else {
+      infhtml+='<div class="empty" style="margin-bottom:14px">No milestones yet.</div>';
+    }
+    infhtml+='<div class="slabel">Project Notes</div>';
+    if(!VO){
+      infhtml+='<textarea class="field" id="pnotes" placeholder="General notes..." style="min-height:100px" oninput="sN(this.value)">'+(p.notes||'')+'</textarea>';
+      infhtml+='<div style="font-size:10px;color:var(--muted);margin-top:4px">Auto-saved <span id="ndot" style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#4caf82;opacity:0;transition:opacity .3s;vertical-align:middle"></span></div>';
+    } else {
+      infhtml+='<div class="card" style="font-size:12px;white-space:pre-wrap;line-height:1.7;color:var(--text)">'+(p.notes||'No notes.')+'</div>';
+    }
+    return infhtml;
   }
+
   return '';
 }
+
 
 /* ── SONG CARDS ── */
 function mCard(s,i,acc){
@@ -977,7 +992,7 @@ function sN(val){clearTimeout(nT);nT=setTimeout(async()=>{await db.collection('p
 /* ── RELEASE SCHEDULE ── */
 function addReleaseRowM(existingId){
   const row=existingId?(CP.releaseSchedule||[]).find(r=>r.id===existingId):null;
-  const sel=(id,val,opts)=>`<select class="field" id="${id}">${opts.map(o=>`<option value="${o}" ${val===o?'selected':''}>${o}</option>`).join('')}</select>`;
+  function sel(id,val,opts){var s='<select class="field" id="'+id+'">';opts.forEach(function(o){s+='<option value="'+o+'"'+(val===o?' selected':'')+'>'+o+'</option>';});s+='</select>';return s;}
   SM(`<div class="modal-title">${row?'Edit':'Add'} Release</div>
     <input class="field" id="rr-rel" value="${esc(row?.release||'')}" placeholder="Release name (e.g. Single, Full EP)" autofocus>
     <div class="flabel">Release Date</div>
