@@ -113,8 +113,8 @@ window.addEventListener('hashchange',route);
 /* ── NAV DRAWER ── */
 const TABS_DEF=[
   {id:'overview',label:'Overview',dot:'#4caf82',section:null},
-  {id:'music',label:'Music',dot:'#c9383a',section:'Production'},
-  {id:'focus',label:'Focus',dot:'#d4a843',section:null},
+  {id:'music',label:'Songs',dot:'#c9383a',section:'Production'},
+  {id:'focus',label:'Focus / Next Steps',dot:'#d4a843',section:null},
   {id:'release',label:'Release Schedule',dot:'#4a8fc4',section:'Release'},
   {id:'promo',label:'Promo & Photos',dot:'#e07b3a',section:null},
   {id:'content',label:'Content',dot:'#8b68d4',section:null},
@@ -307,7 +307,8 @@ function rP(){
   document.documentElement.style.cssText=`--acc:${acc};--bg:${bg};--text:${text};--surf:${surf};--surf2:${surf2};--bord:${bord};--muted:${muted}`;
   document.body.style.background=bg;
   const dl=p.deadline?daysLeft(p.deadline):null;
-  const tabLabel=TABS_DEF.find(t=>t.id===TAB)?.label||TAB;
+  const subTab=window._musicSub||'songs';
+  const tabLabel=TAB==='music'?(subTab==='focus'?'Focus / Next Steps':'Songs'):TABS_DEF.find(t=>t.id===TAB)?.label||TAB;
   setA(`<div style="background:${bg};min-height:100vh;color:${text}">
     <div style="position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);background:linear-gradient(180deg,${acc}22,${bg});border-bottom:1px solid ${acc}33">
       <div style="display:flex;align-items:center;gap:8px;padding:30px 14px 14px">
@@ -333,7 +334,11 @@ function rP(){
   if(TAB==='music')initDrag();
 }
 
-function sT(t){TAB=t;rP();}
+function sT(t){
+  if(t==='focus'){TAB='music';window._musicSub='focus';}
+  else{TAB=t;if(t==='music')window._musicSub=window._musicSub||'songs';}
+  rP();
+}
 function toggleDark(){const th={...(CP.theme||{})};th.dark=!th.dark;db.collection('projects').doc(CID).update({theme:th});}
 
 /* ── TABS ── */
