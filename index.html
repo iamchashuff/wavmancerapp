@@ -469,100 +469,90 @@ function bTab(){
   /* OVERVIEW */
   if(TAB==='overview'){
     const dl=p.deadline?daysLeft(p.deadline):null;
+    const songTasks=songs.flatMap(s=>(s.tasks||[]).map(t=>({...t,_sub:s.name,_sid:s.id,_tid:t.id,_color:acc})));
+    const promoT=p.promoTasks||[],contentT=p.contentTasks||[],todoT=p.todoTasks||[];
+    const mileT=(p.milestones||[]).map(m=>({id:m.id,text:m.label,done:m.done}));
+    const totalDone=songTasks.filter(t=>t.done).length+promoT.filter(t=>t.done).length+contentT.filter(t=>t.done).length+todoT.filter(t=>t.done).length+mileT.filter(t=>t.done).length;
+    const totalAll=songTasks.length+promoT.length+contentT.length+todoT.length+mileT.length;
+    const pct=totalAll?Math.round(totalDone/totalAll*100):0;
 
-    // Music tasks
-    const songTasks=songs.flatMap(s=>(s.tasks||[]).map(t=>({...t,_cat:'Music',_sub:s.name,_color:acc})));
-    const songDone=songTasks.filter(t=>t.done).length;
+    const cats=[
+      {l:'Music',d:songTasks.filter(t=>t.done).length,t:songTasks.length,c:acc,tab:'music',icon:'🎵',items:songTasks.filter(t=>!t.done)},
+      {l:'Promo',d:promoT.filter(t=>t.done).length,t:promoT.length,c:'#e07b3a',tab:'promo',icon:'📸',items:promoT.filter(t=>!t.done)},
+      {l:'Content',d:contentT.filter(t=>t.done).length,t:contentT.length,c:'#8b68d4',tab:'content',icon:'📱',items:contentT.filter(t=>!t.done)},
+      {l:'To-Do',d:todoT.filter(t=>t.done).length,t:todoT.length,c:'#4a8fc4',tab:'todo',icon:'📋',items:todoT.filter(t=>!t.done)},
+      {l:'Miles',d:mileT.filter(t=>t.done).length,t:mileT.length,c:'#8b68d4',tab:'info',icon:'◆',items:mileT.filter(t=>!t.done)},
+    ];
 
-    // Promo
-    const promoTasks=(p.promoTasks||[]).map(t=>({...t,_cat:'Promo',_color:'#e07b3a'}));
-    const promoDone=promoTasks.filter(t=>t.done).length;
+    let html='';
 
-    // Content
-    const contentTasks=(p.contentTasks||[]).map(t=>({...t,_cat:'Content',_color:'#8b68d4'}));
-    const contentDone=contentTasks.filter(t=>t.done).length;
+    // Deadline card
+    if(dl!==null){
+      const dc=dl<0?'#e07070':dl<7?'#d4a843':acc;
+      const dlabel=dl<0?(Math.abs(dl)+' DAYS OVERDUE'):dl===0?'DUE TODAY':dl===1?'DUE TOMORROW':(dl+' DAYS LEFT');
+      html+='<div class="card" style="margin-bottom:12px;border-left:3px solid '+dc+'">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center">'
+        +'<div><div class="flabel" style="margin-bottom:4px">Release Deadline</div>'
+        +'<div style="font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:1;color:'+dc+'">'+dlabel+'</div>'
+        +'<div style="font-size:10px;color:var(--muted);margin-top:3px">'+fmtDate(p.deadline)+'</div>'
+        +'</div><div style="font-size:36px;opacity:.12">'+(dl<0?'⚠':'📅')+'</div>'
+        +'</div></div>';
+    }
 
-    // Todo
-    const todoTasks=(p.todoTasks||[]).map(t=>({...t,_cat:'To-Do',_color:'#4a8fc4'}));
-    const todoDone=todoTasks.filter(t=>t.done).length;
+    // Master progress
+    html+='<div class="card" style="margin-bottom:12px">'
+      +'<div class="slabel">Overall Progress</div>'
+      +'<div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:12px">'
+      +'<div style="font-family:'Bebas Neue',sans-serif;font-size:52px;color:'+acc+';line-height:1">'+pct+'<span style="font-size:26px">%</span></div>'
+      +'<div style="flex:1;padding-bottom:8px">'
+      +'<div style="font-size:10px;color:var(--muted);margin-bottom:4px">'+totalDone+' of '+totalAll+' tasks complete</div>'
+      +'<div class="progress-bar" style="height:6px;margin:0"><div class="progress-fill" style="width:'+pct+'%;background:'+acc+'"></div></div>'
+      +'</div></div>'
+      +'<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">';
+    cats.forEach(function(x){
+      const cp=x.t?Math.round(x.d/x.t*100):0;
+      html+='<div onclick="sT(''+x.tab+'')" style="text-align:center;cursor:pointer">'
+        +'<div style="font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1;color:'+x.c+'">'+x.d+'<span style="font-size:12px;color:var(--muted);">/'+x.t+'</span></div>'
+        +'<div style="font-size:8px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:2px">'+x.l+'</div>'
+        +'<div style="height:2px;background:var(--surf2);border-radius:1px;margin-top:4px;overflow:hidden"><div style="height:100%;width:'+cp+'%;background:'+x.c+';border-radius:1px"></div></div>'
+        +'</div>';
+    });
+    html+='</div></div>';
 
-    // Milestones
-    const mileTasks=(p.milestones||[]).map(m=>({id:m.id,text:m.label,done:m.done,_cat:'Milestone',_color:'#8b68d4',_isMilestone:true}));
-    const mileDone=mileTasks.filter(t=>t.done).length;
-
-    // All combined
-    const allTasks=[...songTasks,...promoTasks,...contentTasks,...todoTasks,...mileTasks];
-    const totalDone=allTasks.filter(t=>t.done).length;
-    const totalAll=allTasks.length;
-    const totalPct=totalAll?Math.round(totalDone/totalAll*100):0;
-
-    // Incomplete tasks grouped
-    const incomplete=[
-      {label:'Music',color:acc,tab:'music',tasks:songTasks.filter(t=>!t.done),icon:'🎵'},
-      {label:'Promo',color:'#e07b3a',tab:'promo',tasks:promoTasks.filter(t=>!t.done),icon:'📸'},
-      {label:'Content',color:'#8b68d4',tab:'content',tasks:contentTasks.filter(t=>!t.done),icon:'📱'},
-      {label:'To-Do',color:'#4a8fc4',tab:'todo',tasks:todoTasks.filter(t=>!t.done),icon:'📋'},
-      {label:'Milestones',color:'#8b68d4',tab:'info',tasks:mileTasks.filter(t=>!t.done),icon:'◆'},
-    ].filter(g=>g.tasks.length>0);
-
-    return `
-    ${dl!==null?`<div class="card" style="margin-bottom:12px;border-left:3px solid ${dl<0?'#e07070':dl<7?'#d4a843':acc}">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <div class="flabel" style="margin-bottom:4px">Release Deadline</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:1;color:${dl<0?'#e07070':dl<7?'#d4a843':acc}">${dl<0?`${Math.abs(dl)} DAYS OVERDUE`:dl===0?'DUE TODAY':dl===1?'DUE TOMORROW':`${dl} DAYS LEFT`}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:3px">${fmtDate(p.deadline)}</div>
-        </div>
-        <div style="font-size:36px;opacity:.12">${dl<0?'⚠':'📅'}</div>
-      </div>
-    </div>`:''}
-
-    <div class="card" style="margin-bottom:12px">
-      <div class="slabel">Overall Progress</div>
-      <div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:12px">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:52px;color:${acc};line-height:1">${totalPct}<span style="font-size:26px">%</span></div>
-        <div style="flex:1;padding-bottom:8px">
-          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">${totalDone} of ${totalAll} tasks complete</div>
-          <div class="progress-bar" style="height:6px;margin:0"><div class="progress-fill" style="width:${totalPct}%;background:${acc}"></div></div>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
-        ${[
-          {l:'Music',d:songDone,t:songTasks.length,c:acc,tab:'music'},
-          {l:'Promo',d:promoDone,t:promoTasks.length,c:'#e07b3a',tab:'promo'},
-          {l:'Content',d:contentDone,t:contentTasks.length,c:'#8b68d4',tab:'content'},
-          {l:'To-Do',d:todoDone,t:todoTasks.length,c:'#4a8fc4',tab:'todo'},
-          {l:'Miles',d:mileDone,t:mileTasks.length,c:'#8b68d4',tab:'info'},
-        ].map(x=>`<div onclick="sT('${x.tab}')" style="text-align:center;cursor:pointer">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1;color:${x.c}">${x.d}<span style="font-size:12px;color:var(--muted)">/${x.t}</span></div>
-          <div style="font-size:8px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:2px">${x.l}</div>
-          <div style="height:2px;background:var(--surf2);border-radius:1px;margin-top:4px;overflow:hidden"><div style="height:100%;width:${x.t?Math.round(x.d/x.t*100):0}%;background:${x.c};border-radius:1px"></div></div>
-        </div>`).join('')}
-      </div>
-    </div>
-
-    ${incomplete.length>0?`<div class="slabel">Remaining Tasks</div>
-    ${incomplete.map((group,gi)=>`
-      <div style="margin-bottom:12px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <div style="display:flex;align-items:center;gap:6px;cursor:pointer" onclick="sT('${group.tab}')">
-            <span style="font-size:13px">${group.icon}</span>
-            <span style="font-size:10px;color:${group.color};letter-spacing:.15em;text-transform:uppercase;font-weight:500">${group.label}</span>
-            <span style="font-size:9px;color:var(--muted)">${group.tasks.length} left</span>
-          </div>
-          <span style="font-size:10px;color:var(--muted);cursor:pointer" onclick="sT('${group.tab}')">See all →</span>
-        </div>
-        ${group.tasks.slice(0,3).map(t=>`<div class="trow" style="cursor:default;margin-bottom:5px">
-          <div class="tcheck" style="border-color:${group.color}40"></div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.text}</div>
-            ${t._sub?`<div style="font-size:9px;color:var(--muted);margin-top:1px">${t._sub}</div>`:''}
-          </div>
-        </div>`).join('')}
-        ${group.tasks.length>3?`<div style="font-size:10px;color:var(--muted);padding:4px 10px;cursor:pointer" onclick="sT('${group.tab}')">+ ${group.tasks.length-3} more in ${group.label}</div>`:''}
-      </div>`).join('')}`
-    :'<div class="empty" style="color:#4caf82;padding:20px 0">🎉 All tasks complete across every category!</div>'}`;
+    // Remaining tasks by category
+    const hasIncomplete=cats.some(function(g){return g.items.length>0;});
+    if(!hasIncomplete){
+      html+='<div class="empty" style="color:#4caf82;padding:24px 0">🎉 All tasks complete!</div>';
+    } else {
+      html+='<div class="slabel">Remaining Tasks</div>';
+      cats.forEach(function(group){
+        if(!group.items.length)return;
+        html+='<div style="margin-bottom:14px">'
+          +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">'
+          +'<div style="display:flex;align-items:center;gap:6px;cursor:pointer" onclick="sT(''+group.tab+'')">'
+          +'<span>'+group.icon+'</span>'
+          +'<span style="font-size:10px;color:'+group.c+';letter-spacing:.15em;text-transform:uppercase">'+group.l+'</span>'
+          +'<span style="font-size:9px;color:var(--muted)">'+group.items.length+' left</span></div>'
+          +'<span style="font-size:10px;color:var(--muted);cursor:pointer" onclick="sT(''+group.tab+'')">See all →</span>'
+          +'</div>';
+        group.items.slice(0,3).forEach(function(t){
+          html+='<div class="trow" style="cursor:default;margin-bottom:5px">'
+            +'<div class="tcheck" style="border-color:'+group.c+'40"></div>'
+            +'<div style="flex:1;min-width:0">'
+            +'<div style="font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+t.text+'</div>'
+            +(t._sub?'<div style="font-size:9px;color:var(--muted);margin-top:1px">'+t._sub+'</div>':'')
+            +'</div></div>';
+        });
+        if(group.items.length>3){
+          html+='<div style="font-size:10px;color:var(--muted);padding:4px 10px;cursor:pointer" onclick="sT(''+group.tab+'')">'
+            +'+ '+(group.items.length-3)+' more in '+group.l+'</div>';
+        }
+        html+='</div>';
+      });
+    }
+    return html;
   }
+
 
 
   /* MUSIC (songs + focus subtabs) */
@@ -574,47 +564,51 @@ function bTab(){
     ${musicSub==='songs'?`
       ${!VO?`<button class="btn-o" onclick="addSongM()" style="margin-bottom:14px">+ Add Song</button>`:''}
       <div id="song-list">${songs.length?songs.map((s,i)=>sCard(s,i,acc)).join(''):'<div class="empty">No songs yet.</div>'}</div>`
-    :`<div style="margin-bottom:14px">
-      <div class="slabel" style="margin-bottom:4px">Today's Focus</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Incomplete tasks across all categories</div>
-    </div>
-    ${(()=>{
-      // Gather all incomplete tasks across all categories
-      const groups=[
-        {label:'Music',color:acc,icon:'🎵',tab:'music',items:songs.flatMap(s=>(s.tasks||[]).filter(t=>!t.done).map(t=>({...t,_sub:s.name,_sid:s.id,_tid:t.id,_type:'song'})))},
-        {label:'Promo',color:'#e07b3a',icon:'📸',tab:'promo',items:(p.promoTasks||[]).filter(t=>!t.done).map(t=>({...t,_type:'promo'}))},
-        {label:'Content',color:'#8b68d4',icon:'📱',tab:'content',items:(p.contentTasks||[]).filter(t=>!t.done).map(t=>({...t,_type:'content'}))},
-        {label:'To-Do',color:'#4a8fc4',icon:'📋',tab:'todo',items:(p.todoTasks||[]).filter(t=>!t.done).map(t=>({...t,_type:'todo'}))},
-        {label:'Milestones',color:'#8b68d4',icon:'◆',tab:'info',items:(p.milestones||[]).filter(m=>!m.done).map(m=>({id:m.id,text:m.label,_type:'milestone'}))},
-      ].filter(g=>g.items.length>0);
+    // FOCUS SUBTAB BELOW
+        // FOCUS subtab
+    const focusGroups=[
+      {label:'Music',color:acc,icon:'🎵',tab:'music',type:'song',items:songs.flatMap(function(s){return (s.tasks||[]).filter(function(t){return !t.done;}).map(function(t){return {id:t.id,text:t.text,_sub:s.name,_sid:s.id,_tid:t.id};});})},
+      {label:'Promo',color:'#e07b3a',icon:'📸',tab:'promo',type:'promo',items:(p.promoTasks||[]).filter(function(t){return !t.done;})},
+      {label:'Content',color:'#8b68d4',icon:'📱',tab:'content',type:'content',items:(p.contentTasks||[]).filter(function(t){return !t.done;})},
+      {label:'To-Do',color:'#4a8fc4',icon:'📋',tab:'todo',type:'todo',items:(p.todoTasks||[]).filter(function(t){return !t.done;})},
+      {label:'Milestones',color:'#8b68d4',icon:'◆',tab:'info',type:'milestone',items:(p.milestones||[]).filter(function(m){return !m.done;}).map(function(m){return {id:m.id,text:m.label};})},
+    ].filter(function(g){return g.items.length>0;});
 
-      if(!groups.length)return '<div class="empty" style="color:#4caf82">🎉 Nothing left to do — everything is complete!</div>';
+    if(!focusGroups.length) return '<div class="empty" style="color:#4caf82;padding:24px 0">🎉 All done — nothing left to do!</div>';
 
-      return groups.map((group,gi)=>`
-        <div style="margin-bottom:16px;animation:fadeUp .25s ease ${gi*.06}s backwards">
-          <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--bord)">
-            <span style="font-size:14px">${group.icon}</span>
-            <span style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:${group.color};letter-spacing:.04em">${group.label}</span>
-            <span style="font-size:10px;color:var(--muted);margin-left:2px">${group.items.length} remaining</span>
-          </div>
-          ${group.items.map(t=>`
-          <div class="trow" style="cursor:${VO?'default':'pointer'};margin-bottom:5px" ${!VO?`onclick="${
-            t._type==='song'?`tT('${t._sid}','${t._tid}')`:
-            t._type==='promo'?`toggleSimpleTask('promoTasks','${t.id}')`:
-            t._type==='content'?`toggleSimpleTask('contentTasks','${t.id}')`:
-            t._type==='todo'?`toggleSimpleTask('todoTasks','${t.id}')`:
-            t._type==='milestone'?`toggleMilestone('${t.id}')`:''
-          }"`:''}>
-            <div class="tcheck" style="border-color:${group.color}50"></div>
-            <div style="flex:1;min-width:0">
-              <div style="font-size:12px;line-height:1.5;color:var(--text)">${t.text}</div>
-              ${t._sub?`<div style="font-size:9px;color:var(--muted);margin-top:1px">${t._sub}</div>`:''}
-            </div>
-          </div>`).join('')}
-        </div>`).join('');
-    })()}
-`};
-  }
+    let fhtml='<div style="margin-bottom:14px"><div class="slabel" style="margin-bottom:3px">Today's Focus</div>'
+      +'<div style="font-size:11px;color:var(--muted);margin-bottom:14px">Incomplete tasks across all categories</div></div>';
+
+    focusGroups.forEach(function(group,gi){
+      fhtml+='<div style="margin-bottom:16px;animation:fadeUp .25s ease '+(gi*.06)+'s backwards">'
+        +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--bord)">'
+        +'<span style="font-size:14px">'+group.icon+'</span>'
+        +'<span style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:'+group.color+';letter-spacing:.04em">'+group.label+'</span>'
+        +'<span style="font-size:10px;color:var(--muted)">'+group.items.length+' remaining</span>'
+        +'</div>';
+
+      group.items.forEach(function(t){
+        let handler='';
+        if(!VO){
+          if(group.type==='song') handler='onclick="tT(''+t._sid+'',''+t._tid+'')"';
+          else if(group.type==='promo') handler='onclick="toggleSimpleTask('promoTasks',''+t.id+'')"';
+          else if(group.type==='content') handler='onclick="toggleSimpleTask('contentTasks',''+t.id+'')"';
+          else if(group.type==='todo') handler='onclick="toggleSimpleTask('todoTasks',''+t.id+'')"';
+          else if(group.type==='milestone') handler='onclick="toggleMilestone(''+t.id+'')"';
+        }
+        fhtml+='<div class="trow" '+handler+' style="cursor:'+(VO?'default':'pointer')+';margin-bottom:5px">'
+          +'<div class="tcheck" style="border-color:'+group.color+'50"></div>'
+          +'<div style="flex:1;min-width:0">'
+          +'<div style="font-size:12px;line-height:1.5;color:var(--text)">'+t.text+'</div>'
+          +(t._sub?'<div style="font-size:9px;color:var(--muted);margin-top:1px">'+t._sub+'</div>':'')
+          +'</div></div>';
+      });
+      fhtml+='</div>';
+    });
+    return fhtml;
+  }`;
+
+
 
   /* RELEASE SCHEDULE */
   if(TAB==='release'){
