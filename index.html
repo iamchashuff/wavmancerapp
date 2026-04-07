@@ -163,7 +163,7 @@ firebase.initializeApp({
 });
 const auth=firebase.auth(),db=firebase.firestore(),stor=firebase.storage();
 const IPINFO_TOKEN='9445a4621618c3';
-let CU=null,CP=null,CID=null,PL=null,VO=false,TAB='overview',OC={},dragSrc=null,musicSub='songs';
+let CU=null,CP=null,CID=null,PL=null,VO=false,TAB='overview',OC={},dragSrc=null,musicSub='songs',showArchive={};
 
 /* ── THEME ── */
 function applyTheme(dark){
@@ -209,6 +209,8 @@ const NAV_ITEMS=[
   {id:'todo',label:'To-Do',dot:'#4a8fc4',section:'General'},
   {id:'budget',label:'Budget',dot:'#4caf82',section:null},
   {id:'info',label:'Info & Notes',dot:'var(--muted)',section:null},
+  {id:'contacts',label:'Contacts',dot:'#4caf82',section:'Team'},
+  {id:'campaign',label:'Content Campaign',dot:'#e84393',section:'Release & Promo'},
   {id:'insights',label:'Insights',dot:'#8b68d4',section:'Analytics'},
 ];
 
@@ -251,6 +253,7 @@ const FAB_ACTIONS={
   budget:()=>addExpModal(),
   release:()=>addReleaseRowM(),
   info:()=>addMilestoneM(),
+  campaign:()=>addCampaignItemM(),
 };
 function fabAction(){
   const fn=FAB_ACTIONS[TAB]||(TAB==='overview'?()=>newProjM():null);
@@ -385,7 +388,7 @@ async function cProj(){
       title,artist:g('na'),label:g('nl'),coproducer:g('nc'),
       deadline:document.getElementById('nd').value||null,
       ownerId:CU.uid,songs:[],focusDone:{},notes:'',coverUrl:null,
-      milestones:[],expenses:[],views:[],promoTasks:[],contentTasks:[],todoTasks:[],releaseSchedule:[],
+      milestones:[],expenses:[],views:[],promoTasks:[],contentTasks:[],todoTasks:[],releaseSchedule:[],contacts:[],campaign:null,
       theme:{accent:'#c9383a',bg:'#0a0a0c',dark:true},
       createdAt:firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -452,6 +455,7 @@ function rP(){
 }
 
 function sT(t){
+  if(t==='campaign'&&CP&&(!CP.campaign||!CP.campaign.releaseDate))initCampaignDefaults();
   if(t==='focus'){TAB='music';musicSub='focus';}
   else{TAB=t;if(t==='music')musicSub=musicSub||'songs';}
   rP();
@@ -526,7 +530,15 @@ function bTab(){
         html+='<span style="font-size:9px;color:var(--muted)">'+group.items.length+' left</span></div>';
         html+='<span style="font-size:10px;color:var(--muted);cursor:pointer" onclick="sT(\''+group.tab+'\')">See all →</span></div>';
         group.items.slice(0,3).forEach(function(t){
-          html+='<div class="trow" style="cursor:default;margin-bottom:5px">';
+          var ovHandler='';
+          if(!VO){
+            if(group.tab==='music')ovHandler='onclick="tT(\''+t._sid+'\',\''+t._tid+'\')"';
+            else if(group.tab==='promo')ovHandler='onclick="toggleSimpleTask(\'promoTasks\',\''+t.id+'\')"';
+            else if(group.tab==='content')ovHandler='onclick="toggleSimpleTask(\'contentTasks\',\''+t.id+'\')"';
+            else if(group.tab==='todo')ovHandler='onclick="toggleSimpleTask(\'todoTasks\',\''+t.id+'\')"';
+            else if(group.tab==='info')ovHandler='onclick="toggleMilestone(\''+t.id+'\')"';
+          }
+          html+='<div class="trow" '+ovHandler+' style="cursor:'+(VO?'default':'pointer')+';margin-bottom:5px">';
           html+='<div class="tcheck" style="border-color:'+group.c+'40"></div>';
           html+='<div style="flex:1;min-width:0">';
           html+='<div style="font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+t.text+'</div>';
@@ -647,9 +659,14 @@ function bTab(){
     var tasks=p[cfg.field]||[];
     var dn2=tasks.filter(function(t){return t.done;}).length;
     var pct2=tasks.length?Math.round(dn2/tasks.length*100):0;
+    var showDone2=showArchive[TAB]||false;
+    var visibleTasks=showDone2?tasks:tasks.filter(function(t){return !t.done;});
     var thtml='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
     thtml+='<div class="slabel" style="margin:0;border:none;padding:0">'+cfg.label+'</div>';
-    thtml+='<span style="font-size:10px;color:var(--muted)">'+dn2+'/'+tasks.length+' done</span></div>';
+    thtml+='<div style="display:flex;align-items:center;gap:8px">';
+    thtml+='<span style="font-size:10px;color:var(--muted)">'+dn2+'/'+tasks.length+' done</span>';
+    if(dn2>0)thtml+='<button onclick="toggleArchive(\''+TAB+'\')" style="font-size:9px;color:var(--muted);background:var(--surf2);border:1px solid var(--bord);border-radius:3px;padding:2px 7px;cursor:pointer;font-family:\'DM Mono\',monospace;letter-spacing:.08em">'+(showDone2?'Hide done':'Show done')+'</button>';
+    thtml+='</div></div>';
     thtml+='<div class="progress-bar" style="margin-bottom:16px"><div class="progress-fill" style="width:'+pct2+'%;background:'+cfg.color+'"></div></div>';
     if(!VO){
       thtml+='<div style="display:flex;gap:8px;margin-bottom:14px">';
@@ -657,8 +674,8 @@ function bTab(){
       thtml+='<button class="btn-s" onclick="addSimpleTask(\''+cfg.field+'\',\''+cfg.inputId+'\')" style="background:'+cfg.color+'">Add</button>';
       thtml+='</div>';
     }
-    if(tasks.length){
-      tasks.forEach(function(t){
+    if(visibleTasks.length){
+      visibleTasks.forEach(function(t){
         var borderStyle=t.done?'':'border-color:'+cfg.color+'40';
         thtml+='<div class="trow" '+(VO?'':'onclick="toggleSimpleTask(\''+cfg.field+'\',\''+t.id+'\')"')+' style="cursor:'+(VO?'default':'pointer')+'">';
         thtml+='<div class="tcheck'+(t.done?' on':'')+'" style="'+borderStyle+'"></div>';
@@ -666,8 +683,10 @@ function bTab(){
         if(!VO)thtml+='<button onclick="event.stopPropagation();delSimpleTask(\''+cfg.field+'\',\''+t.id+'\')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.35">✕</button>';
         thtml+='</div>';
       });
-    } else {
+    } else if(!tasks.length){
       thtml+='<div class="empty">Nothing here yet.<br><small>Add your first item above.</small></div>';
+    } else {
+      thtml+='<div class="empty" style="padding:12px 0">All done! <span style="cursor:pointer;color:var(--acc)" onclick="toggleArchive(\''+TAB+'\')">'+(showDone2?'':'Show completed →')+'</span></div>';
     }
     return thtml;
   }
@@ -784,6 +803,367 @@ function bTab(){
       infhtml+='<div class="card" style="font-size:12px;white-space:pre-wrap;line-height:1.7;color:var(--text)">'+(p.notes||'No notes.')+'</div>';
     }
     return infhtml;
+  }
+
+
+  /* CAMPAIGN */
+  if(TAB==='campaign'){
+    var cam=p.campaign||{};
+    var items=cam.items||[];
+    var pink='#e84393';
+
+    // sub-nav state
+    var csub=window._camSub||'overview';
+
+    var html='';
+
+    // Sub-nav
+    var subTabs=[['overview','Overview'],['deliverables','Deliverables'],['pipeline','Pipeline'],['budget','Budget'],['timeline','Timeline']];
+    html+='<div style="display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none">';
+    subTabs.forEach(function(st){
+      var on=csub===st[0];
+      html+='<button onclick="window._camSub=\''+st[0]+'\';rP()" style="padding:7px 12px;background:'+(on?pink:'var(--surf2)')+';color:'+(on?'#fff':'var(--muted)')+';border:1px solid '+(on?pink:'var(--bord)')+';border-radius:5px;font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap;flex-shrink:0">'+st[1]+'</button>';
+    });
+    html+='</div>';
+
+    // ── OVERVIEW SUB-TAB ─────────────────────────────────────────
+    if(csub==='overview'){
+      var rel=cam.releaseTitle||'Single #1';
+      var relDate=cam.releaseDate||'2025-05-01';
+      var nextDate=cam.nextDate||'';
+      var status=cam.status||'Pre-Release';
+      var notes=cam.notes||'';
+
+      // Quick stats
+      var total=items.length;
+      var posted=items.filter(function(x){return x.status==='posted';}).length;
+      var ready=items.filter(function(x){return x.status==='ready'||x.status==='scheduled';}).length;
+      var inProg=items.filter(function(x){return ['shot','editing'].includes(x.status);}).length;
+      var ideas=items.filter(function(x){return ['idea','planned'].includes(x.status);}).length;
+
+      // Deadline from release date
+      var dldays=relDate?daysLeft(relDate):null;
+
+      if(dldays!==null){
+        var dc=dldays<0?'#e07070':dldays<7?'#d4a843':pink;
+        html+='<div class="card" style="margin-bottom:12px;border-left:3px solid '+dc+'">';
+        html+='<div style="display:flex;justify-content:space-between;align-items:center">';
+        html+='<div><div class="flabel" style="margin-bottom:3px">'+esc(rel)+'</div>';
+        html+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:26px;color:'+dc+';line-height:1">'+(dldays<0?Math.abs(dldays)+' DAYS POST-RELEASE':dldays===0?'RELEASE DAY':dldays+'D TO RELEASE')+'</div>';
+        html+='<div style="font-size:10px;color:var(--muted);margin-top:3px">'+fmtDate(relDate)+(nextDate?' → Next: '+fmtDate(nextDate):'')+'</div></div>';
+        html+='<div style="font-size:10px;padding:3px 9px;border-radius:3px;background:'+pink+'18;color:'+pink+';letter-spacing:.1em;text-transform:uppercase">'+esc(status)+'</div>';
+        html+='</div></div>';
+      }
+
+      // Content stats grid
+      html+='<div class="card" style="margin-bottom:12px">';
+      html+='<div class="slabel">Content Inventory</div>';
+      html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">';
+      [{n:total,l:'Total',c:'var(--text)'},{n:posted,l:'Posted',c:'#4caf82'},{n:ready,l:'Ready',c:'#d4a843'},{n:inProg,l:'In Prog',c:pink}].forEach(function(x){
+        html+='<div style="text-align:center"><div style="font-family:\'Bebas Neue\',sans-serif;font-size:30px;line-height:1;color:'+x.c+'">'+x.n+'</div><div style="font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:2px">'+x.l+'</div></div>';
+      });
+      html+='</div>';
+      var postPct=total?Math.round(posted/total*100):0;
+      html+='<div class="progress-bar"><div class="progress-fill" style="width:'+postPct+'%;background:'+pink+'"></div></div>';
+      html+='<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:4px"><span>'+posted+' of '+total+' posted</span><span>'+postPct+'%</span></div>';
+      html+='</div>';
+
+      // Content mix targets
+      var mix=cam.mix||{perf:40,brand:30,story:20,trend:10};
+      html+='<div class="card" style="margin-bottom:12px">';
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+      html+='<div class="slabel" style="margin:0;border:none;padding:0">Content Mix Targets</div>';
+      if(!VO)html+='<button onclick="editMixM()" style="font-size:9px;color:'+pink+';background:'+pink+'12;border:1px solid '+pink+'30;border-radius:3px;padding:2px 8px;cursor:pointer;font-family:\'DM Mono\',monospace;letter-spacing:.08em">Edit</button>';
+      html+='</div>';
+      [{l:'Performance',v:mix.perf,c:'#c9383a'},{l:'Identity / Brand',v:mix.brand,c:pink},{l:'Story / Meaning',v:mix.story,c:'#8b68d4'},{l:'Trend / Experimental',v:mix.trend,c:'#4a8fc4'}].forEach(function(m){
+        html+='<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span style="color:var(--text)">'+m.l+'</span><span style="color:'+m.c+'">'+m.v+'%</span></div>';
+        html+='<div class="progress-bar" style="height:4px;margin:0"><div class="progress-fill" style="width:'+m.v+'%;background:'+m.c+'"></div></div></div>';
+      });
+      html+='</div>';
+
+      // Weekly target
+      var wt=cam.weeklyTarget||{perf:3,brand:2,story:1,trend:1};
+      html+='<div class="card" style="margin-bottom:12px">';
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+      html+='<div class="slabel" style="margin:0;border:none;padding:0">Weekly Posting Target</div>';
+      var wtTotal=wt.perf+wt.brand+wt.story+wt.trend;
+      html+='<div style="font-size:10px;color:var(--muted)">'+wtTotal+'x / week</div>';
+      html+='</div>';
+      [{l:'Performance',v:wt.perf,c:'#c9383a'},{l:'Brand / ID',v:wt.brand,c:pink},{l:'Story',v:wt.story,c:'#8b68d4'},{l:'Trend',v:wt.trend,c:'#4a8fc4'}].forEach(function(w){
+        html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bord)">';
+        html+='<span style="font-size:11px;color:var(--text)">'+w.l+'</span>';
+        html+='<div style="display:flex;gap:4px">';
+        for(var i=0;i<7;i++){
+          html+='<div style="width:16px;height:16px;border-radius:3px;background:'+(i<w.v?w.c:w.c+'20')+'"></div>';
+        }
+        html+='</div></div>';
+      });
+      html+='</div>';
+
+      // Campaign notes
+      html+='<div class="slabel">Campaign Notes</div>';
+      if(!VO){
+        html+='<textarea class="field" id="cam-notes" style="min-height:80px" placeholder="Strategy, ideas, reminders..." oninput="savCamNotes(this.value)">'+esc(notes)+'</textarea>';
+        html+='<div style="font-size:10px;color:var(--muted);margin-top:2px">Auto-saved <span id="cndot" style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#4caf82;opacity:0;transition:opacity .3s;vertical-align:middle"></span></div>';
+      } else {
+        html+='<div class="card" style="font-size:12px;white-space:pre-wrap;line-height:1.7">'+esc(notes||'No notes.')+'</div>';
+      }
+
+      if(!VO){
+        html+='<button class="btn-o" onclick="editCampaignSetupM()" style="margin-top:14px">⚙ Edit Campaign Settings</button>';
+      }
+    }
+
+    // ── DELIVERABLES SUB-TAB ─────────────────────────────────────
+    if(csub==='deliverables'){
+      var types=[
+        {key:'short',label:'Short-form Clips',target:'30–50',icon:'📱',color:pink},
+        {key:'perf',label:'Performance Clips',target:'10–15',icon:'🎵',color:'#c9383a'},
+        {key:'brand',label:'Aesthetic / Brand',target:'10',icon:'✨',color:'#e07b3a'},
+        {key:'story',label:'Story / Talking',target:'5–10',icon:'💬',color:'#8b68d4'},
+        {key:'trend',label:'Trend / Experimental',target:'5–10',icon:'🔥',color:'#4a8fc4'},
+        {key:'edit',label:'Polished Edits',target:'2–4',icon:'🎬',color:'#4caf82'},
+        {key:'anchor',label:'Anchor Video',target:'1',icon:'🎯',color:'#d4a843'},
+      ];
+      var dTargets=cam.delivTargets||{};
+
+      html+='<div class="slabel">Deliverable Targets</div>';
+      html+='<div style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.6">Track how many assets you need for the full campaign. Tap a row to update your target.</div>';
+      html+='<div class="card" style="padding:0;overflow:hidden;margin-bottom:14px">';
+      types.forEach(function(type,i){
+        var target=dTargets[type.key]||type.target;
+        var typeItems=items.filter(function(x){return x.type===type.key;});
+        var tPosted=typeItems.filter(function(x){return x.status==='posted';}).length;
+        var tReady=typeItems.filter(function(x){return ['ready','scheduled'].includes(x.status);}).length;
+        var tWIP=typeItems.filter(function(x){return ['shot','editing'].includes(x.status);}).length;
+        var tTotal=typeItems.length;
+        html+='<div style="padding:12px 14px;border-bottom:'+(i===types.length-1?'none':'1px solid var(--bord)')+'">';
+        html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">';
+        html+='<span style="font-size:16px">'+type.icon+'</span>';
+        html+='<div style="flex:1;min-width:0"><div style="font-size:12px;color:var(--text)">'+type.label+'</div>';
+        html+='<div style="font-size:9px;color:var(--muted)">Target: '+target+'</div></div>';
+        html+='<div style="text-align:right">';
+        html+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:20px;color:'+type.color+';line-height:1">'+tTotal+'</div>';
+        html+='<div style="font-size:9px;color:var(--muted)">logged</div>';
+        html+='</div></div>';
+        if(tTotal>0){
+          html+='<div style="display:flex;gap:6px;font-size:9px">';
+          if(tPosted)html+='<span style="background:rgba(76,175,130,.15);color:#4caf82;padding:2px 6px;border-radius:3px">'+tPosted+' posted</span>';
+          if(tReady)html+='<span style="background:rgba(212,168,67,.15);color:#d4a843;padding:2px 6px;border-radius:3px">'+tReady+' ready</span>';
+          if(tWIP)html+='<span style="background:'+type.color+'15;color:'+type.color+';padding:2px 6px;border-radius:3px">'+tWIP+' in progress</span>';
+          html+='</div>';
+        }
+        html+='</div>';
+      });
+      html+='</div>';
+
+      if(!VO)html+='<button class="btn-o" onclick="addCampaignItemM()" style="margin-bottom:8px">+ Log Content Item</button>';
+    }
+
+    // ── PIPELINE SUB-TAB ─────────────────────────────────────────
+    if(csub==='pipeline'){
+      var stages=['idea','planned','shot','editing','ready','scheduled','posted'];
+      var stageColors={idea:'var(--muted)',planned:'#4a8fc4',shot:'#e07b3a',editing:'#d4a843',ready:'#8b68d4',scheduled:pink,posted:'#4caf82'};
+      var stageLabels={idea:'Idea',planned:'Planned',shot:'Shot',editing:'Editing',ready:'Ready',scheduled:'Scheduled',posted:'Posted'};
+
+      // Filter controls
+      var pFilter=window._camFilter||'all';
+      html+='<div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">';
+      html+='<button onclick="window._camFilter=\'all\';rP()" style="padding:5px 10px;background:'+(pFilter==='all'?pink:'var(--surf2)')+';color:'+(pFilter==='all'?'#fff':'var(--muted)')+';border:1px solid '+(pFilter==='all'?pink:'var(--bord)')+';border-radius:4px;font-family:\'DM Mono\',monospace;font-size:9px;letter-spacing:.1em;cursor:pointer">All ('+items.length+')</button>';
+      stages.forEach(function(st){
+        var n=items.filter(function(x){return x.status===st;}).length;
+        if(n===0&&pFilter!==st)return;
+        html+='<button onclick="window._camFilter=\''+st+'\';rP()" style="padding:5px 10px;background:'+(pFilter===st?stageColors[st]:'var(--surf2)')+';color:'+(pFilter===st?'#fff':'var(--muted)')+';border:1px solid '+(pFilter===st?stageColors[st]:'var(--bord)')+';border-radius:4px;font-family:\'DM Mono\',monospace;font-size:9px;letter-spacing:.1em;cursor:pointer">'+stageLabels[st]+' ('+n+')</button>';
+      });
+      html+='</div>';
+
+      var filtered=pFilter==='all'?items:items.filter(function(x){return x.status===pFilter;});
+
+      if(!filtered.length){
+        html+='<div class="empty">No content items'+(pFilter!=='all'?' in this stage':'')+'.<br><small>'+(VO?'':'Tap + to log your first piece of content.')+'</small></div>';
+      } else {
+        filtered.forEach(function(item,idx){
+          var sc=stageColors[item.status]||'var(--muted)';
+          var sl=stageLabels[item.status]||item.status;
+          var ownerColor=item.owner==='self'?'#4a8fc4':'#e07b3a';
+          html+='<div class="card" style="margin-bottom:8px;padding:0;overflow:hidden">';
+          html+='<div style="height:2px;background:'+sc+'"></div>';
+          html+='<div style="padding:12px 14px">';
+          html+='<div style="display:flex;align-items:flex-start;gap:10px">';
+          html+='<div style="flex:1;min-width:0">';
+          html+='<div style="font-size:12px;font-weight:500;color:var(--text);margin-bottom:4px;line-height:1.4">'+esc(item.title||'Untitled')+'</div>';
+          html+='<div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">';
+          html+='<span style="font-size:9px;background:'+sc+'18;color:'+sc+';padding:2px 7px;border-radius:3px;letter-spacing:.08em;text-transform:uppercase">'+sl+'</span>';
+          if(item.type)html+='<span style="font-size:9px;background:var(--surf2);color:var(--muted);padding:2px 7px;border-radius:3px">'+esc(item.type)+'</span>';
+          if(item.owner)html+='<span style="font-size:9px;background:'+ownerColor+'15;color:'+ownerColor+';padding:2px 7px;border-radius:3px">'+(item.owner==='self'?'Self':'Friend / Hired')+'</span>';
+          html+='</div>';
+          if(item.caption)html+='<div style="font-size:10px;color:var(--muted);margin-top:5px;font-style:italic">Caption: '+esc(item.caption)+'</div>';
+          if(item.shootDate||item.notes)html+='<div style="font-size:10px;color:var(--muted);margin-top:3px">'+(item.shootDate?'📅 Shoot: '+fmtDateShort(item.shootDate):'')+(item.notes?(item.shootDate?' · ':'')+esc(item.notes):'')+'</div>';
+          html+='</div>';
+          if(!VO){
+            html+='<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">';
+            html+='<button onclick="editCampaignItemM(\''+item.id+'\')" class="iBtn" style="font-size:14px;padding:3px">✎</button>';
+            html+='<button onclick="advanceCamItem(\''+item.id+'\')" title="Advance stage" style="font-size:12px;padding:3px;background:none;border:none;cursor:pointer;color:'+sc+'">▶</button>';
+            html+='<button onclick="delCamItem(\''+item.id+'\')" class="iBtn" style="font-size:12px;padding:3px;opacity:.35">✕</button>';
+            html+='</div>';
+          }
+          html+='</div></div></div>';
+        });
+      }
+      if(!VO)html+='<button class="btn-o" onclick="addCampaignItemM()" style="margin-top:4px">+ Log Content Item</button>';
+    }
+
+    // ── BUDGET SUB-TAB ───────────────────────────────────────────
+    if(csub==='budget'){
+      var bud=cam.budget||{};
+      var dayRate=bud.dayRate||350;
+      var clipRate=bud.clipRate||25;
+      var shootDays=bud.shootDays||1;
+      var clipsOrdered=bud.clipsOrdered||10;
+      var customItems=bud.customItems||[];
+      var actualSpend=bud.actualSpend||0;
+
+      var projected=dayRate*shootDays + clipRate*clipsOrdered;
+      customItems.forEach(function(c){projected+=parseFloat(c.amount)||0;});
+      var variance=projected-actualSpend;
+
+      html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">';
+      html+='<div class="card" style="margin:0;text-align:center"><div style="font-family:\'Bebas Neue\',sans-serif;font-size:36px;color:'+pink+';line-height:1">$'+projected.toFixed(0)+'</div><div class="flabel" style="margin:5px 0 0">Projected</div></div>';
+      html+='<div class="card" style="margin:0;text-align:center"><div style="font-family:\'Bebas Neue\',sans-serif;font-size:36px;color:'+(actualSpend>projected?'#e07070':'#4caf82')+';line-height:1">$'+actualSpend.toFixed(0)+'</div><div class="flabel" style="margin:5px 0 0">Actual</div></div>';
+      html+='</div>';
+
+      html+='<div class="card" style="margin-bottom:14px">';
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">';
+      html+='<div class="slabel" style="margin:0;border:none;padding:0">Budget Calculator</div>';
+      if(!VO)html+='<button onclick="editBudgetM()" style="font-size:9px;color:'+pink+';background:'+pink+'12;border:1px solid '+pink+'30;border-radius:3px;padding:2px 8px;cursor:pointer;font-family:\'DM Mono\',monospace;letter-spacing:.08em">Edit</button>';
+      html+='</div>';
+
+      [{l:'Shoot Day Rate',v:'$'+dayRate+'/day × '+shootDays+'d',total:'$'+(dayRate*shootDays)},{l:'Edited Clips',v:'$'+clipRate+'/clip × '+clipsOrdered,total:'$'+(clipRate*clipsOrdered)}].forEach(function(row){
+        html+='<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bord)">';
+        html+='<div><div style="font-size:12px;color:var(--text)">'+row.l+'</div><div style="font-size:10px;color:var(--muted)">'+row.v+'</div></div>';
+        html+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:18px;color:var(--text)">'+row.total+'</div></div>';
+      });
+      customItems.forEach(function(c,i){
+        html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bord)">';
+        html+='<span style="font-size:12px;color:var(--text)">'+esc(c.label)+'</span>';
+        html+='<div style="display:flex;align-items:center;gap:8px"><span style="font-family:\'Bebas Neue\',sans-serif;font-size:18px;color:var(--text)">$'+parseFloat(c.amount).toFixed(0)+'</span>';
+        if(!VO)html+='<button onclick="delBudgetItem('+i+')" class="iBtn" style="font-size:11px;opacity:.35;padding:2px">✕</button>';
+        html+='</div></div>';
+      });
+      html+='<div style="display:flex;justify-content:space-between;padding:10px 0 0;margin-top:2px">';
+      html+='<span style="font-size:12px;color:var(--text);font-weight:500">Projected Total</span>';
+      html+='<span style="font-family:\'Bebas Neue\',sans-serif;font-size:22px;color:'+pink+'">$'+projected.toFixed(0)+'</span></div>';
+      html+='</div>';
+
+      html+='<div class="card" style="margin-bottom:14px">';
+      html+='<div class="slabel">Fair Market Reference</div>';
+      html+='<div style="font-size:11px;color:var(--muted);line-height:1.8">';
+      html+='<div>📸 Friend day rate: <span style="color:var(--text)">$200–$500 (recommend $300–$400)</span></div>';
+      html+='<div>✂️ Short-form clip edit: <span style="color:var(--text)">$20–$30 per clip</span></div>';
+      html+='<div>🎬 Polished edit: <span style="color:var(--text)">$75–$150</span></div>';
+      html+='<div style="margin-top:8px;font-size:10px;color:var(--muted)">These are independent artist rates, not agency rates. Pay your people fairly.</div>';
+      html+='</div></div>';
+
+      if(!VO){
+        html+='<div class="card" style="margin-bottom:14px">';
+        html+='<div class="flabel">Log Actual Spend</div>';
+        html+='<div style="display:flex;gap:8px">';
+        html+='<input class="field" id="act-spend" type="number" value="'+actualSpend+'" style="flex:1;margin:0" placeholder="Total actually spent">';
+        html+='<button class="btn-s" onclick="saveActualSpend()" style="background:'+pink+'">Save</button>';
+        html+='</div></div>';
+      }
+    }
+
+    // ── TIMELINE SUB-TAB ─────────────────────────────────────────
+    if(csub==='timeline'){
+      var relDate2=cam.releaseDate||'2025-05-01';
+      var relMs=new Date(relDate2+'T00:00:00').getTime();
+      var todayMs=new Date();todayMs.setHours(0,0,0,0);todayMs=todayMs.getTime();
+
+      // Build phase windows
+      var phases=[
+        {label:'Pre-Release',sub:'Film early, build backlog',start:-42,end:-15,color:'#4a8fc4',icon:'🎬'},
+        {label:'Launch Build-Up',sub:'Ramp up, 7–14 posts/week',start:-14,end:-1,color:'#d4a843',icon:'🚀'},
+        {label:'Release Week',sub:'Push hardest, go all in',start:0,end:6,color:pink,icon:'🔥'},
+        {label:'Post-Release',sub:'Keep momentum, stay active',start:7,end:20,color:'#8b68d4',icon:'📈'},
+        {label:'Bridge to Next',sub:'Tease next single, don\'t go quiet',start:21,end:28,color:'#4caf82',icon:'🔗'},
+      ];
+
+      html+='<div class="slabel">Campaign Timeline</div>';
+      html+='<div style="font-size:11px;color:var(--muted);margin-bottom:14px">Based on release: <strong style="color:var(--text)">'+fmtDate(relDate2)+'</strong></div>';
+
+      phases.forEach(function(ph){
+        var phStart=new Date(relMs+ph.start*864e5);
+        var phEnd=new Date(relMs+ph.end*864e5);
+        var nowOffset=Math.round((todayMs-relMs)/864e5);
+        var isActive=nowOffset>=ph.start&&nowOffset<=ph.end;
+        var isPast=nowOffset>ph.end;
+
+        html+='<div class="card" style="margin-bottom:10px;border-left:3px solid '+(isActive?ph.color:isPast?'var(--bord)':ph.color+'40')+';opacity:'+(isPast?.65:1)+'">';
+        html+='<div style="display:flex;align-items:center;gap:10px">';
+        html+='<span style="font-size:20px">'+ph.icon+'</span>';
+        html+='<div style="flex:1">';
+        html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">';
+        html+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:18px;color:'+(isActive?ph.color:'var(--text)')+';letter-spacing:.04em">'+ph.label+'</div>';
+        if(isActive)html+='<span style="font-size:9px;background:'+ph.color+';color:#fff;padding:2px 7px;border-radius:10px;letter-spacing:.1em">NOW</span>';
+        if(isPast)html+='<span style="font-size:9px;color:var(--muted)">Done</span>';
+        html+='</div>';
+        html+='<div style="font-size:10px;color:var(--muted)">'+ph.sub+'</div>';
+        html+='<div style="font-size:10px;color:var(--muted);margin-top:3px">'+fmtDateShort(phStart.toISOString().slice(0,10))+' → '+fmtDateShort(phEnd.toISOString().slice(0,10))+'</div>';
+        html+='</div></div></div>';
+      });
+
+      // Show scheduled items on this timeline
+      var scheduled=items.filter(function(x){return x.shootDate||x.postDate;});
+      if(scheduled.length){
+        html+='<div class="slabel" style="margin-top:6px">Upcoming Shoots & Posts</div>';
+        scheduled.sort(function(a,b){return (a.shootDate||a.postDate||'').localeCompare(b.shootDate||b.postDate||'');});
+        scheduled.slice(0,8).forEach(function(item){
+          var d=item.shootDate||item.postDate;
+          var dOffset=d?Math.round((new Date(d+'T00:00:00').getTime()-relMs)/864e5):null;
+          html+='<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bord)">';
+          html+='<div style="font-size:10px;color:var(--muted);min-width:70px">'+fmtDateShort(d)+'</div>';
+          html+='<div style="flex:1;font-size:12px;color:var(--text)">'+esc(item.title||'Untitled')+'</div>';
+          if(dOffset!==null)html+='<div style="font-size:9px;color:var(--muted)">'+(dOffset<0?Math.abs(dOffset)+'d before':dOffset===0?'release day':dOffset+'d after')+'</div>';
+          html+='</div>';
+        });
+      }
+    }
+
+    return html;
+  }
+
+  /* CONTACTS */
+  if(TAB==='contacts'){
+    var contacts=p.contacts||[];
+    var chtml='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">';
+    chtml+='<div class="slabel" style="margin:0;border:none;padding:0">Team & Contacts</div>';
+    if(!VO)chtml+='<button class="btn-s" onclick="addContactM()">+ Add</button>';
+    chtml+='</div>';
+    if(contacts.length){
+      contacts.forEach(function(ct){
+        chtml+='<div class="card" style="margin-bottom:10px;padding:0;overflow:hidden">';
+        chtml+='<div style="display:flex;align-items:center;gap:12px;padding:14px">';
+        chtml+='<div style="width:40px;height:40px;border-radius:50%;background:'+acc+'18;border:1px solid '+acc+'30;display:flex;align-items:center;justify-content:center;font-family:\'Bebas Neue\',sans-serif;font-size:18px;color:'+acc+';flex-shrink:0">'+esc(ct.name?ct.name[0].toUpperCase():'?')+'</div>';
+        chtml+='<div style="flex:1;min-width:0">';
+        chtml+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:18px;letter-spacing:.04em;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(ct.name||'Unnamed')+'</div>';
+        chtml+='<div style="font-size:10px;color:'+acc+';letter-spacing:.1em;text-transform:uppercase;margin-top:1px">'+esc(ct.role||'')+'</div>';
+        chtml+='</div>';
+        if(!VO)chtml+='<div style="display:flex;gap:4px"><button onclick="editContactM(\''+ct.id+'\')" class="iBtn" style="font-size:14px;padding:4px">✎</button><button onclick="delContact(\''+ct.id+'\')" class="iBtn" style="font-size:12px;padding:4px;opacity:.4">✕</button></div>';
+        chtml+='</div>';
+        if(ct.email||ct.phone||ct.notes){
+          chtml+='<div style="padding:0 14px 14px;border-top:1px solid var(--bord)">';
+          if(ct.email)chtml+='<a href="mailto:'+esc(ct.email)+'" style="display:flex;align-items:center;gap:8px;padding:7px 0;font-size:11px;color:var(--text);text-decoration:none;border-bottom:1px solid var(--bord)"><span style="color:var(--muted)">✉</span>'+esc(ct.email)+'</a>';
+          if(ct.phone)chtml+='<a href="tel:'+esc(ct.phone)+'" style="display:flex;align-items:center;gap:8px;padding:7px 0;font-size:11px;color:var(--text);text-decoration:none;'+(ct.notes?'border-bottom:1px solid var(--bord)':'')+'"><span style="color:var(--muted)">✆</span>'+esc(ct.phone)+'</a>';
+          if(ct.notes)chtml+='<div style="font-size:11px;color:var(--muted);padding:8px 0;line-height:1.6;white-space:pre-wrap">'+esc(ct.notes)+'</div>';
+          chtml+='</div>';
+        }
+        chtml+='</div>';
+      });
+    } else {
+      chtml+='<div class="empty">No contacts yet.<br><small>Add your label, co-producer, management.</small></div>';
+    }
+    return chtml;
   }
 
   return '';
@@ -1072,13 +1452,19 @@ async function deleteProject(){
 
 /* ── SHARE ── */
 function shareM(){
-  const link=location.origin+location.pathname+'#/view/'+CID;
-  SM(`<div class="modal-title">Share Project</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6">Anyone with this link can view your project (read only). Views are tracked in Insights.</div>
-    <div style="background:var(--surf2);border:1px solid var(--bord);border-radius:8px;padding:12px 14px;font-size:11px;word-break:break-all;margin-bottom:14px;color:var(--text);line-height:1.5">${link}</div>
-    <button class="btn-p" id="cbtn" onclick="cpL('${link}')">Copy Link</button>
-    <div class="mactions"><button class="btn-g" onclick="CM()">Close</button></div>`);
+  var link=location.origin+location.pathname+'#/view/'+CID;
+  SM('<div class="modal-title">Share</div>'
+    +'<div class="flabel" style="margin-bottom:6px">Share Link</div>'
+    +'<div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.6">Anyone with this link can view (read only). Views tracked in Insights.</div>'
+    +'<div style="background:var(--surf2);border:1px solid var(--bord);border-radius:8px;padding:12px 14px;font-size:11px;word-break:break-all;margin-bottom:10px;color:var(--text);line-height:1.5">'+link+'</div>'
+    +'<button class="btn-p" id="cbtn" onclick="cpL(\''+link+'\')">Copy Share Link</button>'
+    +'<div style="height:1px;background:var(--bord);margin:16px 0"></div>'
+    +'<div class="flabel" style="margin-bottom:6px">Status Export</div>'
+    +'<div style="font-size:12px;color:var(--muted);margin-bottom:10px">Generate a plain-text status update to send to your label or team.</div>'
+    +'<button class="btn-o" style="margin-top:0" onclick="CM();exportStatusM()">Generate Status Update</button>'
+    +'<div class="mactions"><button class="btn-g" onclick="CM()">Close</button></div>');
 }
+
 function cpL(l){navigator.clipboard.writeText(l).then(()=>{const b=document.getElementById('cbtn');if(b){b.textContent='✓ Copied!';setTimeout(()=>b.textContent='Copy Link',2000);}});}
 
 /* ── SETTINGS ── */
@@ -1158,6 +1544,315 @@ async function logView(pid){
     const views=snap.data()?.views||[];views.push({id:'v'+ts,ts,timeStr,name,location});
     await db.collection('projects').doc(pid).update({views});
   }catch(e){}
+}
+
+
+/* ── CONTACTS ── */
+function addContactM(){
+  SM('<div class="modal-title">Add Contact</div>'
+    +'<input class="field" id="cn" placeholder="Name" autofocus>'
+    +'<input class="field" id="cr" placeholder="Role (e.g. Label President, Co-Producer)">'
+    +'<input class="field" id="ce" type="email" placeholder="Email">'
+    +'<input class="field" id="cp" type="tel" placeholder="Phone">'
+    +'<textarea class="field" id="co" placeholder="Notes (anything useful to remember)" style="min-height:70px"></textarea>'
+    +'<div class="err" id="cnerr"></div>'
+    +'<div class="mactions">'
+    +'<button class="btn-g" onclick="CM()">Cancel</button>'
+    +'<button class="btn-p" style="width:auto;padding:10px 22px" onclick="saveContact(\'\')">Add</button>'
+    +'</div>');
+}
+function editContactM(id){
+  var c=(CP.contacts||[]).find(function(x){return x.id===id;});
+  if(!c)return;
+  SM('<div class="modal-title">Edit Contact</div>'
+    +'<input class="field" id="cn" value="'+esc(c.name||'')+'" placeholder="Name">'
+    +'<input class="field" id="cr" value="'+esc(c.role||'')+'" placeholder="Role">'
+    +'<input class="field" id="ce" type="email" value="'+esc(c.email||'')+'" placeholder="Email">'
+    +'<input class="field" id="cp" type="tel" value="'+esc(c.phone||'')+'" placeholder="Phone">'
+    +'<textarea class="field" id="co" placeholder="Notes" style="min-height:70px">'+esc(c.notes||'')+'</textarea>'
+    +'<div class="mactions">'
+    +'<button class="btn-g" onclick="CM()">Cancel</button>'
+    +'<button class="btn-p" style="width:auto;padding:10px 22px" onclick="saveContact(\''+id+'\')">Save</button>'
+    +'</div>');
+}
+async function saveContact(existingId){
+  var name=g('cn');
+  if(!name)return sErr('cnerr','Enter a name.');
+  var contacts=[].concat(CP.contacts||[]);
+  var contact={id:existingId||'c'+Date.now(),name:name,role:g('cr'),email:g('ce'),phone:g('cp'),notes:document.getElementById('co')?.value?.trim()||''};
+  if(existingId){var i=contacts.findIndex(function(c){return c.id===existingId;});if(i>=0)contacts[i]=contact;else contacts.push(contact);}
+  else contacts.push(contact);
+  await db.collection('projects').doc(CID).update({contacts:contacts});CM();
+}
+async function delContact(id){
+  await db.collection('projects').doc(CID).update({contacts:(CP.contacts||[]).filter(function(c){return c.id!==id;})});
+}
+
+/* ── ARCHIVE ── */
+function toggleArchive(tab){showArchive[tab]=!showArchive[tab];rP();}
+
+/* ── EXPORT STATUS ── */
+function exportStatusM(){
+  var p=CP;
+  var songs=p.songs||[];
+  var now=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+
+  var songTasks=[];
+  songs.forEach(function(s){(s.tasks||[]).forEach(function(t){songTasks.push({done:t.done});});});
+  var promoT=p.promoTasks||[],contentT=p.contentTasks||[],todoT=p.todoTasks||[];
+  var mileT=p.milestones||[];
+  var totalDone=songTasks.filter(function(t){return t.done;}).length+promoT.filter(function(t){return t.done;}).length+contentT.filter(function(t){return t.done;}).length+todoT.filter(function(t){return t.done;}).length+mileT.filter(function(m){return m.done;}).length;
+  var totalAll=songTasks.length+promoT.length+contentT.length+todoT.length+mileT.length;
+  var pct=totalAll?Math.round(totalDone/totalAll*100):0;
+
+  var lines=[];
+  lines.push((p.title||'Project')+' — Status Update');
+  lines.push(now);
+  lines.push('');
+  lines.push('Overall: '+pct+'% complete ('+totalDone+'/'+totalAll+' tasks)');
+  if(p.deadline){
+    var dl=daysLeft(p.deadline);
+    lines.push('Deadline: '+fmtDate(p.deadline)+(dl!==null?' ('+( dl<0?Math.abs(dl)+'d overdue':dl===0?'today':dl+'d left')+')':''));
+  }
+
+  lines.push('');
+  lines.push('SONGS');
+  songs.forEach(function(s){
+    var dt=(s.tasks||[]).filter(function(t){return t.done;}).length;
+    var tot=(s.tasks||[]).length;
+    var done=tot>0&&dt===tot;
+    lines.push('  '+(done?'✓':'○')+' '+s.name+' — '+(done?'Complete':s.statusLabel||'In Progress')+(tot?' ('+dt+'/'+tot+')':''));
+  });
+
+  if(mileT.length){
+    lines.push('');
+    lines.push('MILESTONES');
+    mileT.forEach(function(m){lines.push('  '+(m.done?'✓':'○')+' '+m.label);});
+  }
+
+  var incPromo=promoT.filter(function(t){return !t.done;});
+  var incContent=contentT.filter(function(t){return !t.done;});
+  var incTodo=todoT.filter(function(t){return !t.done;});
+  if(incPromo.length||incContent.length||incTodo.length){
+    lines.push('');
+    lines.push('REMAINING');
+    incPromo.forEach(function(t){lines.push('  [Promo] '+t.text);});
+    incContent.forEach(function(t){lines.push('  [Content] '+t.text);});
+    incTodo.forEach(function(t){lines.push('  [To-Do] '+t.text);});
+  }
+
+  var txt=lines.join('\n');
+  SM('<div class="modal-title">Status Export</div>'
+    +'<div style="font-size:11px;color:var(--muted);margin-bottom:10px">Copy and paste into a text, email, or Slack.</div>'
+    +'<textarea class="field" id="exp-txt" style="min-height:200px;font-size:11px;line-height:1.7" readonly>'+esc(txt)+'</textarea>'
+    +'<button class="btn-p" id="exp-btn" style="margin-top:4px" onclick="copyExport()">Copy to Clipboard</button>'
+    +'<div class="mactions"><button class="btn-g" onclick="CM()">Close</button></div>');
+}
+function copyExport(){
+  var el=document.getElementById('exp-txt');
+  if(!el)return;
+  navigator.clipboard.writeText(el.value).then(function(){
+    var b=document.getElementById('exp-btn');
+    if(b){b.textContent='✓ Copied!';setTimeout(function(){b.textContent='Copy to Clipboard';},2000);}
+  });
+}
+
+
+/* ── CAMPAIGN ── */
+function editCampaignSetupM(){
+  var cam=CP.campaign||{};
+  SM('<div class="modal-title">Campaign Settings</div>'
+    +'<input class="field" id="cam-title" value="'+esc(cam.releaseTitle||'Single #1')+'" placeholder="Release title">'
+    +'<div class="flabel">Release Date</div>'
+    +'<input class="field" id="cam-date" type="date" value="'+(cam.releaseDate||'2025-05-01')+'">'
+    +'<div class="flabel">Next Single Date</div>'
+    +'<input class="field" id="cam-next" type="date" value="'+(cam.nextDate||'')+'">'
+    +'<input class="field" id="cam-status" value="'+esc(cam.status||'Pre-Release')+'" placeholder="Status (e.g. Pre-Release, Live)">'
+    +'<div class="mactions">'
+    +'<button class="btn-g" onclick="CM()">Cancel</button>'
+    +'<button class="btn-p" style="width:auto;padding:10px 22px" onclick="saveCampaignSetup()">Save</button>'
+    +'</div>');
+}
+async function saveCampaignSetup(){
+  var cam=Object.assign({},CP.campaign||{});
+  cam.releaseTitle=g('cam-title');
+  cam.releaseDate=document.getElementById('cam-date').value||null;
+  cam.nextDate=document.getElementById('cam-next').value||null;
+  cam.status=g('cam-status');
+  await db.collection('projects').doc(CID).update({campaign:cam});CM();
+}
+
+function editMixM(){
+  var mix=(CP.campaign||{}).mix||{perf:40,brand:30,story:20,trend:10};
+  SM('<div class="modal-title">Content Mix Targets</div>'
+    +'<div style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.6">Set your target % for each content type. Should add up to 100.</div>'
+    +'<div class="flabel">Performance %</div><input class="field" id="mix-perf" type="number" value="'+mix.perf+'" min="0" max="100">'
+    +'<div class="flabel">Identity / Brand %</div><input class="field" id="mix-brand" type="number" value="'+mix.brand+'" min="0" max="100">'
+    +'<div class="flabel">Story / Meaning %</div><input class="field" id="mix-story" type="number" value="'+mix.story+'" min="0" max="100">'
+    +'<div class="flabel">Trend / Experimental %</div><input class="field" id="mix-trend" type="number" value="'+mix.trend+'" min="0" max="100">'
+    +'<div class="mactions">'
+    +'<button class="btn-g" onclick="CM()">Cancel</button>'
+    +'<button class="btn-p" style="width:auto;padding:10px 22px" onclick="saveMix()">Save</button>'
+    +'</div>');
+}
+async function saveMix(){
+  var cam=Object.assign({},CP.campaign||{});
+  cam.mix={
+    perf:parseInt(document.getElementById('mix-perf').value)||40,
+    brand:parseInt(document.getElementById('mix-brand').value)||30,
+    story:parseInt(document.getElementById('mix-story').value)||20,
+    trend:parseInt(document.getElementById('mix-trend').value)||10,
+  };
+  await db.collection('projects').doc(CID).update({campaign:cam});CM();
+}
+
+function addCampaignItemM(existingId){
+  var item=existingId?(CP.campaign&&CP.campaign.items||[]).find(function(x){return x.id===existingId;}):null;
+  var typeOpts=['short','perf','brand','story','trend','edit','anchor'];
+  var typeSel=function(val){var s='<select class="field" id="ci-type">';typeOpts.forEach(function(o){s+='<option value="'+o+'"'+(val===o?' selected':'')+'>'+o+'</option>';});s+='</select>';return s;};
+  var stageOpts=['idea','planned','shot','editing','ready','scheduled','posted'];
+  var stageSel=function(val){var s='<select class="field" id="ci-status">';stageOpts.forEach(function(o){s+='<option value="'+o+'"'+(val===o?' selected':'')+'>'+o+'</option>';});s+='</select>';return s;};
+  var ownerSel=function(val){return '<select class="field" id="ci-owner"><option value="self"'+(val==='self'?' selected':'')+'>Self-shot</option><option value="friend"'+(val==='friend'?' selected':'')+'>Friend / Hired</option></select>';};
+  SM('<div class="modal-title">'+(item?'Edit':'Log')+' Content</div>'
+    +'<input class="field" id="ci-title" value="'+esc(item?item.title||'':'')+'" placeholder="e.g. POV guitar riff in studio" autofocus>'
+    +'<div class="flabel">Type</div>'+typeSel(item?item.type:'short')
+    +'<div class="flabel">Stage</div>'+stageSel(item?item.status:'idea')
+    +'<div class="flabel">Owner</div>'+ownerSel(item?item.owner:'self')
+    +'<div class="flabel">Shoot Date</div>'
+    +'<input class="field" id="ci-shoot" type="date" value="'+(item&&item.shootDate?item.shootDate:'')+'">'
+    +'<input class="field" id="ci-caption" value="'+esc(item?item.caption||'':'')+'" placeholder="Caption idea (optional)">'
+    +'<textarea class="field" id="ci-notes" placeholder="Notes..." style="min-height:60px">'+esc(item?item.notes||'':'')+' </textarea>'
+    +'<div class="mactions">'
+    +'<button class="btn-g" onclick="CM()">Cancel</button>'
+    +'<button class="btn-p" style="width:auto;padding:10px 22px" onclick="saveCampaignItem(\''+(existingId||'')+'\')">Save</button>'
+    +'</div>');
+}
+function editCampaignItemM(id){addCampaignItemM(id);}
+async function saveCampaignItem(existingId){
+  var cam=Object.assign({},CP.campaign||{});
+  if(!cam.items)cam.items=[];
+  var items=[].concat(cam.items);
+  var item={
+    id:existingId||'ci'+Date.now(),
+    title:g('ci-title'),
+    type:document.getElementById('ci-type').value,
+    status:document.getElementById('ci-status').value,
+    owner:document.getElementById('ci-owner').value,
+    shootDate:document.getElementById('ci-shoot').value||null,
+    caption:g('ci-caption'),
+    notes:document.getElementById('ci-notes').value.trim(),
+  };
+  if(existingId){var i=items.findIndex(function(x){return x.id===existingId;});if(i>=0)items[i]=item;else items.push(item);}
+  else items.push(item);
+  cam.items=items;
+  await db.collection('projects').doc(CID).update({campaign:cam});CM();
+}
+async function delCamItem(id){
+  var cam=Object.assign({},CP.campaign||{});
+  cam.items=(cam.items||[]).filter(function(x){return x.id!==id;});
+  await db.collection('projects').doc(CID).update({campaign:cam});
+}
+async function advanceCamItem(id){
+  var stages=['idea','planned','shot','editing','ready','scheduled','posted'];
+  var cam=Object.assign({},CP.campaign||{});
+  var items=[].concat(cam.items||[]);
+  var i=items.findIndex(function(x){return x.id===id;});
+  if(i<0)return;
+  var cur=stages.indexOf(items[i].status);
+  if(cur<stages.length-1)items[i].status=stages[cur+1];
+  cam.items=items;
+  await db.collection('projects').doc(CID).update({campaign:cam});
+}
+
+function editBudgetM(){
+  var bud=(CP.campaign||{}).budget||{};
+  SM('<div class="modal-title">Edit Budget</div>'
+    +'<div class="flabel">Friend Day Rate ($)</div>'
+    +'<input class="field" id="bud-day" type="number" value="'+(bud.dayRate||350)+'" placeholder="350">'
+    +'<div class="flabel">Shoot Days</div>'
+    +'<input class="field" id="bud-days" type="number" value="'+(bud.shootDays||1)+'" placeholder="1">'
+    +'<div class="flabel">Per-Clip Edit Rate ($)</div>'
+    +'<input class="field" id="bud-clip" type="number" value="'+(bud.clipRate||25)+'" placeholder="25">'
+    +'<div class="flabel">Clips Ordered</div>'
+    +'<input class="field" id="bud-clips" type="number" value="'+(bud.clipsOrdered||10)+'" placeholder="10">'
+    +'<div class="flabel" style="margin-top:4px">Add Custom Line Item</div>'
+    +'<div style="display:flex;gap:6px">'
+    +'<input class="field" id="bud-cl" placeholder="Label" style="flex:1;margin:0">'
+    +'<input class="field" id="bud-ca" type="number" placeholder="$" style="width:80px;margin:0">'
+    +'<button class="btn-s" onclick="addBudgetCustom()" style="flex-shrink:0">+</button>'
+    +'</div>'
+    +'<div class="mactions">'
+    +'<button class="btn-g" onclick="CM()">Cancel</button>'
+    +'<button class="btn-p" style="width:auto;padding:10px 22px" onclick="saveBudget()">Save</button>'
+    +'</div>');
+}
+async function addBudgetCustom(){
+  var label=g('bud-cl'),amount=g('bud-ca');
+  if(!label||!amount)return;
+  var cam=Object.assign({},CP.campaign||{});
+  var bud=Object.assign({},cam.budget||{});
+  bud.customItems=[].concat(bud.customItems||[]);
+  bud.customItems.push({label:label,amount:parseFloat(amount)});
+  cam.budget=bud;
+  await db.collection('projects').doc(CID).update({campaign:cam});
+  var el1=document.getElementById('bud-cl'),el2=document.getElementById('bud-ca');
+  if(el1)el1.value='';if(el2)el2.value='';
+}
+async function delBudgetItem(idx){
+  var cam=Object.assign({},CP.campaign||{});
+  var bud=Object.assign({},cam.budget||{});
+  bud.customItems=[].concat(bud.customItems||[]);
+  bud.customItems.splice(idx,1);
+  cam.budget=bud;
+  await db.collection('projects').doc(CID).update({campaign:cam});
+}
+async function saveBudget(){
+  var cam=Object.assign({},CP.campaign||{});
+  var bud=Object.assign({},cam.budget||{});
+  bud.dayRate=parseFloat(g('bud-day'))||350;
+  bud.shootDays=parseInt(g('bud-days'))||1;
+  bud.clipRate=parseFloat(g('bud-clip'))||25;
+  bud.clipsOrdered=parseInt(g('bud-clips'))||10;
+  cam.budget=bud;
+  await db.collection('projects').doc(CID).update({campaign:cam});CM();
+}
+async function saveActualSpend(){
+  var val=parseFloat(document.getElementById('act-spend').value)||0;
+  var cam=Object.assign({},CP.campaign||{});
+  var bud=Object.assign({},cam.budget||{});
+  bud.actualSpend=val;
+  cam.budget=bud;
+  await db.collection('projects').doc(CID).update({campaign:cam});
+}
+
+var camNotesTimer;
+function savCamNotes(val){
+  clearTimeout(camNotesTimer);
+  camNotesTimer=setTimeout(async function(){
+    var cam=Object.assign({},CP.campaign||{});
+    cam.notes=val;
+    await db.collection('projects').doc(CID).update({campaign:cam});
+    var d=document.getElementById('cndot');
+    if(d){d.style.opacity=1;setTimeout(function(){d.style.opacity=0;},1400);}
+  },700);
+}
+
+// Init campaign with smart defaults if empty
+async function initCampaignDefaults(){
+  if(CP.campaign&&CP.campaign.releaseDate)return; // already set
+  var cam={
+    releaseTitle:CP.title||'Single #1',
+    releaseDate:'2025-05-01',
+    nextDate:'2025-05-29',
+    status:'Pre-Release',
+    notes:'',
+    items:[],
+    mix:{perf:40,brand:30,story:20,trend:10},
+    weeklyTarget:{perf:3,brand:2,story:1,trend:1},
+    delivTargets:{short:'30–50',perf:'10–15',brand:'10',story:'5–10',trend:'5–10',edit:'2–4',anchor:'1'},
+    budget:{dayRate:350,shootDays:1,clipRate:25,clipsOrdered:10,customItems:[],actualSpend:0},
+  };
+  await db.collection('projects').doc(CID).update({campaign:cam});
 }
 
 /* ── UTILS ── */
