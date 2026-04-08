@@ -183,7 +183,7 @@ window.addEventListener('hashchange',route);
 
 /* ── SWIPE NAV ── */
 let _swX=0,_swY=0;
-const TABS_ORDER=['overview','music','release','promo','content','todo','budget','info'];
+const TABS_ORDER=['overview','music','release','campaign','plan','budget','contacts','info'];
 document.addEventListener('touchstart',e=>{_swX=e.touches[0].clientX;_swY=e.touches[0].clientY;},{passive:true});
 document.addEventListener('touchend',e=>{
   if(!CP||VO)return;
@@ -201,16 +201,13 @@ document.addEventListener('touchend',e=>{
 /* ── NAV DRAWER ── */
 const NAV_ITEMS=[
   {id:'overview',label:'Overview',dot:'#4caf82',section:null},
-  {id:'music',label:'Songs',dot:'var(--acc)',section:'Production'},
-  {id:'focus',label:'Focus',dot:'#d4a843',section:null},
-  {id:'release',label:'Release Schedule',dot:'#4a8fc4',section:'Release & Promo'},
-  {id:'promo',label:'Promo & Photos',dot:'#e07b3a',section:null},
-  {id:'content',label:'Content',dot:'#8b68d4',section:null},
-  {id:'todo',label:'To-Do',dot:'#4a8fc4',section:'General'},
+  {id:'music',label:'Music',dot:'var(--acc)',section:'Production'},
+  {id:'release',label:'Release Schedule',dot:'#4a8fc4',section:'Release'},
+  {id:'campaign',label:'Content Campaign',dot:'#e84393',section:null},
+  {id:'plan',label:'Plan & Milestones',dot:'#d4a843',section:'General'},
   {id:'budget',label:'Budget',dot:'#4caf82',section:null},
+  {id:'contacts',label:'Contacts',dot:'#4a8fc4',section:null},
   {id:'info',label:'Info & Notes',dot:'var(--muted)',section:null},
-  {id:'contacts',label:'Contacts',dot:'#4caf82',section:'Team'},
-  {id:'campaign',label:'Content Campaign',dot:'#e84393',section:'Release & Promo'},
   {id:'insights',label:'Insights',dot:'#8b68d4',section:'Analytics'},
 ];
 
@@ -247,13 +244,11 @@ function closeNav(){
 /* ── FAB ── */
 const FAB_ACTIONS={
   music:()=>addSongM(),
-  promo:()=>addSimpleTask('promoTasks','pt-inp',true),
-  content:()=>addSimpleTask('contentTasks','ct-inp',true),
-  todo:()=>addSimpleTask('todoTasks','td-inp',true),
-  budget:()=>addExpModal(),
   release:()=>addReleaseRowM(),
-  info:()=>addMilestoneM(),
   campaign:()=>addCampaignItemM(),
+  plan:()=>addPlanItemM(),
+  budget:()=>addExpModal(),
+  contacts:()=>addContactM(),
 };
 function fabAction(){
   const fn=FAB_ACTIONS[TAB]||(TAB==='overview'?()=>newProjM():null);
@@ -388,7 +383,7 @@ async function cProj(){
       title,artist:g('na'),label:g('nl'),coproducer:g('nc'),
       deadline:document.getElementById('nd').value||null,
       ownerId:CU.uid,songs:[],focusDone:{},notes:'',coverUrl:null,
-      milestones:[],expenses:[],views:[],promoTasks:[],contentTasks:[],todoTasks:[],releaseSchedule:[],contacts:[],campaign:null,
+      milestones:[],expenses:[],views:[],promoTasks:[],contentTasks:[],todoTasks:[],releaseSchedule:[],contacts:[],campaign:null,planItems:[],
       theme:{accent:'#c9383a',bg:'#0a0a0c',dark:true},
       createdAt:firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -426,10 +421,7 @@ function rP(){
   document.documentElement.style.setProperty('--acc',acc);
   applyTheme(th.dark!==false);
   const dl=p.deadline?daysLeft(p.deadline):null;
-  const tabLabel=NAV_ITEMS.find(t=>{
-    if(TAB==='music'&&musicSub==='focus')return t.id==='focus';
-    return t.id===TAB;
-  })?.label||TAB;
+  const tabLabel=NAV_ITEMS.find(t=>t.id===TAB)?.label||TAB;
   updateFab();
   setA(`<div style="min-height:100vh;background:var(--bg)">
     <div style="position:sticky;top:0;z-index:100;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:color-mix(in srgb,var(--bg) 85%,transparent);border-bottom:1px solid var(--bord)">
@@ -451,13 +443,13 @@ function rP(){
     </div>
     <div style="padding:14px;padding-bottom:96px">${bTab()}</div>
   </div>`);
-  if(TAB==='music'&&musicSub==='songs')initDrag();
+  if(TAB==='music'&&musicSub!=='focus')initDrag();
 }
 
 function sT(t){
   if(t==='campaign'&&CP&&(!CP.campaign||!CP.campaign.releaseDate))initCampaignDefaults();
-  if(t==='focus'){TAB='music';musicSub='focus';}
-  else{TAB=t;if(t==='music')musicSub=musicSub||'songs';}
+  TAB=t;
+  if(t==='music')musicSub=musicSub||'songs';
   rP();
 }
 function toggleDark(){
@@ -483,10 +475,10 @@ function bTab(){
     var pct=totalAll?Math.round(totalDone/totalAll*100):0;
     var cats=[
       {l:'Music',d:songTasks.filter(function(t){return t.done;}).length,t:songTasks.length,c:acc,tab:'music',icon:'🎵',items:songTasks.filter(function(t){return !t.done;})},
-      {l:'Promo',d:promoT.filter(function(t){return t.done;}).length,t:promoT.length,c:'#e07b3a',tab:'promo',icon:'📸',items:promoT.filter(function(t){return !t.done;})},
-      {l:'Content',d:contentT.filter(function(t){return t.done;}).length,t:contentT.length,c:'#8b68d4',tab:'content',icon:'📱',items:contentT.filter(function(t){return !t.done;})},
-      {l:'To-Do',d:todoT.filter(function(t){return t.done;}).length,t:todoT.length,c:'#4a8fc4',tab:'todo',icon:'📋',items:todoT.filter(function(t){return !t.done;})},
-      {l:'Miles',d:mileT.filter(function(t){return t.done;}).length,t:mileT.length,c:'#8b68d4',tab:'info',icon:'◆',items:mileT.filter(function(t){return !t.done;})},
+      {l:'Content',d:promoT.filter(function(t){return t.done;}).length,t:promoT.length,c:'#e07b3a',tab:'campaign',icon:'📸',items:promoT.filter(function(t){return !t.done;})},
+      {l:'Content',d:contentT.filter(function(t){return t.done;}).length,t:contentT.length,c:'#8b68d4',tab:'campaign',icon:'📱',items:contentT.filter(function(t){return !t.done;})},
+      {l:'To-Do',d:todoT.filter(function(t){return t.done;}).length,t:todoT.length,c:'#4a8fc4',tab:'plan',icon:'📋',items:todoT.filter(function(t){return !t.done;})},
+      {l:'Miles',d:mileT.filter(function(t){return t.done;}).length,t:mileT.length,c:'#8b68d4',tab:'plan',icon:'◆',items:mileT.filter(function(t){return !t.done;})},
     ];
     var html='';
     if(dl!==null){
@@ -533,10 +525,10 @@ function bTab(){
           var ovHandler='';
           if(!VO){
             if(group.tab==='music')ovHandler='onclick="tT(\''+t._sid+'\',\''+t._tid+'\')"';
-            else if(group.tab==='promo')ovHandler='onclick="toggleSimpleTask(\'promoTasks\',\''+t.id+'\')"';
-            else if(group.tab==='content')ovHandler='onclick="toggleSimpleTask(\'contentTasks\',\''+t.id+'\')"';
-            else if(group.tab==='todo')ovHandler='onclick="toggleSimpleTask(\'todoTasks\',\''+t.id+'\')"';
-            else if(group.tab==='info')ovHandler='onclick="toggleMilestone(\''+t.id+'\')"';
+            else if(group.tab==='campaign')ovHandler='onclick="sT(\'campaign\')"+" "+'';
+            
+            else if(group.tab==='plan')ovHandler='onclick="togglePlanItem(\'todo\',\''+t.id+'\')"';
+            else if(group.tab==='plan')ovHandler='onclick="togglePlanItem(\'milestone\',\''+t.id+'\')"';
           }
           html+='<div class="trow" '+ovHandler+' style="cursor:'+(VO?'default':'pointer')+';margin-bottom:5px">';
           html+='<div class="tcheck" style="border-color:'+group.c+'40"></div>';
@@ -554,68 +546,15 @@ function bTab(){
 
   /* MUSIC */
   if(TAB==='music'){
-    var subTab=musicSub||'songs';
-    var html2='<div style="display:flex;gap:8px;margin-bottom:14px">';
-    html2+='<button onclick="musicSub=\'songs\';rP()" style="flex:1;padding:9px 6px;background:'+(subTab==='songs'?acc:'var(--surf2)')+';color:'+(subTab==='songs'?'#fff':'var(--muted)')+';border:1px solid '+(subTab==='songs'?acc:'var(--bord)')+';border-radius:6px;font-family:\'DM Mono\',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer">Songs</button>';
-    html2+='<button onclick="musicSub=\'focus\';rP()" style="flex:1;padding:9px 6px;background:'+(subTab==='focus'?'#d4a843':'var(--surf2)')+';color:'+(subTab==='focus'?'var(--bg)':'var(--muted)')+';border:1px solid '+(subTab==='focus'?'#d4a843':'var(--bord)')+';border-radius:6px;font-family:\'DM Mono\',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer">Focus</button>';
+    var html2='';
+    if(!VO)html2+='<button class="btn-o" onclick="addSongM()" style="margin-bottom:14px">+ Add Song</button>';
+    html2+='<div id="song-list">';
+    if(songs.length){songs.forEach(function(s,i){html2+=sCard(s,i,acc);});}
+    else html2+='<div class="empty">No songs yet.</div>';
     html2+='</div>';
-    if(subTab==='songs'){
-      if(!VO)html2+='<button class="btn-o" onclick="addSongM()" style="margin-bottom:14px">+ Add Song</button>';
-      html2+='<div id="song-list">';
-      if(songs.length){songs.forEach(function(s,i){html2+=sCard(s,i,acc);});}
-      else html2+='<div class="empty">No songs yet.</div>';
-      html2+='</div>';
-    } else {
-      // FOCUS - all categories
-      var focusGroups=[
-        {label:'Music',color:acc,icon:'🎵',type:'song',items:[]},
-        {label:'Promo',color:'#e07b3a',icon:'📸',type:'promo',items:(p.promoTasks||[]).filter(function(t){return !t.done;})},
-        {label:'Content',color:'#8b68d4',icon:'📱',type:'content',items:(p.contentTasks||[]).filter(function(t){return !t.done;})},
-        {label:'To-Do',color:'#4a8fc4',icon:'📋',type:'todo',items:(p.todoTasks||[]).filter(function(t){return !t.done;})},
-        {label:'Milestones',color:'#8b68d4',icon:'◆',type:'milestone',items:(p.milestones||[]).filter(function(m){return !m.done;}).map(function(m){return {id:m.id,text:m.label};})},
-      ];
-      songs.forEach(function(s){
-        (s.tasks||[]).filter(function(t){return !t.done;}).forEach(function(t){
-          focusGroups[0].items.push({id:t.id,text:t.text,_sub:s.name,_sid:s.id,_tid:t.id});
-        });
-      });
-      var active=focusGroups.filter(function(g){return g.items.length>0;});
-      html2+='<div style="margin-bottom:14px"><div class="slabel" style="margin-bottom:3px">Today\'s Focus</div>';
-      html2+='<div style="font-size:11px;color:var(--muted);margin-bottom:14px">All incomplete tasks across categories</div></div>';
-      if(!active.length){
-        html2+='<div class="empty" style="color:#4caf82;padding:24px 0">🎉 All done — nothing left!</div>';
-      } else {
-        active.forEach(function(group,gi){
-          html2+='<div style="margin-bottom:16px">';
-          html2+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--bord)">';
-          html2+='<span style="font-size:14px">'+group.icon+'</span>';
-          html2+='<span style="font-family:\'Bebas Neue\',sans-serif;font-size:18px;color:'+group.color+';letter-spacing:.04em">'+group.label+'</span>';
-          html2+='<span style="font-size:10px;color:var(--muted)">'+group.items.length+' remaining</span>';
-          html2+='</div>';
-          group.items.forEach(function(t){
-            var handler='';
-            if(!VO){
-              if(group.type==='song')handler='onclick="tT(\''+t._sid+'\',\''+t._tid+'\')"';
-              else if(group.type==='promo')handler='onclick="toggleSimpleTask(\'promoTasks\',\''+t.id+'\')"';
-              else if(group.type==='content')handler='onclick="toggleSimpleTask(\'contentTasks\',\''+t.id+'\')"';
-              else if(group.type==='todo')handler='onclick="toggleSimpleTask(\'todoTasks\',\''+t.id+'\')"';
-              else if(group.type==='milestone')handler='onclick="toggleMilestone(\''+t.id+'\')"';
-            }
-            html2+='<div class="trow" '+handler+' style="cursor:'+(VO?'default':'pointer')+';margin-bottom:5px">';
-            html2+='<div class="tcheck" style="border-color:'+group.color+'50"></div>';
-            html2+='<div style="flex:1;min-width:0">';
-            html2+='<div style="font-size:12px;line-height:1.5;color:var(--text)">'+t.text+'</div>';
-            if(t._sub)html2+='<div style="font-size:9px;color:var(--muted);margin-top:1px">'+t._sub+'</div>';
-            html2+='</div></div>';
-          });
-          html2+='</div>';
-        });
-      }
-    }
     return html2;
   }
 
-  /* RELEASE SCHEDULE */
   if(TAB==='release'){
     var rs=p.releaseSchedule||[];
     var statusColors={'Not Started':'var(--muted)','In Progress':'#d4a843','Complete':'#4caf82','Overdue':'#e07070'};
@@ -648,47 +587,57 @@ function bTab(){
     return rhtml;
   }
 
-  /* PROMO / CONTENT / TODO */
-  if(TAB==='promo'||TAB==='content'||TAB==='todo'){
-    var cfgMap={
-      promo:{field:'promoTasks',label:'Promo & Photos',color:acc,inputId:'pt-inp',ph:'Add promo task...'},
-      content:{field:'contentTasks',label:'Content Plan',color:'#8b68d4',inputId:'ct-inp',ph:'Add content task...'},
-      todo:{field:'todoTasks',label:'General To-Do',color:'#4a8fc4',inputId:'td-inp',ph:'Add to-do...'}
-    };
-    var cfg=cfgMap[TAB];
-    var tasks=p[cfg.field]||[];
-    var dn2=tasks.filter(function(t){return t.done;}).length;
-    var pct2=tasks.length?Math.round(dn2/tasks.length*100):0;
-    var showDone2=showArchive[TAB]||false;
-    var visibleTasks=showDone2?tasks:tasks.filter(function(t){return !t.done;});
-    var thtml='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
-    thtml+='<div class="slabel" style="margin:0;border:none;padding:0">'+cfg.label+'</div>';
-    thtml+='<div style="display:flex;align-items:center;gap:8px">';
-    thtml+='<span style="font-size:10px;color:var(--muted)">'+dn2+'/'+tasks.length+' done</span>';
-    if(dn2>0)thtml+='<button onclick="toggleArchive(\''+TAB+'\')" style="font-size:9px;color:var(--muted);background:var(--surf2);border:1px solid var(--bord);border-radius:3px;padding:2px 7px;cursor:pointer;font-family:\'DM Mono\',monospace;letter-spacing:.08em">'+(showDone2?'Hide done':'Show done')+'</button>';
-    thtml+='</div></div>';
-    thtml+='<div class="progress-bar" style="margin-bottom:16px"><div class="progress-fill" style="width:'+pct2+'%;background:'+cfg.color+'"></div></div>';
+  /* PLAN */
+  if(TAB==='plan'){
+    var planItems=p.planItems||[];
+    var legacyMiles=p.milestones||[];
+    var legacyTodo=p.todoTasks||[];
+    // Show all plan items + legacy milestones + legacy todos together
+    var allPlan=[];
+    planItems.forEach(function(x){allPlan.push({id:x.id,text:x.text,done:x.done,date:x.date||null,type:x.type||'task',_src:'plan'});});
+    legacyMiles.forEach(function(m){allPlan.push({id:m.id,text:m.label,done:m.done,date:m.date||null,type:'milestone',_src:'milestone'});});
+    legacyTodo.forEach(function(t){allPlan.push({id:t.id,text:t.text,done:t.done,date:null,type:'task',_src:'todo'});});
+
+    var showDonePlan=showArchive['plan']||false;
+    var visAll=showDonePlan?allPlan:allPlan.filter(function(x){return !x.done;});
+    var doneCount=allPlan.filter(function(x){return x.done;}).length;
+    var pct3=allPlan.length?Math.round(doneCount/allPlan.length*100):0;
+
+    var phtml='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+    phtml+='<div class="slabel" style="margin:0;border:none;padding:0">Plan & Milestones</div>';
+    phtml+='<div style="display:flex;align-items:center;gap:8px">';
+    phtml+='<span style="font-size:10px;color:var(--muted)">'+doneCount+'/'+allPlan.length+' done</span>';
+    if(doneCount>0)phtml+='<button onclick="toggleArchive('plan')" style="font-size:9px;color:var(--muted);background:var(--surf2);border:1px solid var(--bord);border-radius:3px;padding:2px 7px;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:.08em">'+(showDonePlan?'Hide done':'Show done')+'</button>';
+    phtml+='</div></div>';
+    phtml+='<div class="progress-bar" style="margin-bottom:16px"><div class="progress-fill" style="width:'+pct3+'%;background:#d4a843"></div></div>';
+
     if(!VO){
-      thtml+='<div style="display:flex;gap:8px;margin-bottom:14px">';
-      thtml+='<input class="field" id="'+cfg.inputId+'" placeholder="'+cfg.ph+'" style="flex:1;margin:0" onkeydown="if(event.key===\'Enter\')addSimpleTask(\''+cfg.field+'\',\''+cfg.inputId+'\')">';
-      thtml+='<button class="btn-s" onclick="addSimpleTask(\''+cfg.field+'\',\''+cfg.inputId+'\')" style="background:'+cfg.color+'">Add</button>';
-      thtml+='</div>';
+      phtml+='<div style="display:flex;gap:8px;margin-bottom:14px">';
+      phtml+='<input class="field" id="plan-inp" placeholder="Add task or milestone..." style="flex:1;margin:0" onkeydown="if(event.key==='Enter')addPlanItemM()">';
+      phtml+='<button class="btn-s" onclick="addPlanItemM()" style="background:#d4a843;color:var(--bg)">Add</button>';
+      phtml+='</div>';
     }
-    if(visibleTasks.length){
-      visibleTasks.forEach(function(t){
-        var borderStyle=t.done?'':'border-color:'+cfg.color+'40';
-        thtml+='<div class="trow" '+(VO?'':'onclick="toggleSimpleTask(\''+cfg.field+'\',\''+t.id+'\')"')+' style="cursor:'+(VO?'default':'pointer')+'">';
-        thtml+='<div class="tcheck'+(t.done?' on':'')+'" style="'+borderStyle+'"></div>';
-        thtml+='<div style="font-size:12px;line-height:1.5;flex:1;color:'+(t.done?'var(--muted)':'var(--text)')+';text-decoration:'+(t.done?'line-through':'none')+'">'+t.text+'</div>';
-        if(!VO)thtml+='<button onclick="event.stopPropagation();delSimpleTask(\''+cfg.field+'\',\''+t.id+'\')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.35">✕</button>';
-        thtml+='</div>';
+
+    if(visAll.length){
+      visAll.forEach(function(item){
+        var isMile=item.type==='milestone';
+        var dotColor=isMile?'#8b68d4':'#d4a843';
+        phtml+='<div class="trow" '+(VO?'':'onclick="togglePlanItem(''+item._src+'',''+item.id+'')"')+' style="cursor:'+(VO?'default':'pointer')+';margin-bottom:6px">';
+        phtml+='<div class="tcheck'+(item.done?' on':'')+'" style="'+(item.done?'':'border-color:'+dotColor+'50')+'"></div>';
+        phtml+='<div style="flex:1;min-width:0">';
+        phtml+='<div style="font-size:12px;color:'+(item.done?'var(--muted)':'var(--text)')+';text-decoration:'+(item.done?'line-through':'none')+';line-height:1.5">'+esc(item.text)+'</div>';
+        if(item.date)phtml+='<div style="font-size:9px;color:var(--muted);margin-top:2px">📅 '+fmtDate(item.date)+'</div>';
+        if(isMile)phtml+='<div style="font-size:9px;color:#8b68d4;margin-top:1px;letter-spacing:.08em">MILESTONE</div>';
+        phtml+='</div>';
+        if(!VO)phtml+='<button onclick="event.stopPropagation();delPlanItem(''+item._src+'',''+item.id+'')" class="iBtn" style="font-size:12px;padding:2px 6px;opacity:.35">✕</button>';
+        phtml+='</div>';
       });
-    } else if(!tasks.length){
-      thtml+='<div class="empty">Nothing here yet.<br><small>Add your first item above.</small></div>';
+    } else if(!allPlan.length){
+      phtml+='<div class="empty">Nothing planned yet.<br><small>Add tasks, deadlines, and milestones.</small></div>';
     } else {
-      thtml+='<div class="empty" style="padding:12px 0">All done! <span style="cursor:pointer;color:var(--acc)" onclick="toggleArchive(\''+TAB+'\')">'+(showDone2?'':'Show completed →')+'</span></div>';
+      phtml+='<div class="empty" style="padding:12px 0">All done! <span style="cursor:pointer;color:var(--acc)" onclick="toggleArchive('plan')">'+(showDonePlan?'':'Show completed →')+'</span></div>';
     }
-    return thtml;
+    return phtml;
   }
 
   /* BUDGET */
@@ -765,7 +714,6 @@ function bTab(){
 
   /* INFO */
   if(TAB==='info'){
-    var ms=p.milestones||[];
     var infoRows=[['Title',p.title],['Artist',p.artist],['Label',p.label],['Co-Producer',p.coproducer],['Deadline',p.deadline?fmtDate(p.deadline):null]].filter(function(r){return r[1];});
     var infhtml='<div class="slabel">Project Info</div>';
     infhtml+='<div class="card" style="margin-bottom:14px;padding:0;overflow:hidden">';
@@ -774,37 +722,16 @@ function bTab(){
       infhtml+='<span style="font-size:10px;color:var(--muted)">'+r[0]+'</span><span style="font-size:11px;color:var(--text)">'+esc(r[1])+'</span></div>';
     });
     infhtml+='</div>';
-    infhtml+='<div class="slabel">Milestones</div>';
-    if(!VO)infhtml+='<button class="btn-o" onclick="addMilestoneM()" style="margin-bottom:12px">+ Add Milestone</button>';
-    if(ms.length){
-      infhtml+='<div class="card" style="margin-bottom:14px;padding:0;overflow:hidden">';
-      ms.forEach(function(m,i){
-        infhtml+='<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:'+(i===ms.length-1?'none':'1px solid var(--bord)')+'">';
-        infhtml+='<div style="width:10px;height:10px;border-radius:50%;background:'+(m.done?'#4caf82':'#8b68d4')+';flex-shrink:0"></div>';
-        infhtml+='<div style="flex:1;min-width:0"><div style="font-size:12px;color:'+(m.done?'var(--muted)':'var(--text)')+';text-decoration:'+(m.done?'line-through':'none')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(m.label)+'</div>';
-        if(m.date)infhtml+='<div style="font-size:10px;color:var(--muted);margin-top:2px">'+fmtDate(m.date)+'</div>';
-        infhtml+='</div>';
-        if(!VO){
-          infhtml+='<div style="display:flex;gap:4px">';
-          infhtml+='<button onclick="toggleMilestone(\''+m.id+'\')" class="btn-s o" style="font-size:10px;padding:4px 8px">'+(m.done?'Undo':'Done')+'</button>';
-          infhtml+='<button onclick="delMilestone(\''+m.id+'\')" class="iBtn" style="font-size:12px;opacity:.35">✕</button></div>';
-        }
-        infhtml+='</div>';
-      });
-      infhtml+='</div>';
-    } else {
-      infhtml+='<div class="empty" style="margin-bottom:14px">No milestones yet.</div>';
-    }
     infhtml+='<div class="slabel">Project Notes</div>';
     if(!VO){
-      infhtml+='<textarea class="field" id="pnotes" placeholder="General notes..." style="min-height:100px" oninput="sN(this.value)">'+(p.notes||'')+'</textarea>';
+      infhtml+='<textarea class="field" id="pnotes" placeholder="General notes, ideas, anything..." style="min-height:120px" oninput="sN(this.value)">'+(p.notes||'')+'</textarea>';
       infhtml+='<div style="font-size:10px;color:var(--muted);margin-top:4px">Auto-saved <span id="ndot" style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#4caf82;opacity:0;transition:opacity .3s;vertical-align:middle"></span></div>';
+      infhtml+='<button class="btn-o" onclick="settingsM()" style="margin-top:14px">⚙ Project Settings</button>';
     } else {
       infhtml+='<div class="card" style="font-size:12px;white-space:pre-wrap;line-height:1.7;color:var(--text)">'+(p.notes||'No notes.')+'</div>';
     }
     return infhtml;
   }
-
 
   /* CAMPAIGN */
   if(TAB==='campaign'){
@@ -1853,6 +1780,65 @@ async function initCampaignDefaults(){
     budget:{dayRate:350,shootDays:1,clipRate:25,clipsOrdered:10,customItems:[],actualSpend:0},
   };
   await db.collection('projects').doc(CID).update({campaign:cam});
+}
+
+
+/* ── PLAN TAB ── */
+function addPlanItemM(){
+  var inp=document.getElementById('plan-inp');
+  if(inp&&inp.value.trim()){
+    savePlanItem(inp.value.trim(),null,'task');
+    inp.value='';
+    return;
+  }
+  SM('<div class="modal-title">Add to Plan</div>'
+    +'<input class="field" id="pi-text" placeholder="Task or milestone..." autofocus>'
+    +'<div class="flabel">Date (optional)</div>'
+    +'<input class="field" id="pi-date" type="date">'
+    +'<div class="flabel">Type</div>'
+    +'<select class="field" id="pi-type"><option value="task">Task</option><option value="milestone">Milestone</option></select>'
+    +'<div class="mactions">'
+    +'<button class="btn-g" onclick="CM()">Cancel</button>'
+    +'<button class="btn-p" style="width:auto;padding:10px 22px" onclick="savePlanItemFromModal()">Add</button>'
+    +'</div>');
+}
+async function savePlanItemFromModal(){
+  var text=g('pi-text');if(!text)return;
+  var date=document.getElementById('pi-date').value||null;
+  var type=document.getElementById('pi-type').value||'task';
+  await savePlanItem(text,date,type);CM();
+}
+async function savePlanItem(text,date,type){
+  var items=[].concat(CP.planItems||[]);
+  items.push({id:'pi'+Date.now(),text:text,done:false,date:date,type:type||'task'});
+  await db.collection('projects').doc(CID).update({planItems:items});
+}
+async function togglePlanItem(src,id){
+  if(src==='plan'){
+    var items=[].concat(CP.planItems||[]);
+    var i=items.findIndex(function(x){return x.id===id;});
+    if(i<0)return;items[i].done=!items[i].done;
+    await db.collection('projects').doc(CID).update({planItems:items});
+  } else if(src==='milestone'){
+    var ms=[].concat(CP.milestones||[]);
+    var i=ms.findIndex(function(m){return m.id===id;});
+    if(i<0)return;ms[i].done=!ms[i].done;
+    await db.collection('projects').doc(CID).update({milestones:ms});
+  } else if(src==='todo'){
+    var ts=[].concat(CP.todoTasks||[]);
+    var i=ts.findIndex(function(t){return t.id===id;});
+    if(i<0)return;ts[i].done=!ts[i].done;
+    await db.collection('projects').doc(CID).update({todoTasks:ts});
+  }
+}
+async function delPlanItem(src,id){
+  if(src==='plan'){
+    await db.collection('projects').doc(CID).update({planItems:(CP.planItems||[]).filter(function(x){return x.id!==id;})});
+  } else if(src==='milestone'){
+    await db.collection('projects').doc(CID).update({milestones:(CP.milestones||[]).filter(function(m){return m.id!==id;})});
+  } else if(src==='todo'){
+    await db.collection('projects').doc(CID).update({todoTasks:(CP.todoTasks||[]).filter(function(t){return t.id!==id;})});
+  }
 }
 
 /* ── UTILS ── */
