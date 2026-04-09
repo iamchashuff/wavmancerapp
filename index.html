@@ -473,12 +473,11 @@ function bTab(){
     var totalDone=songTasks.filter(function(t){return t.done;}).length+promoT.filter(function(t){return t.done;}).length+contentT.filter(function(t){return t.done;}).length+todoT.filter(function(t){return t.done;}).length+mileT.filter(function(t){return t.done;}).length;
     var totalAll=songTasks.length+promoT.length+contentT.length+todoT.length+mileT.length;
     var pct=totalAll?Math.round(totalDone/totalAll*100):0;
+    var allContent=promoT.concat(contentT);
     var cats=[
-      {l:'Music',d:songTasks.filter(function(t){return t.done;}).length,t:songTasks.length,c:acc,tab:'music',icon:'🎵',items:songTasks.filter(function(t){return !t.done;})},
-      {l:'Content',d:promoT.filter(function(t){return t.done;}).length,t:promoT.length,c:'#e07b3a',tab:'campaign',icon:'📸',items:promoT.filter(function(t){return !t.done;})},
-      {l:'Content',d:contentT.filter(function(t){return t.done;}).length,t:contentT.length,c:'#8b68d4',tab:'campaign',icon:'📱',items:contentT.filter(function(t){return !t.done;})},
-      {l:'To-Do',d:todoT.filter(function(t){return t.done;}).length,t:todoT.length,c:'#4a8fc4',tab:'plan',icon:'📋',items:todoT.filter(function(t){return !t.done;})},
-      {l:'Miles',d:mileT.filter(function(t){return t.done;}).length,t:mileT.length,c:'#8b68d4',tab:'plan',icon:'◆',items:mileT.filter(function(t){return !t.done;})},
+      {l:'Music',d:songTasks.filter(function(t){return t.done;}).length,t:songTasks.length,c:acc,tab:'music',icon:'🎵',items:songTasks.filter(function(t){return !t.done;}),type:'song'},
+      {l:'Campaign',d:allContent.filter(function(t){return t.done;}).length,t:allContent.length,c:'#e84393',tab:'campaign',icon:'📸',items:allContent.filter(function(t){return !t.done;}),type:'campaign'},
+      {l:'Plan',d:todoT.filter(function(t){return t.done;}).length+mileT.filter(function(t){return t.done;}).length,t:todoT.length+mileT.length,c:'#d4a843',tab:'plan',icon:'📋',items:todoT.filter(function(t){return !t.done;}).map(function(t){return Object.assign({},t,{_src:'todo'});}).concat(mileT.filter(function(t){return !t.done;}).map(function(m){return Object.assign({},m,{_src:'milestone'});})),type:'plan'},
     ];
     var html='';
     if(dl!==null){
@@ -497,7 +496,7 @@ function bTab(){
     html+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:52px;color:'+acc+';line-height:1">'+pct+'<span style="font-size:26px">%</span></div>';
     html+='<div style="flex:1;padding-bottom:8px"><div style="font-size:10px;color:var(--muted);margin-bottom:4px">'+totalDone+' of '+totalAll+' tasks complete</div>';
     html+='<div class="progress-bar" style="height:6px;margin:0"><div class="progress-fill" style="width:'+pct+'%;background:'+acc+'"></div></div></div></div>';
-    html+='<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">';
+    html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
     cats.forEach(function(x){
       var cp=x.t?Math.round(x.d/x.t*100):0;
       html+='<div onclick="sT(\''+x.tab+'\')" style="text-align:center;cursor:pointer">';
@@ -524,11 +523,10 @@ function bTab(){
         group.items.slice(0,3).forEach(function(t){
           var ovHandler='';
           if(!VO){
-            if(group.tab==='music')ovHandler='onclick="tT(\''+t._sid+'\',\''+t._tid+'\')"';
-            else if(group.tab==='campaign')ovHandler='onclick="sT(\'campaign\')"+" "+'';
-            
-            else if(group.tab==='plan')ovHandler='onclick="togglePlanItem(\'todo\',\''+t.id+'\')"';
-            else if(group.tab==='plan')ovHandler='onclick="togglePlanItem(\'milestone\',\''+t.id+'\')"';
+            if(group.type==='song')ovHandler='onclick="tT(\''+t._sid+'\',\''+t._tid+'\')"';
+            else if(group.type==='campaign')ovHandler='onclick="sT(\'campaign\')\"';
+            else if(group.type==='plan'&&t._src==='todo')ovHandler='onclick="togglePlanItem(\'todo\',\''+t.id+'\')"';
+            else if(group.type==='plan'&&t._src==='milestone')ovHandler='onclick="togglePlanItem(\'milestone\',\''+t.id+'\')"';
           }
           html+='<div class="trow" '+ovHandler+' style="cursor:'+(VO?'default':'pointer')+';margin-bottom:5px">';
           html+='<div class="tcheck" style="border-color:'+group.c+'40"></div>';
@@ -607,7 +605,7 @@ function bTab(){
     phtml+='<div class="slabel" style="margin:0;border:none;padding:0">Plan & Milestones</div>';
     phtml+='<div style="display:flex;align-items:center;gap:8px">';
     phtml+='<span style="font-size:10px;color:var(--muted)">'+doneCount+'/'+allPlan.length+' done</span>';
-    if(doneCount>0)phtml+='<button onclick="toggleArchive('plan')" style="font-size:9px;color:var(--muted);background:var(--surf2);border:1px solid var(--bord);border-radius:3px;padding:2px 7px;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:.08em">'+(showDonePlan?'Hide done':'Show done')+'</button>';
+    if(doneCount>0)phtml+='<button onclick="toggleArchive(\'plan\')" style="font-size:9px;color:var(--muted);background:var(--surf2);border:1px solid var(--bord);border-radius:3px;padding:2px 7px;cursor:pointer;font-family:&quot;DM Mono&quot;,monospace;letter-spacing:.08em">'+(showDonePlan?'Hide done':'Show done')+'</button>';
     phtml+='</div></div>';
     phtml+='<div class="progress-bar" style="margin-bottom:16px"><div class="progress-fill" style="width:'+pct3+'%;background:#d4a843"></div></div>';
 
@@ -635,7 +633,7 @@ function bTab(){
     } else if(!allPlan.length){
       phtml+='<div class="empty">Nothing planned yet.<br><small>Add tasks, deadlines, and milestones.</small></div>';
     } else {
-      phtml+='<div class="empty" style="padding:12px 0">All done! <span style="cursor:pointer;color:var(--acc)" onclick="toggleArchive('plan')">'+(showDonePlan?'':'Show completed →')+'</span></div>';
+      phtml+='<div class="empty" style="padding:12px 0">All done! <span style="cursor:pointer;color:var(--acc)" onclick="toggleArchive(\'plan\')">'+( showDonePlan?'':"Show completed →")+'</span></div>';
     }
     return phtml;
   }
