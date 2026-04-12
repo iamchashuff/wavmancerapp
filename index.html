@@ -212,30 +212,37 @@ const NAV_ITEMS=[
 ];
 
 function openNav(){
-  const p=CP;
-  const items=NAV_ITEMS.filter(t=>!(VO&&t.id==='insights'));
-  let lastSec=null;
-  const html=items.map(t=>{
-    let s='';
-    if(t.section&&t.section!==lastSec){lastSec=t.section;s=`<div class="nav-section">${t.section}</div>`;}
-    const on=TAB===t.id||(t.id==='focus'&&TAB==='music'&&musicSub==='focus');
-    return s+`<button class="nav-item${on?' on':''}" onclick="sT('${t.id}');closeNav()">
-      <div class="nav-dot" style="background:${on?'var(--acc)':t.dot}"></div>${t.label}
-    </button>`;
-  }).join('');
-  const dark=p?.theme?.dark!==false;
-  document.getElementById('nav-drawer').innerHTML=`
-    <div class="nav-head">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.06em;color:var(--acc)">Wavmancer</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p?.title||''}</div>
-      ${!VO?`<div style="display:flex;gap:8px;margin-top:14px">
-        <button onclick="toggleDark();closeNav()" style="flex:1;padding:7px;background:var(--surf2);border:1px solid var(--bord);border-radius:5px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text);cursor:pointer">${dark?'☀ Light':'🌙 Dark'}</button>
-        <button onclick="settingsM();closeNav()" style="flex:1;padding:7px;background:var(--surf2);border:1px solid var(--bord);border-radius:5px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text);cursor:pointer">⚙ Settings</button>
-      </div>`:''}
-    </div>${html}`;
+  var p=CP;
+  var items=NAV_ITEMS.filter(function(t){return !(VO&&t.id==='insights');});
+  var lastSec=null;
+  var html='';
+  items.forEach(function(t){
+    if(t.section&&t.section!==lastSec){
+      lastSec=t.section;
+      html+='<div class="nav-section">'+t.section+'</div>';
+    }
+    var on=TAB===t.id;
+    html+='<button class="nav-item'+(on?' on':'')+'" onclick="sT(\''+t.id+'\');closeNav()">';
+    html+='<div class="nav-dot" style="background:'+(on?'var(--acc)':t.dot)+'"></div>';
+    html+=t.label;
+    html+='</button>';
+  });
+  var dark=p&&p.theme&&p.theme.dark!==false;
+  var navHead='<div class="nav-head">';
+  navHead+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:22px;letter-spacing:.06em;color:var(--acc)">Wavmancer</div>';
+  navHead+='<div style="font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc((p&&p.title)||'')+'</div>';
+  if(!VO){
+    navHead+='<div style="display:flex;gap:8px;margin-top:14px">';
+    navHead+='<button onclick="toggleDark();closeNav()" style="flex:1;padding:7px;background:var(--surf2);border:1px solid var(--bord);border-radius:5px;font-family:\'DM Mono\',monospace;font-size:10px;color:var(--text);cursor:pointer">'+(dark?'☀ Light':'🌙 Dark')+'</button>';
+    navHead+='<button onclick="settingsM();closeNav()" style="flex:1;padding:7px;background:var(--surf2);border:1px solid var(--bord);border-radius:5px;font-family:\'DM Mono\',monospace;font-size:10px;color:var(--text);cursor:pointer">⚙ Settings</button>';
+    navHead+='</div>';
+  }
+  navHead+='</div>';
+  document.getElementById('nav-drawer').innerHTML=navHead+html;
   document.getElementById('nav-drawer').classList.add('open');
   document.getElementById('nav-overlay').classList.add('open');
 }
+
 function closeNav(){
   document.getElementById('nav-drawer').classList.remove('open');
   document.getElementById('nav-overlay').classList.remove('open');
@@ -263,101 +270,115 @@ function updateFab(){
 
 /* ── AUTH ── */
 function authScreen(){
-  let mode='login';
-  setA(`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:var(--bg)">
-  <div style="text-align:center;margin-bottom:32px">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:72px;color:var(--acc);line-height:1;letter-spacing:.02em">W</div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:.12em;color:var(--text)">Wavmancer</div>
-    <div style="font-size:10px;color:var(--muted);letter-spacing:.25em;text-transform:uppercase;margin-top:5px">Music Production Tracker</div>
-  </div>
-  <div style="background:var(--surf);border:1px solid var(--bord);border-radius:14px;padding:24px;width:100%;max-width:380px;box-shadow:0 8px 32px var(--shadow)">
-    <div style="display:flex;margin-bottom:18px;border-bottom:1px solid var(--bord);gap:0">
-      <button id="tl" style="flex:1;padding:11px;background:none;border:none;border-bottom:2px solid var(--acc);color:var(--acc);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer" onclick="setMode('login')">Sign In</button>
-      <button id="ts" style="flex:1;padding:11px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer" onclick="setMode('signup')">Sign Up</button>
-    </div>
-    <div id="nrow" style="display:none"><input class="field" id="aname" placeholder="Your name" autocomplete="name"></div>
-    <input class="field" id="aemail" type="email" placeholder="Email address" autocomplete="email">
-    <input class="field" id="apass" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doA()">
-    <div class="err" id="aerr"></div>
-    <button class="btn-p" id="abtn" onclick="doA()">Sign In</button>
-    <div style="text-align:center;font-size:10px;color:var(--muted);margin:14px 0;letter-spacing:.1em">or</div>
-    <button class="btn-google" onclick="gAuth()">
-      <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.8 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.8 6C12.2 13.2 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17z"/><path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.9-4.7l-7.8-6A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.4 0-11.8-3.7-13.6-9.2l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>
-      Continue with Google
-    </button>
-  </div></div>`);
-  window.setMode=m=>{
+  var mode='login';
+  var h='';
+  h+='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:var(--bg)">';
+  h+='<div style="text-align:center;margin-bottom:32px">';
+  h+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:72px;color:var(--acc);line-height:1;letter-spacing:.02em">W</div>';
+  h+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:36px;letter-spacing:.12em;color:var(--text)">Wavmancer</div>';
+  h+='<div style="font-size:10px;color:var(--muted);letter-spacing:.25em;text-transform:uppercase;margin-top:5px">Music Production Tracker</div>';
+  h+='</div>';
+  h+='<div style="background:var(--surf);border:1px solid var(--bord);border-radius:14px;padding:24px;width:100%;max-width:380px;box-shadow:0 8px 32px var(--shadow)">';
+  h+='<div style="display:flex;margin-bottom:18px;border-bottom:1px solid var(--bord)">';
+  h+='<button id="tl" style="flex:1;padding:11px;background:none;border:none;border-bottom:2px solid var(--acc);color:var(--acc);font-family:\'DM Mono\',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer" onclick="setMode(\'login\')">Sign In</button>';
+  h+='<button id="ts" style="flex:1;padding:11px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer" onclick="setMode(\'signup\')">Sign Up</button>';
+  h+='</div>';
+  h+='<div id="nrow" style="display:none"><input class="field" id="aname" placeholder="Your name" autocomplete="name"></div>';
+  h+='<input class="field" id="aemail" type="email" placeholder="Email address" autocomplete="email">';
+  h+='<input class="field" id="apass" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key===\'Enter\')doA()">';
+  h+='<div class="err" id="aerr"></div>';
+  h+='<button class="btn-p" id="abtn" onclick="doA()">Sign In</button>';
+  h+='<div style="text-align:center;font-size:10px;color:var(--muted);margin:14px 0;letter-spacing:.1em">or</div>';
+  h+='<button class="btn-google" onclick="gAuth()">';
+  h+='<svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.8 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.8 6C12.2 13.2 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17z"/><path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.9-4.7l-7.8-6A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.4 0-11.8-3.7-13.6-9.2l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>';
+  h+='Continue with Google</button>';
+  h+='</div></div>';
+  setA(h);
+  window.setMode=function(m){
     mode=m;
-    document.getElementById('tl').style.cssText=`flex:1;padding:11px;background:none;border:none;border-bottom:2px solid ${m==='login'?'var(--acc)':'transparent'};color:${m==='login'?'var(--acc)':'var(--muted)'};font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer`;
-    document.getElementById('ts').style.cssText=`flex:1;padding:11px;background:none;border:none;border-bottom:2px solid ${m==='signup'?'var(--acc)':'transparent'};color:${m==='signup'?'var(--acc)':'var(--muted)'};font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer`;
+    document.getElementById('tl').style.cssText='flex:1;padding:11px;background:none;border:none;border-bottom:2px solid '+(m==='login'?'var(--acc)':'transparent')+';color:'+(m==='login'?'var(--acc)':'var(--muted)')+';font-family:\'DM Mono\',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer';
+    document.getElementById('ts').style.cssText='flex:1;padding:11px;background:none;border:none;border-bottom:2px solid '+(m==='signup'?'var(--acc)':'transparent')+';color:'+(m==='signup'?'var(--acc)':'var(--muted)')+';font-family:\'DM Mono\',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer';
     document.getElementById('nrow').style.display=m==='signup'?'block':'none';
     document.getElementById('abtn').textContent=m==='signup'?'Create Account':'Sign In';
     document.getElementById('apass').autocomplete=m==='signup'?'new-password':'current-password';
   };
-  window.doA=async()=>{
-    const email=g('aemail'),pass=g('apass'),btn=document.getElementById('abtn');
+  window.doA=async function(){
+    var email=g('aemail'),pass=g('apass'),btn=document.getElementById('abtn');
     document.getElementById('aerr').style.display='none';
     if(!email||!pass)return sErr('aerr','Enter email and password.');
     btn.disabled=true;btn.textContent='...';
     try{
-      if(mode==='signup'){const name=g('aname');const c=await auth.createUserWithEmailAndPassword(email,pass);if(name)await c.user.updateProfile({displayName:name});}
+      if(mode==='signup'){var name=g('aname');var c=await auth.createUserWithEmailAndPassword(email,pass);if(name)await c.user.updateProfile({displayName:name});}
       else await auth.signInWithEmailAndPassword(email,pass);
       dash();
     }catch(e){sErr('aerr',fE(e.code));btn.disabled=false;btn.textContent=mode==='signup'?'Create Account':'Sign In';}
   };
-  window.gAuth=async()=>{try{await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());dash();}catch(e){sErr('aerr',fE(e.code));}};
+  window.gAuth=async function(){
+    try{await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());dash();}
+    catch(e){sErr('aerr',fE(e.code));}
+  };
 }
 
 /* ── DASH ── */
 async function dash(){
   VO=false;location.hash='';stopL();CP=null;CID=null;
   document.getElementById('fab').classList.remove('show');
-  setA(`<div style="padding:44px 16px 16px;background:linear-gradient(180deg,var(--surf) 0%,var(--bg) 100%);border-bottom:1px solid var(--bord)">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between">
-      <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:.06em;line-height:1;color:var(--acc)">Wavmancer</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:3px">${CU.displayName||CU.email}</div>
-      </div>
-      <button class="btn-s o" onclick="SO()" style="margin-top:4px">Sign Out</button>
-    </div>
-  </div>
-  <div style="padding:16px">
-    <button class="btn-p" onclick="newProjM()" style="margin-bottom:20px">+ New Project</button>
-    <div class="slabel">Your Projects</div>
-    <div id="plist"><div class="empty">Loading...</div></div>
-  </div>`);
+  var h='';
+  h+='<div style="padding:44px 16px 16px;background:linear-gradient(180deg,var(--surf) 0%,var(--bg) 100%);border-bottom:1px solid var(--bord)">';
+  h+='<div style="display:flex;align-items:flex-start;justify-content:space-between">';
+  h+='<div><div style="font-family:\'Bebas Neue\',sans-serif;font-size:36px;letter-spacing:.06em;line-height:1;color:var(--acc)">Wavmancer</div>';
+  h+='<div style="font-size:10px;color:var(--muted);margin-top:3px">'+esc(CU.displayName||CU.email)+'</div></div>';
+  h+='<button class="btn-s o" onclick="SO()" style="margin-top:4px">Sign Out</button>';
+  h+='</div></div>';
+  h+='<div style="padding:16px">';
+  h+='<button class="btn-p" onclick="newProjM()" style="margin-bottom:20px">+ New Project</button>';
+  h+='<div class="slabel">Your Projects</div>';
+  h+='<div id="plist"><div class="empty">Loading...</div></div>';
+  h+='</div>';
+  setA(h);
   try{
-    const snap=await db.collection('projects').get();
-    const el=document.getElementById('plist');if(!el)return;
-    const ps=[];snap.forEach(d=>{const data=d.data();if(data.ownerId===CU.uid)ps.push({id:d.id,...data});});
+    var snap=await db.collection('projects').get();
+    var el=document.getElementById('plist');if(!el)return;
+    var ps=[];
+    snap.forEach(function(d){var data=d.data();if(data.ownerId===CU.uid)ps.push(Object.assign({id:d.id},data));});
     if(!ps.length){el.innerHTML='<div class="empty">No projects yet.<br>Create your first one above.</div>';return;}
-    ps.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-    el.innerHTML=ps.map((p,i)=>{
-      const acc=p.theme?.accent||'#c9383a';
-      const s=p.songs||[];
-      const dn=s.filter(x=>(x.tasks||[]).every(t=>t.done)&&(x.tasks||[]).length>0).length;
-      const pct=s.length?Math.round(dn/s.length*100):0;
-      const dl=p.deadline?daysLeft(p.deadline):null;
-      return `<div onclick="openP('${p.id}')" style="background:var(--surf);border:1px solid var(--bord);border-radius:10px;margin-bottom:10px;cursor:pointer;overflow:hidden;animation:fadeUp .3s ease ${i*.05}s backwards">
-        <div style="height:3px;background:${acc};opacity:.6"></div>
-        <div style="display:flex;align-items:center;gap:12px;padding:13px 14px">
-          ${p.coverUrl?('<img src="'+p.coverUrl+'" style="width:50px;height:50px;border-radius:8px;object-fit:cover;flex-shrink:0">'):('<div style="width:50px;height:50px;border-radius:8px;background:'+acc+'18;border:1px solid '+acc+'30;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">♪</div>')}
-          <div style="flex:1;min-width:0">
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${p.title||'Untitled'}</div>
-            <div style="font-size:10px;color:var(--muted);margin:3px 0 7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${[p.artist,p.label].filter(Boolean).join(' · ')}</div>
-            <div style="display:flex;align-items:center;gap:8px">
-              <div style="flex:1;height:3px;background:var(--surf2);border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${acc};border-radius:2px;transition:width .4s"></div></div>
-              <span style="font-size:9px;color:var(--muted)">${dn}/${s.length}</span>
-            </div>
-            ${dl!==null?('<div style="font-size:9px;color:'+(dl<0?'#e07070':dl<7?'#d4a843':'var(--muted)')+';margin-top:5px">'+(dl<0?('⚠ '+Math.abs(dl)+'d overdue'):dl===0?'⚠ Due today':dl===1?'Tomorrow':dl<7?(dl+'d left'):(dl+' days left'))+'</div>'):''}
-          </div>
-          <div style="color:var(--muted);font-size:16px">›</div>
-        </div>
-      </div>`;
-    }).join('');
+    ps.sort(function(a,b){return (b.createdAt&&b.createdAt.seconds||0)-(a.createdAt&&a.createdAt.seconds||0);});
+    var listHtml='';
+    ps.forEach(function(p,i){
+      var acc2=p.theme&&p.theme.accent?p.theme.accent:'#c9383a';
+      var s=p.songs||[];
+      var dn=s.filter(function(x){return (x.tasks||[]).every(function(t){return t.done;})&&(x.tasks||[]).length>0;}).length;
+      var pct=s.length?Math.round(dn/s.length*100):0;
+      var dl=p.deadline?daysLeft(p.deadline):null;
+      listHtml+='<div onclick="openP(\''+p.id+'\')" style="background:var(--surf);border:1px solid var(--bord);border-radius:10px;margin-bottom:10px;cursor:pointer;overflow:hidden;animation:fadeUp .3s ease '+(i*.05)+'s backwards">';
+      listHtml+='<div style="height:3px;background:'+acc2+';opacity:.6"></div>';
+      listHtml+='<div style="display:flex;align-items:center;gap:12px;padding:13px 14px">';
+      if(p.coverUrl){
+        listHtml+='<img src="'+p.coverUrl+'" style="width:50px;height:50px;border-radius:8px;object-fit:cover;flex-shrink:0">';
+      } else {
+        listHtml+='<div style="width:50px;height:50px;border-radius:8px;background:'+acc2+'18;border:1px solid '+acc2+'30;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">♪</div>';
+      }
+      listHtml+='<div style="flex:1;min-width:0">';
+      listHtml+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:20px;letter-spacing:.04em;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">'+esc(p.title||'Untitled')+'</div>';
+      var meta=[p.artist,p.label].filter(Boolean).join(' · ');
+      listHtml+='<div style="font-size:10px;color:var(--muted);margin:3px 0 7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(meta)+'</div>';
+      listHtml+='<div style="display:flex;align-items:center;gap:8px">';
+      listHtml+='<div style="flex:1;height:3px;background:var(--surf2);border-radius:2px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+acc2+';border-radius:2px"></div></div>';
+      listHtml+='<span style="font-size:9px;color:var(--muted)">'+dn+'/'+s.length+'</span>';
+      listHtml+='</div>';
+      if(dl!==null){
+        var dlc=dl<0?'#e07070':dl<7?'#d4a843':'var(--muted)';
+        var dlt=dl<0?('⚠ '+Math.abs(dl)+'d overdue'):dl===0?'⚠ Due today':dl===1?'Tomorrow':dl<7?(dl+'d left'):(dl+' days left');
+        listHtml+='<div style="font-size:9px;color:'+dlc+';margin-top:5px">'+dlt+'</div>';
+      }
+      listHtml+='</div>';
+      listHtml+='<div style="color:var(--muted);font-size:16px">›</div>';
+      listHtml+='</div></div>';
+    });
+    el.innerHTML=listHtml;
   }catch(e){
-    const el=document.getElementById('plist');
-    if(el)el.innerHTML=`<div class="empty" style="color:#e07070">Error loading.<br><small>${e.message}</small></div>`;
+    var el2=document.getElementById('plist');
+    if(el2)el2.innerHTML='<div class="empty" style="color:#e07070">Error loading.<br><small>'+esc(e.message)+'</small></div>';
   }
 }
 
@@ -395,54 +416,68 @@ async function cProj(){
 function openP(pid){
   VO=false;TAB='overview';OC={};CID=pid;musicSub='songs';
   location.hash='#/project/'+pid;stopL();
-  setA(`<div class="loading"><div class="loading-w">W</div><div class="loading-t">Loading</div></div>`);
-  PL=db.collection('projects').doc(pid).onSnapshot(snap=>{
-    if(!snap.data()){setA(`<div class="loading"><div class="loading-t" style="color:#e07070">Not found.<br><button class="btn-s o" onclick="dash()" style="margin-top:12px">← Back</button></div></div>`);return;}
-    CP={id:snap.id,...snap.data()};
-    applyTheme(CP.theme?.dark!==false);
+  setA('<div class="loading"><div class="loading-w">W</div><div class="loading-t">Loading</div></div>');
+  PL=db.collection('projects').doc(pid).onSnapshot(function(snap){
+    if(!snap.data()){
+      setA('<div class="loading"><div class="loading-t" style="color:#e07070">Not found.<br><button class="btn-s o" onclick="dash()" style="margin-top:12px">← Back</button></div></div>');
+      return;
+    }
+    CP=Object.assign({id:snap.id},snap.data());
+    applyTheme(CP.theme&&CP.theme.dark!==false);
     rP();
-  },err=>setA(`<div class="loading" style="padding:30px;text-align:center"><div style="color:#e07070;font-size:12px">${err.message}</div><button class="btn-s o" onclick="dash()" style="margin-top:12px">← Back</button></div>`));
+  },function(err){
+    setA('<div class="loading" style="padding:30px;text-align:center"><div style="color:#e07070;font-size:12px">'+esc(err.message)+'</div><button class="btn-s o" onclick="dash()" style="margin-top:12px">← Back</button></div>');
+  });
 }
+
 function loadView(pid){
   VO=true;TAB='overview';OC={};musicSub='songs';stopL();
-  setA(`<div class="loading"><div class="loading-w">W</div><div class="loading-t">Loading</div></div>`);
+  setA('<div class="loading"><div class="loading-w">W</div><div class="loading-t">Loading</div></div>');
   logView(pid);
-  PL=db.collection('projects').doc(pid).onSnapshot(snap=>{
-    if(!snap.data()){setA(`<div class="loading"><div class="loading-t">Project not found.</div></div>`);return;}
-    CP={id:snap.id,...snap.data()};
-    applyTheme(CP.theme?.dark!==false);
+  PL=db.collection('projects').doc(pid).onSnapshot(function(snap){
+    if(!snap.data()){setA('<div class="loading"><div class="loading-t">Project not found.</div></div>');return;}
+    CP=Object.assign({id:snap.id},snap.data());
+    applyTheme(CP.theme&&CP.theme.dark!==false);
     rP();
-  },err=>setA(`<div class="loading"><div class="loading-t" style="color:#e07070">${err.message}</div></div>`));
+  },function(err){
+    setA('<div class="loading"><div class="loading-t" style="color:#e07070">'+esc(err.message)+'</div></div>');
+  });
 }
 
 function rP(){
-  const p=CP,th=p.theme||{accent:'#c9383a',dark:true};
-  const acc=th.accent||'#c9383a';
+  var p=CP,th=p.theme||{accent:'#c9383a',dark:true};
+  var acc=th.accent||'#c9383a';
   document.documentElement.style.setProperty('--acc',acc);
   applyTheme(th.dark!==false);
-  const dl=p.deadline?daysLeft(p.deadline):null;
-  const tabLabel=NAV_ITEMS.find(t=>t.id===TAB)?.label||TAB;
+  var dl=p.deadline?daysLeft(p.deadline):null;
+  var tabLabel=NAV_ITEMS.find(function(t){return t.id===TAB;});
+  tabLabel=tabLabel?tabLabel.label:TAB;
   updateFab();
-  setA(`<div style="min-height:100vh;background:var(--bg)">
-    <div style="position:sticky;top:0;z-index:100;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:var(--surf);border-bottom:1px solid var(--bord)">
-      <div style="display:flex;align-items:center;gap:6px;padding:36px 12px 12px">
-        <button class="iBtn" onclick="${VO?"location.hash=''":"dash()"}" style="font-size:20px">←</button>
-        <button class="iBtn" onclick="openNav()" style="font-size:20px">☰</button>
-        <div style="flex:1;min-width:0;padding:0 4px">
-          ${VO?`<span style="background:rgba(139,104,212,.15);color:#8b68d4;font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:2px 8px;border-radius:10px;margin-bottom:4px;display:inline-block">View Only</span><br>`:''}
-          <div style="font-size:9px;color:${acc};letter-spacing:.2em;text-transform:uppercase;margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.artist||'Wavmancer'}</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.05em;line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${p.title||'Untitled'}</div>
-        </div>
-        ${p.coverUrl?`<img src="${p.coverUrl}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid var(--bord)">`:''}
-        ${!VO?`<button class="iBtn" onclick="shareM()" style="color:${acc};font-size:18px">⤴</button>`:''}
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 16px 10px">
-        <div style="font-size:10px;color:${acc};letter-spacing:.18em;text-transform:uppercase;font-weight:500">${tabLabel}</div>
-        ${dl!==null?('<div style="font-size:10px;color:'+(dl<0?'#e07070':dl<7?'#d4a843':'var(--muted)')+'">'+( dl<0?('⚠ '+Math.abs(dl)+'d over'):dl===0?'⚠ Today':dl===1?'Tomorrow':(dl+'d left'))+'</div>'):''}
-      </div>
-    </div>
-    <div style="padding:14px;padding-bottom:96px">${bTab()}</div>
-  </div>`);
+  var h='';
+  h+='<div style="min-height:100vh;background:var(--bg)">';
+  h+='<div style="position:sticky;top:0;z-index:100;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:var(--surf);border-bottom:1px solid var(--bord)">';
+  h+='<div style="display:flex;align-items:center;gap:6px;padding:36px 12px 12px">';
+  h+='<button class="iBtn" onclick="'+(VO?"location.hash=''":"dash()")+'" style="font-size:20px">←</button>';
+  h+='<button class="iBtn" onclick="openNav()" style="font-size:20px">☰</button>';
+  h+='<div style="flex:1;min-width:0;padding:0 4px">';
+  if(VO)h+='<span style="background:rgba(139,104,212,.15);color:#8b68d4;font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:2px 8px;border-radius:10px;margin-bottom:4px;display:inline-block">View Only</span><br>';
+  h+='<div style="font-size:9px;color:'+acc+';letter-spacing:.2em;text-transform:uppercase;margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.artist||'Wavmancer')+'</div>';
+  h+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:24px;letter-spacing:.05em;line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">'+esc(p.title||'Untitled')+'</div>';
+  h+='</div>';
+  if(p.coverUrl)h+='<img src="'+p.coverUrl+'" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid var(--bord)">';
+  if(!VO)h+='<button class="iBtn" onclick="shareM()" style="color:'+acc+';font-size:18px">⤴</button>';
+  h+='</div>';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 16px 10px">';
+  h+='<div style="font-size:10px;color:'+acc+';letter-spacing:.18em;text-transform:uppercase;font-weight:500">'+tabLabel+'</div>';
+  if(dl!==null){
+    var dlcolor=dl<0?'#e07070':dl<7?'#d4a843':'var(--muted)';
+    var dltext=dl<0?('⚠ '+Math.abs(dl)+'d over'):dl===0?'⚠ Today':dl===1?'Tomorrow':(dl+'d left');
+    h+='<div style="font-size:10px;color:'+dlcolor+'">'+dltext+'</div>';
+  }
+  h+='</div></div>';
+  h+='<div style="padding:14px;padding-bottom:96px">'+bTab()+'</div>';
+  h+='</div>';
+  setA(h);
   if(TAB==='music'&&musicSub!=='focus')initDrag();
 }
 
@@ -1097,82 +1132,100 @@ function bTab(){
 
 /* ── SONG CARDS ── */
 function mCard(s,i,acc){
-  const dn=(s.tasks||[]).every(t=>t.done)&&(s.tasks||[]).length>0;
-  const dt=(s.tasks||[]).filter(t=>t.done).length,tot=(s.tasks||[]).length;
-  const bc=dn?'#4caf82':s.priority?'#d4a843':acc;
-  const pct=tot?Math.round(dt/tot*100):0;
-  return `<div onclick="sT('music')" style="background:var(--surf);border:1px solid var(--bord);border-radius:10px;margin-bottom:8px;overflow:hidden;cursor:pointer;animation:fadeUp .25s ease ${i*.04}s backwards;transition:background .15s">
-    <div style="height:2px;background:linear-gradient(90deg,${bc},${bc}44);width:${pct}%"></div>
-    <div style="display:flex;align-items:center;gap:10px;padding:11px 13px">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--muted);min-width:24px;line-height:1">${s.order||i+1}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${s.name}</div>
-        <div style="display:flex;gap:5px;margin-top:3px;align-items:center;flex-wrap:wrap">
-          <span class="badge" style="background:${dn?'rgba(76,175,130,.15)':'var(--surf2)'};color:${dn?'#4caf82':'var(--muted)'}">${dn?'Complete':s.statusLabel||'In Progress'}</span>
-          <span style="font-size:9px;color:var(--muted)">${dt}/${tot}</span>
-        </div>
-      </div>
-      <div style="color:var(--muted);font-size:14px">›</div>
-    </div>
-  </div>`;
+  var dn=(s.tasks||[]).every(function(t){return t.done;})&&(s.tasks||[]).length>0;
+  var dt=(s.tasks||[]).filter(function(t){return t.done;}).length;
+  var tot=(s.tasks||[]).length;
+  var bc=dn?'#4caf82':s.priority?'#d4a843':acc;
+  var pct=tot?Math.round(dt/tot*100):0;
+  var h='';
+  h+='<div onclick="sT(\'music\')" style="background:var(--surf);border:1px solid var(--bord);border-radius:10px;margin-bottom:8px;overflow:hidden;cursor:pointer;animation:fadeUp .25s ease '+(i*.04)+'s backwards">';
+  h+='<div style="height:2px;background:'+bc+';width:'+pct+'%"></div>';
+  h+='<div style="display:flex;align-items:center;gap:10px;padding:11px 13px">';
+  h+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:22px;color:var(--muted);min-width:24px;line-height:1">'+(s.order||i+1)+'</div>';
+  h+='<div style="flex:1;min-width:0">';
+  h+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">'+esc(s.name)+'</div>';
+  h+='<div style="display:flex;gap:5px;margin-top:3px;align-items:center;flex-wrap:wrap">';
+  h+='<span class="badge" style="background:'+(dn?'rgba(76,175,130,.15)':'var(--surf2)')+';color:'+(dn?'#4caf82':'var(--muted)')+'">'+esc(dn?'Complete':s.statusLabel||'In Progress')+'</span>';
+  h+='<span style="font-size:9px;color:var(--muted)">'+dt+'/'+tot+'</span>';
+  h+='</div></div>';
+  h+='<div style="color:var(--muted);font-size:14px">›</div>';
+  h+='</div></div>';
+  return h;
 }
 
 function sCard(s,i,acc){
-  const dn=(s.tasks||[]).every(t=>t.done)&&(s.tasks||[]).length>0;
-  const dt=(s.tasks||[]).filter(t=>t.done).length,tot=(s.tasks||[]).length;
-  const bc=dn?'#4caf82':s.priority?'#d4a843':acc,op=OC[s.id];
-  const pct=tot?Math.round(dt/tot*100):0;
-  return `<div class="scard" id="sc-${s.id}" draggable="true" style="animation:fadeUp .25s ease ${i*.04}s backwards"
-    ondragstart="dStart(event,'${s.id}')" ondragover="dOver(event,'${s.id}')" ondrop="dDrop(event,'${s.id}')" ondragend="dEnd()">
-    <div style="height:2px;background:linear-gradient(90deg,${bc},${bc}44);width:${pct}%;transition:width .3s"></div>
-    <div class="sheader" onclick="tC('${s.id}')">
-      <div class="drag-handle" onclick="event.stopPropagation()">⠿</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--muted);min-width:24px">${s.order||i+1}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${s.name}</div>
-        <div style="display:flex;gap:5px;margin-top:3px;flex-wrap:wrap;align-items:center">
-          <span class="badge" style="background:${dn?'rgba(76,175,130,.15)':'var(--surf2)'};color:${dn?'#4caf82':'var(--muted)'}">${dn?'Complete':s.statusLabel||'In Progress'}</span>
-          ${s.priority&&!dn?`<span class="badge" style="background:rgba(212,168,67,.15);color:#d4a843">Priority</span>`:''}
-          ${s.lyrics?`<span class="badge" style="background:rgba(74,143,196,.15);color:#4a8fc4">Lyrics</span>`:''}
-          <span style="font-size:9px;color:var(--muted)">${dt}/${tot} · ${pct}%</span>
-        </div>
-      </div>
-      <span style="color:var(--muted);font-size:13px;transition:transform .25s;transform:${op?'rotate(180deg)':'none'};padding:4px">▾</span>
-    </div>
-    ${op?`<div style="padding:0 13px 13px;border-top:1px solid var(--bord)">
-      <div class="flabel" style="margin:12px 0 8px">Tasks</div>
-      ${(s.tasks||[]).map(task=>`
-      <div class="trow" ${!VO?`onclick="tT('${s.id}','${task.id}')"`:''}  style="cursor:${VO?'default':'pointer'}">
-        <div class="tcheck${task.done?' on':''}"></div>
-        <div style="font-size:12px;line-height:1.5;flex:1;color:${task.done?'var(--muted)':'var(--text)'};text-decoration:${task.done?'line-through':'none'}">${task.text}</div>
-        ${!VO?`<button onclick="event.stopPropagation();dT('${s.id}','${task.id}')" class="iBtn" style="font-size:11px;padding:2px 6px;opacity:.3">✕</button>`:''}
-      </div>`).join('')}
-      ${!VO?`<div style="display:flex;gap:6px;margin-top:8px">
-        <input class="field" id="ni-${s.id}" placeholder="Add task..." style="flex:1;margin:0" onkeydown="if(event.key==='Enter')aT('${s.id}')">
-        <button class="btn-s" onclick="aT('${s.id}')">Add</button>
-      </div>
-      ${(s.listenLink||s.fileLink)?`<div style="display:flex;gap:8px;margin-top:10px">
-        ${s.listenLink?`<a href="${s.listenLink}" target="_blank" class="link-btn" style="flex:1;color:${acc}">▶ Listen</a>`:''}
-        ${s.fileLink?`<a href="${s.fileLink}" target="_blank" class="link-btn" style="flex:1;color:var(--muted)">📂 Session</a>`:''}
-      </div>`:''}
-      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
-        <button class="btn-s o" onclick="eSM('${s.id}')">Edit</button>
-        <button class="btn-s o" onclick="lyricsM('${s.id}')">Lyrics</button>
-        <button class="btn-s o" onclick="addSongNote('${s.id}')">+ Note</button>
-        <button class="btn-s d" onclick="dS('${s.id}')">Delete</button>
-      </div>`:''}
-      ${s.lyrics&&VO?`<div style="margin-top:12px">
-        <div class="flabel" style="margin-bottom:6px">Lyrics</div>
-        <div style="background:var(--surf2);border-radius:6px;padding:12px;font-size:12px;line-height:1.9;white-space:pre-wrap;color:var(--text)">${s.lyrics}</div>
-      </div>`:''}
-      ${(s.sessionNotes||[]).length?`<div style="margin-top:12px">
-        <div class="flabel" style="margin-bottom:8px">Session Log</div>
-        ${[...(s.sessionNotes||[])].reverse().map(n=>`<div style="background:var(--surf2);border-radius:6px;padding:10px 12px;margin-bottom:6px;font-size:11px;line-height:1.6;color:var(--text)">
-          <div style="color:var(--muted);font-size:9px;letter-spacing:.1em;margin-bottom:4px">${n.date}</div>${n.text}
-        </div>`).join('')}
-      </div>`:''}
-    </div>`:''}
-  </div>`;
+  var dn=(s.tasks||[]).every(function(t){return t.done;})&&(s.tasks||[]).length>0;
+  var dt=(s.tasks||[]).filter(function(t){return t.done;}).length;
+  var tot=(s.tasks||[]).length;
+  var bc=dn?'#4caf82':s.priority?'#d4a843':acc;
+  var op=OC[s.id];
+  var pct=tot?Math.round(dt/tot*100):0;
+  var h='';
+  h+='<div class="scard" id="sc-'+s.id+'" draggable="true" style="animation:fadeUp .25s ease '+(i*.04)+'s backwards"';
+  h+=' ondragstart="dStart(event,\''+s.id+'\')" ondragover="dOver(event,\''+s.id+'\')" ondrop="dDrop(event,\''+s.id+'\')" ondragend="dEnd()">';
+  h+='<div style="height:2px;background:'+bc+';width:'+pct+'%;transition:width .3s"></div>';
+  h+='<div class="sheader" onclick="tC(\''+s.id+'\')">';
+  h+='<div class="drag-handle" onclick="event.stopPropagation()">⠿</div>';
+  h+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:22px;color:var(--muted);min-width:24px">'+(s.order||i+1)+'</div>';
+  h+='<div style="flex:1;min-width:0">';
+  h+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:20px;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">'+esc(s.name)+'</div>';
+  h+='<div style="display:flex;gap:5px;margin-top:3px;flex-wrap:wrap;align-items:center">';
+  h+='<span class="badge" style="background:'+(dn?'rgba(76,175,130,.15)':'var(--surf2)')+';color:'+(dn?'#4caf82':'var(--muted)')+'">'+esc(dn?'Complete':s.statusLabel||'In Progress')+'</span>';
+  if(s.priority&&!dn)h+='<span class="badge" style="background:rgba(212,168,67,.15);color:#d4a843">Priority</span>';
+  if(s.lyrics)h+='<span class="badge" style="background:rgba(74,143,196,.15);color:#4a8fc4">Lyrics</span>';
+  h+='<span style="font-size:9px;color:var(--muted)">'+dt+'/'+tot+' · '+pct+'%</span>';
+  h+='</div></div>';
+  h+='<span style="color:var(--muted);font-size:13px;transition:transform .25s;transform:'+(op?'rotate(180deg)':'none')+';padding:4px">▾</span>';
+  h+='</div>';
+  if(op){
+    h+='<div style="padding:0 13px 13px;border-top:1px solid var(--bord)">';
+    h+='<div class="flabel" style="margin:12px 0 8px">Tasks</div>';
+    (s.tasks||[]).forEach(function(task){
+      h+='<div class="trow"'+(VO?'':' onclick="tT(\''+s.id+'\',\''+task.id+'\')"')+' style="cursor:'+(VO?'default':'pointer')+'">';
+      h+='<div class="tcheck'+(task.done?' on':'')+'"></div>';
+      h+='<div style="font-size:12px;line-height:1.5;flex:1;color:'+(task.done?'var(--muted)':'var(--text)')+';text-decoration:'+(task.done?'line-through':'none')+'">'+esc(task.text)+'</div>';
+      if(!VO)h+='<button onclick="event.stopPropagation();dT(\''+s.id+'\',\''+task.id+'\')" class="iBtn" style="font-size:11px;padding:2px 6px;opacity:.3">✕</button>';
+      h+='</div>';
+    });
+    if(!VO){
+      h+='<div style="display:flex;gap:6px;margin-top:8px">';
+      h+='<input class="field" id="ni-'+s.id+'" placeholder="Add task..." style="flex:1;margin:0" onkeydown="if(event.key===\'Enter\')aT(\''+s.id+'\')">';
+      h+='<button class="btn-s" onclick="aT(\''+s.id+'\')">Add</button>';
+      h+='</div>';
+      if(s.listenLink||s.fileLink){
+        h+='<div style="display:flex;gap:8px;margin-top:10px">';
+        if(s.listenLink)h+='<a href="'+esc(s.listenLink)+'" target="_blank" class="link-btn" style="flex:1;color:'+acc+'">▶ Listen</a>';
+        if(s.fileLink)h+='<a href="'+esc(s.fileLink)+'" target="_blank" class="link-btn" style="flex:1;color:var(--muted)">📂 Session</a>';
+        h+='</div>';
+      }
+      h+='<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">';
+      h+='<button class="btn-s o" onclick="eSM(\''+s.id+'\')">Edit</button>';
+      h+='<button class="btn-s o" onclick="lyricsM(\''+s.id+'\')">Lyrics</button>';
+      h+='<button class="btn-s o" onclick="addSongNote(\''+s.id+'\')">+ Note</button>';
+      h+='<button class="btn-s d" onclick="dS(\''+s.id+'\')">Delete</button>';
+      h+='</div>';
+    }
+    if(s.lyrics&&VO){
+      h+='<div style="margin-top:12px">';
+      h+='<div class="flabel" style="margin-bottom:6px">Lyrics</div>';
+      h+='<div style="background:var(--surf2);border-radius:6px;padding:12px;font-size:12px;line-height:1.9;white-space:pre-wrap;color:var(--text)">'+esc(s.lyrics)+'</div>';
+      h+='</div>';
+    }
+    if((s.sessionNotes||[]).length){
+      h+='<div style="margin-top:12px">';
+      h+='<div class="flabel" style="margin-bottom:8px">Session Log</div>';
+      var notes=[].concat(s.sessionNotes||[]).reverse();
+      notes.forEach(function(n){
+        h+='<div style="background:var(--surf2);border-radius:6px;padding:10px 12px;margin-bottom:6px;font-size:11px;line-height:1.6;color:var(--text)">';
+        h+='<div style="color:var(--muted);font-size:9px;letter-spacing:.1em;margin-bottom:4px">'+esc(n.date)+'</div>';
+        h+=esc(n.text)+'</div>';
+      });
+      h+='</div>';
+    }
+    h+='</div>';
+  }
+  h+='</div>';
+  return h;
 }
 
 /* ── DRAG ── */
@@ -1395,53 +1448,59 @@ function cpL(l){navigator.clipboard.writeText(l).then(()=>{const b=document.getE
 /* ── SETTINGS ── */
 let _th={},_pf=null;
 function settingsM(){
-  const p=CP;_th={...(p.theme||{accent:'#c9383a',dark:true})};_pf=null;
-  const ACCS=['#c9383a','#e07b3a','#d4a843','#4caf82','#4a8fc4','#8b68d4','#e84393','#e8584a'];
-  const BGS_DARK=['#0a0a0c','#0d0d1a','#0a0d0a','#1a0808','#0d0a14'];
-  const BGS_LIGHT=['#f2f1ee','#ffffff','#f0f4f8','#fff8f0','#f5f0ff'];
-  SM(`<div class="modal-title">Settings</div>
-    <div class="flabel">Cover Photo</div>
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
-      <div id="cprev" style="width:68px;height:68px;border-radius:10px;background:var(--surf2);border:1px solid var(--bord);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">
-        ${p.coverUrl?`<img src="${p.coverUrl}" style="width:100%;height:100%;object-fit:cover">`:'♪'}
-      </div>
-      <div>
-        <input type="file" id="cfile" accept="image/*" style="display:none" onchange="pCov(this)">
-        <button class="btn-s o" onclick="document.getElementById('cfile').click()">Upload Photo</button>
-        <div style="font-size:10px;color:var(--muted);margin-top:5px">Square crop recommended</div>
-      </div>
-    </div>
-    <div class="flabel">Accent Color</div>
-    <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px;align-items:center">
-      ${ACCS.map(c=>`<div onclick="sA('${c}')" style="width:30px;height:30px;border-radius:50%;background:${c};cursor:pointer;border:${_th.accent===c?'3px solid var(--text)':'2px solid var(--bord)'};flex-shrink:0;transition:transform .15s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"></div>`).join('')}
-      <input type="color" value="${_th.accent}" oninput="sA(this.value)" style="width:30px;height:30px;border-radius:50%;border:2px solid var(--bord);cursor:pointer;padding:2px;background:none">
-    </div>
-    <div class="flabel">Background (Dark Mode)</div>
-    <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
-      ${BGS_DARK.map(c=>`<div onclick="sBg('${c}')" style="width:30px;height:30px;border-radius:6px;background:${c};cursor:pointer;border:${_th.bg===c?'3px solid var(--text)':'2px solid var(--bord)'};flex-shrink:0"></div>`).join('')}
-    </div>
-    <div class="flabel">Background (Light Mode)</div>
-    <div style="display:flex;gap:8px;margin-bottom:18px;align-items:center">
-      ${BGS_LIGHT.map(c=>`<div onclick="sBg('${c}')" style="width:30px;height:30px;border-radius:6px;background:${c};border:${_th.bg===c?'3px solid #333':'2px solid var(--bord)'};cursor:pointer;flex-shrink:0"></div>`).join('')}
-      <input type="color" value="${_th.bg||'#0a0a0c'}" oninput="sBg(this.value)" style="width:30px;height:30px;border-radius:6px;border:2px solid var(--bord);cursor:pointer;padding:2px;background:none">
-    </div>
-    <div class="flabel">Project Info</div>
-    <input class="field" id="stitle" value="${esc(p.title||'')}" placeholder="Project title">
-    <input class="field" id="sartist" value="${esc(p.artist||'')}" placeholder="Artist name">
-    <input class="field" id="slabel" value="${esc(p.label||'')}" placeholder="Label">
-    <input class="field" id="scoprod" value="${esc(p.coproducer||'')}" placeholder="Co-producer">
-    <div class="flabel" style="margin-top:4px">Release Deadline</div>
-    <input class="field" id="sdl" type="date" value="${p.deadline||''}">
-    <div class="err" id="serr"></div>
-    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--bord)">
-      <div class="flabel" style="color:#e07070">Danger Zone</div>
-      <button class="btn-s d" onclick="CM();deleteProject()" style="width:100%;padding:11px">Delete This Project</button>
-    </div>
-    <div class="mactions">
-      <button class="btn-g" onclick="CM()">Cancel</button>
-      <button class="btn-p" style="width:auto;padding:10px 22px" onclick="savSet()">Save</button>
-    </div>`);
+  var p=CP;_th=Object.assign({},p.theme||{accent:'#c9383a',dark:true});_pf=null;
+  var ACCS=['#c9383a','#e07b3a','#d4a843','#4caf82','#4a8fc4','#8b68d4','#e84393','#e8584a'];
+  var BGS_DARK=['#0a0a0c','#0d0d1a','#0a0d0a','#1a0808','#0d0a14'];
+  var BGS_LIGHT=['#f2f1ee','#ffffff','#f0f4f8','#fff8f0','#f5f0ff'];
+  var h='<div class="modal-title">Settings</div>';
+  h+='<div class="flabel">Cover Photo</div>';
+  h+='<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">';
+  h+='<div id="cprev" style="width:68px;height:68px;border-radius:10px;background:var(--surf2);border:1px solid var(--bord);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">';
+  if(p.coverUrl)h+='<img src="'+p.coverUrl+'" style="width:100%;height:100%;object-fit:cover">';
+  else h+='♪';
+  h+='</div>';
+  h+='<div><input type="file" id="cfile" accept="image/*" style="display:none" onchange="pCov(this)">';
+  h+='<button class="btn-s o" onclick="document.getElementById(\'cfile\').click()">Upload Photo</button>';
+  h+='<div style="font-size:10px;color:var(--muted);margin-top:5px">Square crop recommended</div></div></div>';
+  h+='<div class="flabel">Accent Color</div>';
+  h+='<div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px;align-items:center">';
+  ACCS.forEach(function(c){
+    h+='<div onclick="sA(\''+c+'\')" style="width:30px;height:30px;border-radius:50%;background:'+c+';cursor:pointer;border:'+(_th.accent===c?'3px solid var(--text)':'2px solid var(--bord)')+'"></div>';
+  });
+  h+='<input type="color" value="'+(_th.accent||'#c9383a')+'" oninput="sA(this.value)" style="width:30px;height:30px;border-radius:50%;border:2px solid var(--bord);cursor:pointer;padding:2px;background:none">';
+  h+='</div>';
+  h+='<div class="flabel">Background (Dark Mode)</div>';
+  h+='<div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">';
+  BGS_DARK.forEach(function(c){
+    h+='<div onclick="sBg(\''+c+'\')" style="width:30px;height:30px;border-radius:6px;background:'+c+';cursor:pointer;border:'+(_th.bg===c?'3px solid var(--text)':'2px solid var(--bord)')+'"></div>';
+  });
+  h+='</div>';
+  h+='<div class="flabel">Background (Light Mode)</div>';
+  h+='<div style="display:flex;gap:8px;margin-bottom:18px;align-items:center">';
+  BGS_LIGHT.forEach(function(c){
+    h+='<div onclick="sBg(\''+c+'\')" style="width:30px;height:30px;border-radius:6px;background:'+c+';border:'+(_th.bg===c?'3px solid #333':'2px solid var(--bord)')+'";cursor:pointer></div>';
+  });
+  h+='<input type="color" value="'+(_th.bg||'#0a0a0c')+'" oninput="sBg(this.value)" style="width:30px;height:30px;border-radius:6px;border:2px solid var(--bord);cursor:pointer;padding:2px;background:none">';
+  h+='</div>';
+  h+='<div class="flabel">Project Info</div>';
+  h+='<input class="field" id="stitle" value="'+esc(p.title||'')+'" placeholder="Project title">';
+  h+='<input class="field" id="sartist" value="'+esc(p.artist||'')+'" placeholder="Artist name">';
+  h+='<input class="field" id="slabel" value="'+esc(p.label||'')+'" placeholder="Label">';
+  h+='<input class="field" id="scoprod" value="'+esc(p.coproducer||'')+'" placeholder="Co-producer">';
+  h+='<div class="flabel" style="margin-top:4px">Release Deadline</div>';
+  h+='<input class="field" id="sdl" type="date" value="'+(p.deadline||'')+'">';
+  h+='<div class="err" id="serr"></div>';
+  h+='<div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--bord)">';
+  h+='<div class="flabel" style="color:#e07070">Danger Zone</div>';
+  h+='<button class="btn-s d" onclick="CM();deleteProject()" style="width:100%;padding:11px">Delete This Project</button>';
+  h+='</div>';
+  h+='<div class="mactions">';
+  h+='<button class="btn-g" onclick="CM()">Cancel</button>';
+  h+='<button class="btn-p" style="width:auto;padding:10px 22px" onclick="savSet()">Save</button>';
+  h+='</div>';
+  SM(h);
 }
+
 function pCov(inp){_pf=inp.files[0];if(!_pf)return;const r=new FileReader();r.onload=e=>{const el=document.getElementById('cprev');if(el)el.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;};r.readAsDataURL(_pf);}
 function sA(c){_th.accent=c;}
 function sBg(c){_th.bg=c;}
