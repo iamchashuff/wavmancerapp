@@ -424,7 +424,7 @@ function rP(){
   const tabLabel=NAV_ITEMS.find(t=>t.id===TAB)?.label||TAB;
   updateFab();
   setA(`<div style="min-height:100vh;background:var(--bg)">
-    <div style="position:sticky;top:0;z-index:100;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:color-mix(in srgb,var(--bg) 85%,transparent);border-bottom:1px solid var(--bord)">
+    <div style="position:sticky;top:0;z-index:100;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:var(--surf);border-bottom:1px solid var(--bord)">
       <div style="display:flex;align-items:center;gap:6px;padding:36px 12px 12px">
         <button class="iBtn" onclick="${VO?"location.hash=''":"dash()"}" style="font-size:20px">←</button>
         <button class="iBtn" onclick="openNav()" style="font-size:20px">☰</button>
